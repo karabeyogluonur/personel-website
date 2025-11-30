@@ -1,0 +1,38 @@
+services:
+  pw.web:
+    container_name: personelwebsite_web_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      pw.db:
+        condition: service_healthy
+
+    restart: always
+
+  pw.db:
+    container_name: personelwebsite_db
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pw_user
+      POSTGRES_PASSWORD: your_strong_password
+      POSTGRES_DB: PersonelWebsiteDB
+
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pw_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    restart: always
+
+volumes:
+  db_data:

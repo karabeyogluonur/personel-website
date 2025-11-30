@@ -1,0 +1,45 @@
+* text=auto
+*.sh text eol=lf
+*.bat text eol=crlf
+
+*.cs diff=csharp
+*.csproj diff=xml
+*.sln diff=union
+*.resx diff=xml
+*.xaml diff=xml
+*.cshtml diff=html
+*.razor diff=html
+
+*.js diff=javascript
+*.ts diff=typescript
+*.css diff=css
+*.scss diff=css
+*.html diff=html
+*.json diff=json
+*.xml diff=xml
+*.config diff=xml
+
+appsettings.json merge=union
+packages.lock.json merge=union
+*.nuspec merge=union
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+
+*.yml text eol=lf
+*.yaml text eol=lf
+*.env text eol=lf
+*.log text eol=lf
+
+*.md linguist-language=Markdown
+*.rst linguist-language=reStructuredText
