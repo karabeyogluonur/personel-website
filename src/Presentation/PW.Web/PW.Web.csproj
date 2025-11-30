@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\PW.Application\PW.Application.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\PW.Persistence\PW.Persistence.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
