@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Presentation/PW.Web/bin/Debug/net9.0/PW.Web.dll",
+            "program": "${workspaceFolder}/src/Presentation/PW.Web/bin/Debug/net10.0/PW.Web.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Presentation/PW.Web",
             "stopAtEntry": false,
