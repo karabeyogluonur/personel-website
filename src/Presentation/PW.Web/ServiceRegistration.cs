@@ -12,7 +12,7 @@ namespace PW.Web
         }
         public static void AddControllersService(this IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddControllersWithViews().AddRazorRuntimeCompilation();
         }
     }
 }
