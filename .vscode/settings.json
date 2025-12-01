@@ -15,6 +15,7 @@
     },
     "editor.defaultFormatter":"ms-dotnettools.csharp",
     "editor.minimap.enabled": false,
+    "explorer.compactFolders": false,
     "window.zoomLevel": 0,
     "workbench.colorTheme": "Default Dark+",
     "workbench.iconTheme": "material-icon-theme",
@@ -44,5 +45,7 @@
         "**/bin": true,
         "**/obj": true,
         "**/.vs": true
-    }
+    },
+    "scm.compactFolders": false,
+    "diffEditor.renderSideBySide": true
 }
