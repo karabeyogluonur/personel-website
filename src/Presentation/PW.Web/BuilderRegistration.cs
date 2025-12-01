@@ -6,6 +6,8 @@ namespace PW.Web
     {
         public static void ConfigureMiddleware(this WebApplication app)
         {
+            app.UseStaticFiles();
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -19,7 +21,6 @@ namespace PW.Web
 
         public static void ConfigureRouting(this WebApplication app)
         {
-            app.MapStaticAssets();
 
             app.MapControllerRoute(
                 name: "areas",

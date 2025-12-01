@@ -1,15 +1,34 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    Layout = "_Root";
+}
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PW.Web</title>
-</head>
+<div class="app-page flex-column flex-column-fluid" id="kt_app_page">
 
-<body>
-    @RenderBody()
+    @{
+        await Html.RenderPartialAsync("_Header");
+    }
+
+    <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
+        @{
+            await Html.RenderPartialAsync("_Sidebar");
+        }
+        <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+            <div class="d-flex flex-column flex-column-fluid">
+                <div id="kt_app_content" class="app-content flex-column-fluid">
+                    <div id="kt_app_content_container" class="app-container container-fluid">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+            @{
+                await Html.RenderPartialAsync("_Footer");
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
     @await RenderSectionAsync("Scripts", required: false)
-</body>
-
-</html>
+}
+@section Styles {
+    @await RenderSectionAsync("Styles", required: false)
+}
