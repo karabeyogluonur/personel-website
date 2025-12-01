@@ -1,3 +1,5 @@
+using PW.Application.Common.Constants;
+
 namespace PW.Web
 {
     public static class BuilderRegistration
@@ -18,10 +20,16 @@ namespace PW.Web
         public static void ConfigureRouting(this WebApplication app)
         {
             app.MapStaticAssets();
+
+            app.MapControllerRoute(
+                name: "areas",
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+            );
+
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
-                .WithStaticAssets();
+                pattern: "{controller=Home}/{action=Index}/{id?}"
+            );
         }
     }
 }
