@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Core\PW.Application\PW.Application.csproj" />
     <ProjectReference Include="..\..\Core\PW.Domain\PW.Domain.csproj" />
   </ItemGroup>
 

@@ -4,9 +4,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using PW.Persistence.Contexts;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using PW.Domain.Common;
 using PW.Persistence.Interceptors;
 using TM.Infrastructure.Persistence.Interceptors;
+using PW.Persistence.Repositories;
+using PW.Application.Interfaces.Repositories;
 
 namespace PW.Persistence
 {
@@ -26,6 +27,8 @@ namespace PW.Persistence
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             #endregion
         }
