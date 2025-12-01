@@ -5,6 +5,7 @@
     "files.insertFinalNewline": true,
     "files.encoding": "utf8",
     "editor.tabSize": 4,
+     "editor.fontSize": 12,
     "editor.insertSpaces": true,
     "editor.detectIndentation": false,
     "editor.wordWrap": "on",
