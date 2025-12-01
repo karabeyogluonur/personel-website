@@ -7,10 +7,20 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/src/Presentation/PW.Web.csproj"
+                "${workspaceFolder}"
             ],
             "problemMatcher": "$msCompile",
             "group": "build"
+        },
+        {
+            "label": "restore",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "restore",
+                "${workspaceFolder}"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }
