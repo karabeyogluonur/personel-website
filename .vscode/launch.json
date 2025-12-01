@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch",
+            "name": ".NET Core Launch (PW.Web)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/Presentation/PW.Web/bin/Debug/net9.0/PW.Web.dll",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src/Presentation/PW.Web",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
