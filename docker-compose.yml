@@ -7,7 +7,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=pw.db;Port=5432;Database=PersonelWebsiteDB;Username=pw_user;Password=your_strong_password"
     depends_on:
       pw.db:
         condition: service_healthy
@@ -21,12 +22,13 @@ services:
       POSTGRES_USER: pw_user
       POSTGRES_PASSWORD: your_strong_password
       POSTGRES_DB: PersonelWebsiteDB
-
+    ports:
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pw_user"]
+      test: ["CMD-SHELL", "pg_isready -U pw_user -d PersonelWebsiteDB -h localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
