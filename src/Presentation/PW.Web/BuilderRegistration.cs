@@ -1,4 +1,4 @@
-using PW.Application.Common.Constants;
+using PW.Web.Mvc.Middlewares;
 
 namespace PW.Web
 {
@@ -9,19 +9,19 @@ namespace PW.Web
             app.UseStaticFiles();
 
             if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
-            }
+            else
+                app.UseDeveloperExceptionPage();
 
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
+            app.UseMiddleware<GlobalExceptionMiddleware>();
+            app.UseStatusCodePagesWithReExecute("/Error/{0}");
         }
 
         public static void ConfigureRouting(this WebApplication app)
         {
-
             app.MapControllerRoute(
                 name: "areas",
                 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
