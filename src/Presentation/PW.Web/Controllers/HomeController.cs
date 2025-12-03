@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace PW.Web.Controllers;
 
-public class HomeController : Controller
+public class HomeController : BasePublicController
 {
     public HomeController()
     {
