@@ -1,20 +1,29 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    Layout = "_Root";
+}
 
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PW.Web</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/PW.Web.styles.css" asp-append-version="true" />
-</head>
-
-<body>
-    @RenderBody()
-
+<div class="app-page  flex-column flex-column-fluid " id="kt_app_page">
+    @{
+        await Html.RenderPartialAsync("_Header");
+    }
+    <div class="app-wrapper  flex-column flex-row-fluid " id="kt_app_wrapper">
+        <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+            <div class="d-flex flex-column flex-column-fluid">
+                <div id="kt_app_content" class="app-content flex-column-fluid">
+                    <div id="kt_app_content_container" class="app-container container-fluid">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+            @{
+                await Html.RenderPartialAsync("_Footer");
+            }
+        </div>
+    </div>
+</div>
+@section Scripts {
     @await RenderSectionAsync("Scripts", required: false)
-</body>
-
-</html>
+}
+@section Styles {
+    @await RenderSectionAsync("Styles", required: false)
+}
