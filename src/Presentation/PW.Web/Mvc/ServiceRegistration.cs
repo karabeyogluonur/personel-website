@@ -1,7 +1,7 @@
 using PW.Application;
 using PW.Persistence;
 
-namespace PW.Web
+namespace PW.Web.Mvc
 {
     public static class ServiceRegistration
     {

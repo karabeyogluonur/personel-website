@@ -1,6 +1,6 @@
 using PW.Web.Mvc.Middlewares;
 
-namespace PW.Web
+namespace PW.Web.Mvc
 {
     public static class BuilderRegistration
     {

@@ -1,4 +1,4 @@
-using PW.Web;
+using PW.Web.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
