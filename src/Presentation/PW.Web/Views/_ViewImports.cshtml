@@ -1,2 +1,6 @@
-﻿@using PW.Web
+﻿@using Microsoft.Extensions.Localization
+@using PW.Web
+@using PW.Web.Resources
+
+@inject IStringLocalizer<SharedResources> T
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers

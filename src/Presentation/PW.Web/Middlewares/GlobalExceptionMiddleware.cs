@@ -1,7 +1,7 @@
 using Application.Common.Exceptions;
 using System.Text.Json;
 
-namespace PW.Web.Mvc.Middlewares
+namespace PW.Web.Middlewares
 {
     public class GlobalExceptionMiddleware
     {

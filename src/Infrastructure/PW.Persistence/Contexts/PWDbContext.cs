@@ -1,9 +1,14 @@
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using PW.Domain.Common;
+using PW.Domain.Entities.Localization;
 namespace PW.Persistence.Contexts
 {
     public class PWDbContext : DbContext
     {
+        public DbSet<Language> Languages { get; set; }
+
         public PWDbContext(DbContextOptions<PWDbContext> options) : base(options)
         {
 
@@ -12,7 +17,20 @@ namespace PW.Persistence.Contexts
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            builder.ApplyConfigurationsFromAssembly(typeof(PWDbContext).Assembly);
+
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                if (typeof(ISoftDeleteEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    var parameter = Expression.Parameter(entityType.ClrType, "e");
+                    var prop = Expression.Property(parameter, nameof(ISoftDeleteEntity.IsDeleted));
+                    var body = Expression.Equal(prop, Expression.Constant(false));
+                    var lambda = Expression.Lambda(body, parameter);
+                    builder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+                }
+            }
         }
     }
 }

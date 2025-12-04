@@ -26,6 +26,7 @@ namespace PW.Persistence
             {
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+                options.EnableSensitiveDataLogging();
             });
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

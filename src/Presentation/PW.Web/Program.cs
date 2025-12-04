@@ -1,13 +1,14 @@
-using PW.Web.Mvc;
+using PW.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersService();
-builder.AddLayerServices();
+builder.Services.AddWebLayerServices();
+builder.Services.AddApplicationInfrastructure(builder);
+
+var localizationConfig = builder.Services.AddDatabaseLocalization();
 
 var app = builder.Build();
-
-app.ConfigureMiddleware();
-app.ConfigureRouting();
+app.ConfigurePipeline();
+app.ConfigureRoutes(localizationConfig.CultureConstraint);
 
 app.Run();
