@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.Options;
+using PW.Persistence.Extensions;
 using PW.Web.Middlewares;
 
 namespace PW.Web.Extensions
@@ -8,15 +9,6 @@ namespace PW.Web.Extensions
     {
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseHsts();
-            }
-            else
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
