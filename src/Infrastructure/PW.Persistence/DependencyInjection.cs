@@ -8,6 +8,8 @@ using PW.Persistence.Interceptors;
 using TM.Infrastructure.Persistence.Interceptors;
 using PW.Persistence.Repositories;
 using PW.Application.Interfaces.Repositories;
+using PW.Identity.Entities;
+using PW.Application.Common.Interfaces;
 
 namespace PW.Persistence
 {
@@ -18,7 +20,7 @@ namespace PW.Persistence
             builder.Services.AddSingleton(TimeProvider.System);
 
             #region Contexts
-
+            builder.Services.AddScoped<IPWDbContext>(provider => provider.GetRequiredService<PWDbContext>());
             builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
             builder.Services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
 
@@ -30,8 +32,10 @@ namespace PW.Persistence
             });
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<DatabaseInitialiser>();
 
             #endregion
+
         }
     }
 }

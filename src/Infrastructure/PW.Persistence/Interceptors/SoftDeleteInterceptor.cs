@@ -30,7 +30,7 @@ namespace TM.Infrastructure.Persistence.Interceptors
         {
             if (context == null) return;
 
-            var now = _timeProvider.GetUtcNow().DateTime;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             foreach (var entry in context.ChangeTracker.Entries<ISoftDeleteEntity>())
             {

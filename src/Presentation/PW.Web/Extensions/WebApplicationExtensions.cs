@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.Options;
-using PW.Persistence.Extensions;
 using PW.Web.Middlewares;
 
 namespace PW.Web.Extensions

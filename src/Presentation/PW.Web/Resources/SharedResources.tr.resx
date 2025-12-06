@@ -145,4 +145,36 @@
     <value>Anasayfa</value>
     <comment/>
   </data>
+  <data name="Public.Auth.Login.Title" xml:space="preserve">
+    <value>Giriş Yap</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Subtitle" xml:space="preserve">
+    <value>Portföyünüze Erişin</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Email.Placeholder" xml:space="preserve">
+    <value>E-posta</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Password.Placeholder" xml:space="preserve">
+    <value>Şifre</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Button.SignIn" xml:space="preserve">
+    <value>Giriş Yap</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Button.PleaseWait" xml:space="preserve">
+    <value>Lütfen bekleyin...</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Side.Title" xml:space="preserve">
+    <value>Hızlı, Verimli ve Üretken</value>
+    <comment/>
+  </data>
+  <data name="Public.Auth.Login.Side.Description" xml:space="preserve">
+    <value>Bu portföy görünümünde, içerik üreticisi tamamladığı seçili çalışmaları sergiler ve proje hakkında bazı arka plan bilgileri ile hedeflerini sunar; ardından yaratıcı sürecin bir ön izlemesi gelir.</value>
+    <comment/>
+  </data>
 </root>

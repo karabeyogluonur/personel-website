@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using FluentValidation;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
@@ -44,7 +45,7 @@ namespace PW.Web.Extensions
                 options.RequestCultureProviders.Insert(2, new AcceptLanguageHeaderRequestCultureProvider());
                 options.RequestCultureProviders.Insert(3, new QueryStringRequestCultureProvider());
             });
-
+            ValidatorOptions.Global.LanguageManager.Culture = CultureInfo.CurrentCulture;
             return new LocalizationConfigResult(defaultCultureCode, cultureConstraint);
         }
     }

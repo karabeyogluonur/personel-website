@@ -1,14 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using PW.Persistence.Contexts;
-using System.IO;
+using PW.Identity.Contexts;
 
-namespace PW.Persistence
+namespace PW.Identity
 {
-    public class PWDbContextFactory : IDesignTimeDbContextFactory<PWDbContext>
+    public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
     {
-        public PWDbContext CreateDbContext(string[] args)
+        public AuthDbContext CreateDbContext(string[] args)
         {
             var currentDirectory = Directory.GetCurrentDirectory();
             var webProjectPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", "..", "Presentation", "PW.Web"));
@@ -20,7 +19,7 @@ namespace PW.Persistence
                 .AddEnvironmentVariables()
                 .Build();
 
-            var optionsBuilder = new DbContextOptionsBuilder<PWDbContext>();
+            var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
 
             var connectionString = config.GetConnectionString("DefaultConnection");
 
@@ -34,7 +33,7 @@ namespace PW.Persistence
 
             optionsBuilder.UseNpgsql(connectionString);
 
-            return new PWDbContext(optionsBuilder.Options);
+            return new AuthDbContext(optionsBuilder.Options);
         }
     }
 }

@@ -1,3 +1,4 @@
+@using System.Security.Claims
 <div class="app-navbar flex-shrink-0">
     <div class="app-navbar-item ms-1 ms-md-4">
         <a href="#"
@@ -81,21 +82,29 @@
                         <img alt="Logo" src="~/themes/metronic/assets/media/avatars/300-3.jpg" />
                     </div>
                     <div class="d-flex flex-column">
-                        <div class="fw-bold d-flex align-items-center fs-7">Onur Karabeyoğlu <span
+                        <div class="fw-bold d-flex align-items-center fs-7">
+                            @User.FindFirst(CustomClaims.FullName)?.Value <span
                                 class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">PRO</span>
                         </div>
-                        <a href="#" class="fw-semibold text-muted text-hover-primary fs-7">info@onurkarabeyoglu.com
+                        <a href="#"
+                            class="fw-semibold text-muted text-hover-primary fs-7">@User.FindFirst(ClaimTypes.Name)?.Value
                     </div>
                 </div>
             </div>
             <div class="separator my-2"></div>
             <div class="menu-item px-5">
-                <a href="account/overview.html" class="menu-link px-5">Profile</a>
+                <a href="#" class="menu-link px-5">Profile</a>
             </div>
             <div class="separator my-2"></div>
             <div class="menu-item px-5">
-                <a asp-action="Logout" asp-controller="Auth" class="menu-link px-5">Logout</a>
+                <form asp-action="Logout" asp-controller="Auth" asp-area="" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="menu-link px-5 btn text-start w-100">
+                        Logout
+                    </button>
+                </form>
             </div>
+
         </div>
     </div>
     <div class="app-navbar-item d-lg-none ms-2 me-n2" title="Show header menu">

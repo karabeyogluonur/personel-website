@@ -1,87 +1,86 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using PW.Domain.Entities.Localization;
 using PW.Persistence.Contexts;
+using PW.Application.Interfaces.Identity;
+using PW.Application.Common.Constants;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PW.Persistence
 {
     public class DatabaseInitialiser
     {
-        private readonly ILogger<DatabaseInitialiser> _logger;
         private readonly PWDbContext _context;
+        private readonly IIdentityService _identityService;
 
-        public DatabaseInitialiser(ILogger<DatabaseInitialiser> logger, PWDbContext context)
+        public DatabaseInitialiser(PWDbContext context, IIdentityService identityService)
         {
-            _logger = logger;
             _context = context;
+            _identityService = identityService;
         }
 
         public async Task InitialiseAsync()
         {
-            try
-            {
-                _logger.LogInformation("Database initialisation and migration starting...");
-
-                await _context.Database.EnsureDeletedAsync();
-                await _context.Database.MigrateAsync();
-                await SeedAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while initialising the database.");
-                throw;
-            }
+            await _context.Database.MigrateAsync();
+            await SeedAsync();
         }
 
         public async Task SeedAsync()
         {
-            try
-            {
-                await SeedLanguagesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while seeding the database.");
-                throw;
-            }
+            await SeedLanguagesAsync();
         }
 
         private async Task SeedLanguagesAsync()
         {
-            if (!await _context.Languages.AnyAsync())
-            {
-                _logger.LogInformation("Seeding language data...");
+            if (await _context.Languages.AnyAsync())
+                return;
 
-                var languages = new List<Language>
+            var initialLanguages = new List<Language>
+            {
+                new Language
                 {
-                    new Language
-                    {
-                        Name = "English",
-                        Code = "en",
-                        FlagImageFileName = "en.svg",
-                        IsDefault = true,
-                        IsPublished = true,
-                        DisplayOrder = 1
-                    },
-                     new Language
-                    {
-                        Name = "Türkçe",
-                        Code = "tr",
-                        FlagImageFileName = "tr.svg",
-                        IsDefault = false,
-                        IsPublished = true,
-                        DisplayOrder = 1
-                    },
-                };
+                    Name = "English",
+                    Code = "en",
+                    FlagImageFileName = "en.svg",
+                    IsDefault = true,
+                    IsPublished = true,
+                    DisplayOrder = 1
+                },
+                new Language
+                {
+                    Name = "Türkçe",
+                    Code = "tr",
+                    FlagImageFileName = "tr.svg",
+                    IsDefault = false,
+                    IsPublished = true,
+                    DisplayOrder = 1
+                }
+            };
 
-                await _context.Languages.AddRangeAsync(languages);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation("2 languages successfully added to the database.");
-            }
-            else
+            await _context.Languages.AddRangeAsync(initialLanguages);
+            await _context.SaveChangesAsync();
+        }
+
+    }
+
+
+    public static class DatabaseInitialiserExtensions
+    {
+        public static async Task InitialiseDatabaseAsync(this WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            DatabaseInitialiser initialiser;
+            try
             {
-                _logger.LogInformation("Language table already contains data. Seeding skipped.");
+                initialiser = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
             }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            await initialiser.InitialiseAsync();
         }
     }
+
 }

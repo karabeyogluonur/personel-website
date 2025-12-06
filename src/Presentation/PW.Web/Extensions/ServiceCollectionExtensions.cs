@@ -1,7 +1,11 @@
+using System.Reflection;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Razor;
 using PW.Application;
+using PW.Identity;
 using PW.Persistence;
 using PW.Services;
+using PW.Web.Features.Auth.Services;
 
 namespace PW.Web.Extensions
 {
@@ -16,6 +20,24 @@ namespace PW.Web.Extensions
 
             services.AddLocalization();
 
+            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+            return services;
+        }
+        public static IServiceCollection AddOrchestratorServices(this IServiceCollection services)
+        {
+            services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
+            return services;
+        }
+
+        public static IServiceCollection ConfigureCustomApplicationCookie(this IServiceCollection services)
+        {
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.AccessDeniedPath = "/Error/403";
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
+            });
             return services;
         }
 
@@ -24,6 +46,7 @@ namespace PW.Web.Extensions
             builder.AddApplicationServices();
             builder.AddPersistenceServices();
             builder.AddServiceServices();
+            builder.AddIdentityServices();
 
             return services;
         }
