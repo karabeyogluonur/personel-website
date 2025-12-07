@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PW.Application.Interfaces.Localization;
+using PW.Application.Interfaces.Messages;
 using PW.Services.Localization;
 
 namespace PW.Services
@@ -10,6 +11,8 @@ namespace PW.Services
         public static void AddServiceServices(this IHostApplicationBuilder builder)
         {
             builder.Services.AddScoped<ILanguageService, LanguageService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            //builder.Services.AddHttpContextAccessor();
         }
     }
 }

@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\Core\PW.Application\PW.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.3.0" />
+  </ItemGroup>
+
 </Project>
