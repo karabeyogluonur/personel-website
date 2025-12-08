@@ -1,10 +1,12 @@
 using System.Reflection;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc.Razor;
 using PW.Application;
 using PW.Identity;
 using PW.Persistence;
 using PW.Services;
+using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
 
 namespace PW.Web.Extensions
@@ -20,13 +22,16 @@ namespace PW.Web.Extensions
 
             services.AddLocalization();
 
+            services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             return services;
         }
         public static IServiceCollection AddOrchestratorServices(this IServiceCollection services)
         {
             services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
+            services.AddScoped<IUserOrchestrator, UserOrchestrator>();
             return services;
         }
 

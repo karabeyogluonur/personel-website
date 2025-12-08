@@ -8,6 +8,7 @@ using PW.Identity.Contexts;
 using PW.Application.Interfaces.Identity;
 using PW.Identity.Services;
 using PW.Identity.Factories;
+using Microsoft.AspNetCore.Identity;
 
 namespace PW.Identity
 {
@@ -21,6 +22,11 @@ namespace PW.Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>()
             .AddEntityFrameworkStores<AuthDbContext>();
+
+            builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+            {
+                options.ValidationInterval = TimeSpan.Zero;
+            });
 
             #endregion
 

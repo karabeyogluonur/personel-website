@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Models;
+using PW.Application.Common.Models.Dtos;
 using PW.Application.Interfaces.Identity;
 using PW.Identity.Entities;
 using PW.Identity.Extensions;
@@ -8,6 +10,8 @@ namespace PW.Identity.Services
 {
     public class IdentityService : IIdentityService
     {
+        //TODO: Methods will be separated according to their fields.
+
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<ApplicationRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -95,5 +99,163 @@ namespace PW.Identity.Services
         {
             await _signInManager.SignOutAsync();
         }
+
+        public async Task<List<UserDto>> GetAllUsersAsync()
+        {
+            var users = _userManager.Users.ToList();
+            var result = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                result.Add(new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    RoleNames = roles?.ToList() ?? new List<string>()
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<UserDto> GetUserByIdAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return new UserDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                RoleNames = roles?.ToList() ?? new List<string>()
+            };
+        }
+
+        public async Task<List<string>> GetAllRolesAsync()
+        {
+            return await _roleManager.Roles
+                .Select(role => role.Name)
+                .ToListAsync();
+        }
+        public async Task<OperationResult> UpdateUserAsync(UserDto userDto)
+        {
+            var user = await _userManager.FindByIdAsync(userDto.Id.ToString());
+
+            if (user is null)
+                return OperationResult.Failure("User not found.");
+
+            user.FirstName = userDto.FirstName;
+            user.LastName = userDto.LastName;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return result.ToOperationResult();
+
+            return OperationResult.Success();
+        }
+        public async Task<OperationResult> UpdateUserRolesAsync(int userId, List<string> roles)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return OperationResult.Failure("User not found.");
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+                return removeResult.ToOperationResult();
+
+            if (roles == null || !roles.Any())
+                return OperationResult.Success();
+
+            var addResult = await _userManager.AddToRolesAsync(user, roles);
+            if (!addResult.Succeeded)
+                return addResult.ToOperationResult();
+
+            return OperationResult.Success();
+        }
+        public async Task<OperationResult> ChangeUserPasswordAsync(int userId, string newPassword)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return OperationResult.Failure("User not found.");
+
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+
+            if (!removeResult.Succeeded)
+                return removeResult.ToOperationResult();
+
+            var addResult = await _userManager.AddPasswordAsync(user, newPassword);
+
+            if (!addResult.Succeeded)
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+                return addResult.ToOperationResult();
+            }
+
+
+            return OperationResult.Success();
+        }
+        public async Task<OperationResult> AssignRoleAsync(int userId, List<string> roleNames)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user is null)
+                return OperationResult.Failure("User not found.");
+
+            if (roleNames == null || !roleNames.Any())
+                return OperationResult.Success();
+
+            // Rollerin varlığını kontrol et
+            var notExists = new List<string>();
+            foreach (var role in roleNames)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                    notExists.Add(role);
+            }
+
+            if (notExists.Any())
+                return OperationResult.Failure($"Roles do not exist: {string.Join(", ", notExists)}");
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var rolesToAdd = roleNames.Except(currentRoles).ToList();
+
+            if (!rolesToAdd.Any())
+                return OperationResult.Success();
+
+            var result = await _userManager.AddToRolesAsync(user, rolesToAdd);
+            if (!result.Succeeded)
+                return result.ToOperationResult();
+
+            return OperationResult.Success();
+        }
+
+        public async Task<OperationResult> DeleteUserAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user is null)
+                return OperationResult.Failure("User not found.");
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return OperationResult.Failure(result.Errors.Select(e => e.Description).ToArray());
+
+            return OperationResult.Success();
+        }
+
     }
 }
