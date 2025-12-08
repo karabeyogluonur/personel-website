@@ -5,52 +5,53 @@ using PW.Application.Interfaces.Identity;
 using PW.Application.Models.Dtos.Identity;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
+
 namespace PW.Web.Areas.Admin.Features.User.Services
 {
     public class UserOrchestrator : IUserOrchestrator
     {
-        private readonly IIdentityService _identityService;
+        private readonly IUserService _userService;
         private readonly IRoleService _roleService;
         private readonly IMapper _mapper;
 
         public UserOrchestrator(
-            IIdentityService identityService,
+            IUserService userService,
             IRoleService roleService,
             IMapper mapper)
         {
-            _identityService = identityService;
+            _userService = userService;
             _roleService = roleService;
             _mapper = mapper;
         }
 
         public async Task<OperationResult<UserEditViewModel>> PrepareUserEditViewModelAsync(int userId)
         {
-            var userDto = await _identityService.GetUserByIdAsync(userId);
+            UserDto userDto = await _userService.GetUserByIdAsync(userId);
 
             if (userDto is null)
                 return OperationResult<UserEditViewModel>.Failure("User not found!");
 
-            var allRoles = await _roleService.GetAllRolesAsync();
+            List<string> allRoles = await _roleService.GetAllRolesAsync();
 
-            var model = _mapper.Map<UserEditViewModel>(userDto);
+            UserEditViewModel userEditViewModel = _mapper.Map<UserEditViewModel>(userDto);
 
-            model.SelectedRoles = userDto.RoleNames ?? new List<string>();
+            userEditViewModel.SelectedRoles = userDto.Roles ?? new List<string>();
 
-            model.AvailableRoles = allRoles
+            userEditViewModel.AvailableRoles = allRoles
                 .Select(role => new SelectListItem
                 {
                     Text = role,
                     Value = role,
-                    Selected = model.SelectedRoles.Contains(role)
+                    Selected = userEditViewModel.SelectedRoles.Contains(role)
                 })
                 .ToList();
 
-            return OperationResult<UserEditViewModel>.Success(model);
+            return OperationResult<UserEditViewModel>.Success(userEditViewModel);
         }
 
         public async Task<UserListViewModel> PrepareUserListViewModelAsync()
         {
-            var userDtos = await _identityService.GetAllUsersAsync();
+            var userDtos = await _userService.GetAllUsersAsync();
 
             return new UserListViewModel
             {
@@ -58,31 +59,37 @@ namespace PW.Web.Areas.Admin.Features.User.Services
             };
         }
 
-        public async Task<OperationResult> UpdateUserAsync(UserEditViewModel model)
+        public async Task<OperationResult> UpdateUserAsync(UserEditViewModel userEditViewModel)
         {
-            var dto = _mapper.Map<UserDto>(model);
+            UserDto userDto = _mapper.Map<UserDto>(userEditViewModel);
 
-            var infoResult = await _identityService.UpdateUserAsync(dto);
+            OperationResult infoResult = await _userService.UpdateUserAsync(userEditViewModel.Id, userDto);
 
             if (!infoResult.Succeeded)
                 return infoResult;
 
-            var assignmentDto = new UserRoleAssignmentDto
+            UserRoleAssignmentDto userRoleAssignmentDto = new UserRoleAssignmentDto
             {
-                UserId = model.Id,
-                RoleNames = model.SelectedRoles ?? new List<string>()
+                UserId = userEditViewModel.Id,
+                RoleNames = userEditViewModel.SelectedRoles ?? new List<string>()
             };
 
-            var roleResult = await _roleService.UpdateUserRolesAsync(assignmentDto);
+            OperationResult roleResult = await _roleService.UpdateUserRolesAsync(userRoleAssignmentDto);
             if (!roleResult.Succeeded)
                 return roleResult;
 
-            if (model.ChangePassword)
+            if (userEditViewModel.ChangePassword)
             {
-                if (string.IsNullOrWhiteSpace(model.Password))
+                if (string.IsNullOrWhiteSpace(userEditViewModel.Password))
                     return OperationResult.Failure("Password cannot be empty when ChangePassword is enabled.");
 
-                var passResult = await _identityService.ChangeUserPasswordAsync(model.Id, model.Password);
+                SetPasswordDto setPasswordDto = new SetPasswordDto
+                {
+                    UserId = userEditViewModel.Id,
+                    NewPassword = userEditViewModel.Password
+                };
+
+                OperationResult passResult = await _userService.AdminResetUserPasswordAsync(setPasswordDto);
                 if (!passResult.Succeeded)
                     return passResult;
             }
@@ -92,44 +99,33 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult> CreateUserAsync(UserCreateViewModel model)
         {
-            int? existingUserId = await _identityService.FindByEmailAsync(model.Email);
+            UserDto existingUser = await _userService.GetUserByEmailAsync(model.Email);
 
-            if (existingUserId is not null)
+            if (existingUser is not null)
                 return OperationResult.Failure("Email is already taken.");
 
-            var createResult = await _identityService.CreateUserAsync(
-                model.FirstName,
-                model.LastName,
-                model.Email,
-                model.Password
-            );
-
-            if (!createResult.Succeeded)
-                return OperationResult.Failure(createResult.Errors.ToArray());
-
-            int userId = createResult.Data;
-
-            if (model.SelectedRoles != null && model.SelectedRoles.Any())
+            CreateUserDto createUserDto = new CreateUserDto
             {
-                var assignmentDto = new UserRoleAssignmentDto
-                {
-                    UserId = userId,
-                    RoleNames = model.SelectedRoles
-                };
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = model.Email,
+                Password = model.Password,
+                Roles = model.SelectedRoles
+            };
 
-                var roleResult = await _roleService.UpdateUserRolesAsync(assignmentDto);
-                if (!roleResult.Succeeded)
-                    return OperationResult.Failure(roleResult.Errors.ToArray());
-            }
+            OperationResult createUserResult = await _userService.CreateUserAsync(createUserDto);
+
+            if (!createUserResult.Succeeded)
+                return OperationResult.Failure(createUserResult.Errors.ToArray());
 
             return OperationResult.Success();
         }
 
         public async Task<OperationResult<UserCreateViewModel>> PrepareUserCreateViewModelAsync()
         {
-            var roles = await _roleService.GetAllRolesAsync();
+            List<string> roles = await _roleService.GetAllRolesAsync();
 
-            var model = new UserCreateViewModel
+            UserCreateViewModel userCreateViewModel = new UserCreateViewModel
             {
                 AvailableRoles = roles
                     .Select(role => new SelectListItem
@@ -141,7 +137,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
                 SelectedRoles = new List<string>()
             };
 
-            return OperationResult<UserCreateViewModel>.Success(model);
+            return OperationResult<UserCreateViewModel>.Success(userCreateViewModel);
         }
 
         public async Task<OperationResult> DeleteUserAsync(int userId)
@@ -149,7 +145,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
             if (userId <= 0)
                 return OperationResult.Failure("Invalid user id.");
 
-            var deleteResult = await _identityService.DeleteUserAsync(userId);
+            OperationResult deleteResult = await _userService.DeleteUserAsync(userId);
 
             if (!deleteResult.Succeeded)
                 return deleteResult;

@@ -12,7 +12,7 @@ namespace PW.Web.Areas.Admin.Features.User
 
             CreateMap<UserDto, UserEditViewModel>()
              .ForMember(dest => dest.SelectedRoles,
-                 opt => opt.MapFrom(src => src.RoleNames))
+                 opt => opt.MapFrom(src => src.Roles))
              .ForMember(dest => dest.AvailableRoles,
                  opt => opt.Ignore())
              .ForMember(dest => dest.Password,
@@ -23,7 +23,7 @@ namespace PW.Web.Areas.Admin.Features.User
                  opt => opt.Ignore());
 
             CreateMap<UserEditViewModel, UserDto>()
-                .ForMember(dest => dest.RoleNames,
+                .ForMember(dest => dest.Roles,
                     opt => opt.MapFrom(src => src.SelectedRoles))
                 .ForMember(dest => dest.Id,
                     opt => opt.MapFrom(src => src.Id));

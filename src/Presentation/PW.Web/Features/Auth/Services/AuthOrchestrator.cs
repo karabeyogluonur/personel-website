@@ -1,4 +1,3 @@
-// PW.Web.Features.Auth.Services/AuthOrchestrator.cs
 using AutoMapper;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Identity;
@@ -9,23 +8,23 @@ namespace PW.Web.Features.Auth.Services
 {
     public class AuthOrchestrator : IAuthOrchestrator
     {
-        private readonly IIdentityService _identityService;
         private readonly IAuthService _authService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        public AuthOrchestrator(IIdentityService identityService, IAuthService authService, IMapper mapper)
+        public AuthOrchestrator(IAuthService authService, IMapper mapper, IUserService userService)
         {
-            _identityService = identityService;
             _authService = authService;
+            _userService = userService;
             _mapper = mapper;
 
         }
 
         public async Task<OperationResult> LoginAsync(LoginViewModel loginViewModel)
         {
-            int? userId = await _identityService.FindByEmailAsync(loginViewModel.Email);
+            UserDto userDto = await _userService.GetUserByEmailAsync(loginViewModel.Email);
 
-            if (userId is null)
+            if (userDto is null)
                 return OperationResult.Failure("The username or password is incorrect.");
 
             OperationResult signInResult = await _authService.LoginAsync(_mapper.Map<LoginDto>(loginViewModel));

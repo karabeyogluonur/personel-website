@@ -7,6 +7,6 @@ namespace PW.Web.Areas.Admin.Features.User.ViewModels
         public string LastName { get; set; }
         public string Email { get; set; }
         public string FullName => $"{FirstName} {LastName}";
-        public List<string> RoleNames { get; set; }
+        public List<string> Roles { get; set; }
     }
 }

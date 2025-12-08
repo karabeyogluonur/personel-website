@@ -11,12 +11,10 @@ namespace PW.Persistence
     public class DatabaseInitialiser
     {
         private readonly PWDbContext _context;
-        private readonly IIdentityService _identityService;
 
-        public DatabaseInitialiser(PWDbContext context, IIdentityService identityService)
+        public DatabaseInitialiser(PWDbContext context)
         {
             _context = context;
-            _identityService = identityService;
         }
 
         public async Task InitialiseAsync()

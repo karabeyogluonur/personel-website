@@ -11,13 +11,13 @@ namespace PW.Identity
     public class IdentityInitialiser
     {
         private readonly AuthDbContext _context;
-        private readonly IIdentityService _identityService;
+        private readonly IUserService _userService;
         private readonly IRoleService _roleService;
 
-        public IdentityInitialiser(AuthDbContext context, IIdentityService identityService, IRoleService roleService)
+        public IdentityInitialiser(AuthDbContext context, IUserService userService, IRoleService roleService)
         {
             _context = context;
-            _identityService = identityService;
+            _userService = userService;
             _roleService = roleService;
         }
 
@@ -76,32 +76,34 @@ namespace PW.Identity
 
             foreach (var userInfo in predefinedUsers)
             {
-                var existingUserId = await _identityService.FindByEmailAsync(userInfo.Email);
+                var existingUser = await _userService.GetUserByEmailAsync(userInfo.Email);
 
-                if (existingUserId is null)
+                if (existingUser is null)
                 {
-                    var createResult = await _identityService.CreateUserAsync(
-                        userInfo.FirstName,
-                        userInfo.LastName,
-                        userInfo.Email,
-                        userInfo.Password
-                    );
+                    var createDto = new CreateUserDto
+                    {
+                        FirstName = userInfo.FirstName,
+                        LastName = userInfo.LastName,
+                        Email = userInfo.Email,
+                        Password = userInfo.Password,
+                        Roles = new List<string> { userInfo.RoleName }
+                    };
+
+                    var createResult = await _userService.CreateUserAsync(createDto);
 
                     if (!createResult.Succeeded)
                         continue;
-
-                    existingUserId = createResult.Data;
                 }
 
-                if (existingUserId.HasValue)
+                if (existingUser is not null)
                 {
-                    var isInRole = await _roleService.IsInRoleAsync(existingUserId.Value, userInfo.RoleName);
+                    var isInRole = await _roleService.IsInRoleAsync(existingUser.Id, userInfo.RoleName);
 
                     if (!isInRole)
                     {
                         var assignmentDto = new UserRoleAssignmentDto
                         {
-                            UserId = existingUserId.Value,
+                            UserId = existingUser.Id,
                             RoleNames = new List<string> { userInfo.RoleName }
                         };
                         await _roleService.UpdateUserRolesAsync(assignmentDto);
