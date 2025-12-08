@@ -10,21 +10,27 @@ namespace PW.Web.Areas.Admin.Features.User.Services
     public class UserOrchestrator : IUserOrchestrator
     {
         private readonly IIdentityService _identityService;
+        private readonly IRoleService _roleService;
         private readonly IMapper _mapper;
 
-        public UserOrchestrator(IIdentityService identityService, IMapper mapper)
+        public UserOrchestrator(
+            IIdentityService identityService,
+            IRoleService roleService,
+            IMapper mapper)
         {
             _identityService = identityService;
+            _roleService = roleService;
             _mapper = mapper;
         }
 
         public async Task<OperationResult<UserEditViewModel>> PrepareUserEditViewModelAsync(int userId)
         {
             var userDto = await _identityService.GetUserByIdAsync(userId);
+
             if (userDto is null)
                 return OperationResult<UserEditViewModel>.Failure("User not found!");
 
-            var allRoles = await _identityService.GetAllRolesAsync();
+            var allRoles = await _roleService.GetAllRolesAsync();
 
             var model = _mapper.Map<UserEditViewModel>(userDto);
 
@@ -57,12 +63,17 @@ namespace PW.Web.Areas.Admin.Features.User.Services
             var dto = _mapper.Map<UserDto>(model);
 
             var infoResult = await _identityService.UpdateUserAsync(dto);
+
             if (!infoResult.Succeeded)
                 return infoResult;
 
-            var selectedRoles = model.SelectedRoles ?? new List<string>();
+            var assignmentDto = new UserRoleAssignmentDto
+            {
+                UserId = model.Id,
+                RoleNames = model.SelectedRoles ?? new List<string>()
+            };
 
-            var roleResult = await _identityService.UpdateUserRolesAsync(model.Id, selectedRoles);
+            var roleResult = await _roleService.UpdateUserRolesAsync(assignmentDto);
             if (!roleResult.Succeeded)
                 return roleResult;
 
@@ -82,6 +93,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
         public async Task<OperationResult> CreateUserAsync(UserCreateViewModel model)
         {
             int? existingUserId = await _identityService.FindByEmailAsync(model.Email);
+
             if (existingUserId is not null)
                 return OperationResult.Failure("Email is already taken.");
 
@@ -99,7 +111,13 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
             if (model.SelectedRoles != null && model.SelectedRoles.Any())
             {
-                var roleResult = await _identityService.AssignRoleAsync(userId, model.SelectedRoles);
+                var assignmentDto = new UserRoleAssignmentDto
+                {
+                    UserId = userId,
+                    RoleNames = model.SelectedRoles
+                };
+
+                var roleResult = await _roleService.UpdateUserRolesAsync(assignmentDto);
                 if (!roleResult.Succeeded)
                     return OperationResult.Failure(roleResult.Errors.ToArray());
             }
@@ -109,7 +127,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult<UserCreateViewModel>> PrepareUserCreateViewModelAsync()
         {
-            var roles = await _identityService.GetAllRolesAsync();
+            var roles = await _roleService.GetAllRolesAsync();
 
             var model = new UserCreateViewModel
             {
@@ -128,15 +146,8 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult> DeleteUserAsync(int userId)
         {
-            //TODO: Do not delete your own user.
-
             if (userId <= 0)
                 return OperationResult.Failure("Invalid user id.");
-
-            var user = await _identityService.GetUserByIdAsync(userId);
-
-            if (user is null)
-                return OperationResult.Failure("User not found.");
 
             var deleteResult = await _identityService.DeleteUserAsync(userId);
 

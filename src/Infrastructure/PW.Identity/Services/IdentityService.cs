@@ -43,34 +43,6 @@ namespace PW.Identity.Services
             var user = await _userManager.FindByEmailAsync(email);
             return user?.Id;
         }
-        public async Task<bool> IsInRoleAsync(int userId, string role)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            return user != null && await _userManager.IsInRoleAsync(user, role);
-        }
-        public async Task<OperationResult<string>> CreateRoleAsync(string name, string description)
-        {
-            var role = new ApplicationRole
-            {
-                Name = name,
-                Description = description
-            };
-
-            var result = await _roleManager.CreateAsync(role);
-            return result.ToOperationResult(role.Id.ToString());
-        }
-        public async Task<OperationResult<string>> AssignRoleAsync(int userId, string roleName)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)
-                return OperationResult<string>.Failure("User not found.");
-
-            if (!await _roleManager.RoleExistsAsync(roleName))
-                return OperationResult<string>.Failure("Role does not exist.");
-
-            var result = await _userManager.AddToRoleAsync(user, roleName);
-            return result.ToOperationResult("Role assigned successfully.");
-        }
         public async Task<List<UserDto>> GetAllUsersAsync()
         {
             var users = _userManager.Users.ToList();
@@ -180,39 +152,6 @@ namespace PW.Identity.Services
 
             return OperationResult.Success();
         }
-        public async Task<OperationResult> AssignRoleAsync(int userId, List<string> roleNames)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user is null)
-                return OperationResult.Failure("User not found.");
-
-            if (roleNames == null || !roleNames.Any())
-                return OperationResult.Success();
-
-            // Rollerin varlığını kontrol et
-            var notExists = new List<string>();
-            foreach (var role in roleNames)
-            {
-                if (!await _roleManager.RoleExistsAsync(role))
-                    notExists.Add(role);
-            }
-
-            if (notExists.Any())
-                return OperationResult.Failure($"Roles do not exist: {string.Join(", ", notExists)}");
-
-            var currentRoles = await _userManager.GetRolesAsync(user);
-            var rolesToAdd = roleNames.Except(currentRoles).ToList();
-
-            if (!rolesToAdd.Any())
-                return OperationResult.Success();
-
-            var result = await _userManager.AddToRolesAsync(user, rolesToAdd);
-            if (!result.Succeeded)
-                return result.ToOperationResult();
-
-            return OperationResult.Success();
-        }
-
         public async Task<OperationResult> DeleteUserAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
