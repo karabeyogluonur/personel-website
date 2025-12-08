@@ -1,6 +1,6 @@
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Repositories;
-using PW.Domain.Entities.Localization;
+using PW.Domain.Entities;
 
 namespace PW.Services.Localization
 {

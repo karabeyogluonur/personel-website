@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PW.Persistence.Contexts;
@@ -11,9 +12,11 @@ using PW.Persistence.Contexts;
 namespace PW.Persistence.Migrations
 {
     [DbContext(typeof(PWDbContext))]
-    partial class PWDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208220816_Setting")]
+    partial class Setting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

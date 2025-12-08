@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Messages;
+using PW.Domain.Interfaces;
+using PW.Services.Configuration;
 using PW.Services.Localization;
 
 namespace PW.Services
@@ -12,7 +15,34 @@ namespace PW.Services
         {
             builder.Services.AddScoped<ILanguageService, LanguageService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
-            //builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ISettingService, SettingService>();
+
+            #region  Setting Registration
+
+            var assembly = typeof(ISettings).Assembly;
+
+            var settingTypes = assembly.GetTypes()
+                .Where(t => typeof(ISettings).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            foreach (var type in settingTypes)
+            {
+                builder.Services.AddScoped(type, provider =>
+                {
+                    var settingService = provider.GetRequiredService<ISettingService>();
+
+                    var method = settingService.GetType()
+                        .GetMethod(nameof(ISettingService.LoadSetting));
+
+                    var genericMethod = method?.MakeGenericMethod(type);
+
+                    return genericMethod?.Invoke(settingService, null);
+                });
+            }
+
+            #endregion
+
+
+
         }
     }
 }

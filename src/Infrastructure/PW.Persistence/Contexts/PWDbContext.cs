@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Interfaces;
 using PW.Domain.Common;
-using PW.Domain.Entities.Localization;
+using PW.Domain.Entities;
+
 namespace PW.Persistence.Contexts
 {
     public class PWDbContext : DbContext, IPWDbContext
     {
         public DbSet<Language> Languages { get; set; }
+        public DbSet<Setting> Settings { get; set; }
 
         public PWDbContext(DbContextOptions<PWDbContext> options) : base(options)
         {

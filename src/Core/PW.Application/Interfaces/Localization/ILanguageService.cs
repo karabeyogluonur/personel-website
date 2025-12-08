@@ -1,4 +1,4 @@
-using PW.Domain.Entities.Localization;
+using PW.Domain.Entities;
 
 namespace PW.Application.Interfaces.Localization
 {

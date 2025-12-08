@@ -1,6 +1,6 @@
 using PW.Domain.Common;
 
-namespace PW.Domain.Entities.Localization
+namespace PW.Domain.Entities
 {
     public class Language : BaseEntity, ISoftDeleteEntity, IAuditableEntity
     {

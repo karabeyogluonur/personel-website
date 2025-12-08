@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PW.Domain.Entities.Localization;
+using PW.Domain.Entities;
 
 namespace PW.Persistence.Configurations.Localization
 {
