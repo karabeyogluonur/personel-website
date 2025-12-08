@@ -45,6 +45,7 @@ namespace PW.Identity
             #region Services
 
             builder.Services.AddScoped<IIdentityService, IdentityService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
 
             #endregion
 

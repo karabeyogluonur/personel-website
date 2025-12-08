@@ -1,5 +1,5 @@
 using PW.Application.Common.Models;
-using PW.Application.Common.Models.Dtos;
+using PW.Application.Models.Dtos.Identity;
 
 namespace PW.Application.Interfaces.Identity
 {
@@ -13,13 +13,10 @@ namespace PW.Application.Interfaces.Identity
         Task<OperationResult<string>> AssignRoleAsync(int userId, string roleName);
         Task<OperationResult> AssignRoleAsync(int userId, List<string> roleNames);
         Task<int?> FindByEmailAsync(string email);
-        Task<OperationResult> CheckPasswordSignInAsync(int userId, string password);
         Task<bool> IsInRoleAsync(int userId, string role);
         Task<OperationResult> DeleteUserAsync(int userId);
         Task<OperationResult> UpdateUserAsync(UserDto userDto);
         Task<OperationResult> UpdateUserRolesAsync(int userId, List<string> roles);
         Task<OperationResult> ChangeUserPasswordAsync(int userId, string newPassword);
-        Task SignOutAsync();
-
     }
 }

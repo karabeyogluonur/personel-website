@@ -1,5 +1,5 @@
 using AutoMapper;
-using PW.Application.Common.Models.Dtos;
+using PW.Application.Models.Dtos.Identity;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.User

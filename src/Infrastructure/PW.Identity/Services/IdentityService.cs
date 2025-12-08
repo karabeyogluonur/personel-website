@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Models;
-using PW.Application.Common.Models.Dtos;
 using PW.Application.Interfaces.Identity;
+using PW.Application.Models.Dtos.Identity;
 using PW.Identity.Entities;
 using PW.Identity.Extensions;
 
@@ -43,29 +43,6 @@ namespace PW.Identity.Services
             var user = await _userManager.FindByEmailAsync(email);
             return user?.Id;
         }
-        public async Task<OperationResult> CheckPasswordSignInAsync(int userId, string password)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-
-            if (user is null)
-                return OperationResult.Failure("User not found.");
-
-            var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
-
-            if (!result.Succeeded)
-            {
-                if (result.IsLockedOut)
-                    return OperationResult.Failure("User account is locked due to failed attempts.");
-
-                if (result.IsNotAllowed)
-                    return OperationResult.Failure("Sign in is not allowed for this user.");
-
-                return OperationResult.Failure("Invalid password.");
-            }
-
-            await _signInManager.SignInAsync(user, isPersistent: true);
-            return OperationResult.Success();
-        }
         public async Task<bool> IsInRoleAsync(int userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -94,12 +71,6 @@ namespace PW.Identity.Services
             var result = await _userManager.AddToRoleAsync(user, roleName);
             return result.ToOperationResult("Role assigned successfully.");
         }
-
-        public async Task SignOutAsync()
-        {
-            await _signInManager.SignOutAsync();
-        }
-
         public async Task<List<UserDto>> GetAllUsersAsync()
         {
             var users = _userManager.Users.ToList();

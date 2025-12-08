@@ -1,5 +1,4 @@
 using PW.Application.Common.Models;
-using PW.Application.Common.Models.Dtos;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.User.Services

@@ -1,6 +1,6 @@
 using PW.Application.Common.Enums;
 
-namespace PW.Application.Common.Models.Dtos
+namespace PW.Application.Models.Dtos.Messages
 {
     public class NotificationMessageDto
     {

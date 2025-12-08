@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using PW.Application.Common.Enums;
-using PW.Application.Common.Models.Dtos;
 using PW.Application.Interfaces.Messages;
+using PW.Application.Models.Dtos.Messages;
 
 public class NotificationService : INotificationService
 {

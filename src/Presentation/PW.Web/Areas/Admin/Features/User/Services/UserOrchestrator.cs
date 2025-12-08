@@ -1,8 +1,8 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using PW.Application.Common.Models;
-using PW.Application.Common.Models.Dtos;
 using PW.Application.Interfaces.Identity;
+using PW.Application.Models.Dtos.Identity;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.User.Services
