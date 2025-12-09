@@ -11,6 +11,7 @@ namespace PW.Persistence.Contexts
     {
         public DbSet<Language> Languages { get; set; }
         public DbSet<Setting> Settings { get; set; }
+        public DbSet<LocalizedProperty> LocalizedProperties { get; set; }
 
         public PWDbContext(DbContextOptions<PWDbContext> options) : base(options)
         {

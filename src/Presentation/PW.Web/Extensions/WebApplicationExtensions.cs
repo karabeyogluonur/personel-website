@@ -8,13 +8,23 @@ namespace PW.Web.Extensions
     {
         public static WebApplication ConfigurePipeline(this WebApplication app)
         {
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseMiddleware<GlobalExceptionMiddleware>();
+                app.UseStatusCodePagesWithReExecute("/Error/{0}");
+                app.UseHsts();
+            }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseRequestLocalization();
+            app.UseAuthentication();
             app.UseAuthorization();
-            app.UseMiddleware<GlobalExceptionMiddleware>();
-            app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
             return app;
         }
@@ -31,16 +41,14 @@ namespace PW.Web.Extensions
 
             app.MapControllerRoute(
                 name: "areas",
-                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}",
+                constraints: new { culture = cultureConstraint }
             );
 
             app.MapControllerRoute(
                 name: "localized-default",
                 pattern: "{culture}/{controller=Home}/{action=Index}/{id?}",
-                constraints: new
-                {
-                    culture = cultureConstraint
-                }
+                constraints: new { culture = cultureConstraint }
             );
 
             app.MapControllerRoute(

@@ -3,25 +3,16 @@ using PW.Persistence;
 using PW.Web.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddWebLayerServices();
-builder.Services.AddOrchestratorServices();
-builder.Services.AddApplicationInfrastructure(builder);
+builder.Services.AddProjectServices(builder);
 var localizationConfig = builder.Services.AddDatabaseLocalization();
-builder.Services.ConfigureCustomApplicationCookie();
+
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-}
-else
+if (app.Environment.IsDevelopment())
 {
     await app.InitialiseDatabaseAsync();
     await app.InitialiseIdentityAsync();
-    app.UseDeveloperExceptionPage();
 }
-
 
 app.ConfigurePipeline();
 app.ConfigureRoutes(localizationConfig.CultureConstraint);

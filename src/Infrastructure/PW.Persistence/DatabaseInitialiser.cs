@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using PW.Domain.Configuration;
 using PW.Domain.Entities;
@@ -30,6 +29,7 @@ namespace PW.Persistence
             await SeedLanguagesAsync();
             await SeedSettingsAsync();
         }
+
         private async Task SeedLanguagesAsync()
         {
             if (await _context.Languages.AnyAsync())
@@ -37,8 +37,8 @@ namespace PW.Persistence
 
             var initialLanguages = new List<Language>
             {
-                new Language { Name = "English", Code = "en", FlagImageFileName = "en.svg", IsDefault = true, IsPublished = true, DisplayOrder = 1 },
-                new Language { Name = "Türkçe", Code = "tr", FlagImageFileName = "tr.svg", IsDefault = false, IsPublished = true, DisplayOrder = 2 }
+                new Language { Name = "English", Code = "en", FlagImageFileName = "en.svg", IsDefault = false, IsPublished = true, DisplayOrder = 2 },
+                new Language { Name = "Türkçe", Code = "tr", FlagImageFileName = "tr.svg", IsDefault = true, IsPublished = true, DisplayOrder = 1 }
             };
 
             await _context.Languages.AddRangeAsync(initialLanguages);
@@ -47,13 +47,64 @@ namespace PW.Persistence
 
         private async Task SeedSettingsAsync()
         {
+            var trLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "tr");
+            var enLang = await _context.Languages.FirstOrDefaultAsync(x => x.Code == "en");
+
             var defaultProfileSettings = new ProfileSettings
             {
                 FirstName = "Onur",
                 LastName = "Karabeyoğlu",
-                Biography = "Buraya kısa biyografinizi yazınız...",
+                Biography = "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir Yazılım Mimarıyım.",
             };
+
             await SeedSettingsHelperAsync(defaultProfileSettings);
+
+            if (trLang != null && enLang != null)
+            {
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.Biography),
+                    languageId: enLang.Id,
+                    translation: "Hello, I am Onur. I am a Software Architect specializing in .NET technologies.");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.Biography),
+                    languageId: trLang.Id,
+                    translation: "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir Yazılım Mimarısıyım.");
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        private async Task AddSettingTranslationAsync<T>(string propName, int languageId, string translation)
+        {
+            string className = typeof(T).Name;
+            if (className.EndsWith("Settings"))
+                className = className.Substring(0, className.Length - "Settings".Length);
+
+            string key = $"{className}.{propName}";
+
+            var setting = await _context.Settings.FirstOrDefaultAsync(x => x.Name == key);
+
+            if (setting == null) return;
+
+            bool exists = await _context.LocalizedProperties.AnyAsync(x =>
+                x.EntityId == setting.Id &&
+                x.LanguageId == languageId &&
+                x.LocaleKeyGroup == "Setting" &&
+                x.LocaleKey == "Value");
+
+            if (!exists)
+            {
+                var localeProp = new LocalizedProperty
+                {
+                    EntityId = setting.Id,
+                    LanguageId = languageId,
+                    LocaleKeyGroup = "Setting",
+                    LocaleKey = "Value",
+                    LocaleValue = translation
+                };
+
+                await _context.LocalizedProperties.AddAsync(localeProp);
+            }
         }
 
         private async Task SeedSettingsHelperAsync<T>(T settings) where T : class

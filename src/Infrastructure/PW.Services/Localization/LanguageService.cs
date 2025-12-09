@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Repositories;
 using PW.Domain.Entities;
@@ -17,6 +18,14 @@ namespace PW.Services.Localization
         public IQueryable<Language> GetAllPublishedLanguages()
         {
             return _languageRepository.GetAll(predicate: language => language.IsPublished);
+        }
+        public async Task<IList<Language>> GetAllPublishedLanguagesAsync()
+        {
+            return await _languageRepository.GetAllAsync(predicate: language => language.IsPublished);
+        }
+        public async Task<Language> GetLanguageByCodeAsync(string code)
+        {
+            return await _languageRepository.GetFirstOrDefaultAsync(predicate: language => language.Code == code);
         }
     }
 }

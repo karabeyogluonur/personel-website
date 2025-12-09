@@ -1,11 +1,10 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using FluentValidation;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Localization.Routing;
 using Microsoft.AspNetCore.Routing.Constraints;
-using Microsoft.Extensions.Options;
 using PW.Application.Interfaces.Localization;
+using PW.Domain.Entities;
 
 namespace PW.Web.Extensions
 {
@@ -19,14 +18,26 @@ namespace PW.Web.Extensions
             using var scope = serviceProvider.CreateScope();
 
             var languageService = scope.ServiceProvider.GetRequiredService<ILanguageService>();
-            var publishedLanguages = languageService.GetAllPublishedLanguages();
+            List<Language> publishedLanguages = new();
 
-            var defaultLanguage = publishedLanguages.FirstOrDefault(l => l.IsDefault) ?? publishedLanguages.FirstOrDefault();
+            try
+            {
+                publishedLanguages = languageService.GetAllPublishedLanguages().ToList();
+            }
+            catch
+            {
+            }
+            if (!publishedLanguages.Any())
+            {
+                publishedLanguages.Add(new Language { Code = "en", IsDefault = true });
+            }
+
+            var defaultLanguage = publishedLanguages.FirstOrDefault(l => l.IsDefault) ?? publishedLanguages.First();
             var supportedCultures = publishedLanguages.Select(l => new CultureInfo(l.Code)).ToArray();
 
             var cultureRegex = string.Join("|", publishedLanguages.Select(l => Regex.Escape(l.Code)));
             var cultureConstraint = new RegexRouteConstraint($"^({cultureRegex})$");
-            var defaultCultureCode = defaultLanguage?.Code ?? "en";
+            var defaultCultureCode = defaultLanguage.Code;
 
             services.Configure<RequestLocalizationOptions>(options =>
             {
@@ -37,15 +48,14 @@ namespace PW.Web.Extensions
                 options.RequestCultureProviders.Clear();
                 options.RequestCultureProviders.Insert(0, new RouteDataRequestCultureProvider
                 {
+                    Options = options,
                     RouteDataStringKey = "culture",
-                    UIRouteDataStringKey = "culture",
-                    Options = options
+                    UIRouteDataStringKey = "culture"
                 });
                 options.RequestCultureProviders.Insert(1, new CookieRequestCultureProvider());
                 options.RequestCultureProviders.Insert(2, new AcceptLanguageHeaderRequestCultureProvider());
                 options.RequestCultureProviders.Insert(3, new QueryStringRequestCultureProvider());
             });
-            ValidatorOptions.Global.LanguageManager.Culture = CultureInfo.CurrentCulture;
             return new LocalizationConfigResult(defaultCultureCode, cultureConstraint);
         }
     }

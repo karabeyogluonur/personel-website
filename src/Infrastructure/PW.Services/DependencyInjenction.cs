@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Messages;
@@ -16,6 +17,7 @@ namespace PW.Services
             builder.Services.AddScoped<ILanguageService, LanguageService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ISettingService, SettingService>();
+            builder.Services.AddScoped<ILocalizationService, LocalizationService>();
 
             #region  Setting Registration
 
@@ -29,13 +31,14 @@ namespace PW.Services
                 builder.Services.AddScoped(type, provider =>
                 {
                     var settingService = provider.GetRequiredService<ISettingService>();
+                    var workContext = provider.GetRequiredService<IWorkContext>();
+                    var currentLanguage = workContext.GetCurrentLanguageAsync().GetAwaiter().GetResult();
+                    int currentLanguageId = currentLanguage?.Id ?? 0;
 
-                    var method = settingService.GetType()
-                        .GetMethod(nameof(ISettingService.LoadSetting));
-
+                    var method = settingService.GetType().GetMethod(nameof(ISettingService.LoadSetting));
                     var genericMethod = method?.MakeGenericMethod(type);
 
-                    return genericMethod?.Invoke(settingService, null);
+                    return genericMethod?.Invoke(settingService, new object[] { currentLanguageId });
                 });
             }
 

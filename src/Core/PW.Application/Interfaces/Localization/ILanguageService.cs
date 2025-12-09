@@ -4,6 +4,9 @@ namespace PW.Application.Interfaces.Localization
 {
     public interface ILanguageService
     {
-        public IQueryable<Language> GetAllPublishedLanguages();
+        IQueryable<Language> GetAllPublishedLanguages();
+        Task<IList<Language>> GetAllPublishedLanguagesAsync();
+        Task<Language> GetLanguageByCodeAsync(string code);
+
     }
 }
