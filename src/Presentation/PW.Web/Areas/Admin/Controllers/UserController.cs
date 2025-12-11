@@ -3,6 +3,7 @@ using PW.Application.Common.Models;
 using PW.Application.Interfaces.Messages;
 using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
+using PW.Web.Extensions;
 
 namespace PW.Web.Areas.Admin.Controllers
 {
@@ -21,20 +22,28 @@ namespace PW.Web.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _userOrchestrator.PrepareUserListViewModelAsync());
+            OperationResult<UserListViewModel> result = await _userOrchestrator.PrepareUserListViewModelAsync();
+
+            if (!result.Succeeded)
+            {
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                return View(new UserListViewModel());
+            }
+
+            return View(result.Data);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var operationResult = await _userOrchestrator.PrepareUserEditViewModelAsync(id);
+            OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(id);
 
-            if (!operationResult.Succeeded)
+            if (!result.Succeeded)
             {
-                await _notificationService.ErrorNotificationAsync(operationResult.Errors.FirstOrDefault());
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(operationResult.Data);
+            return View(result.Data);
         }
 
         [HttpPost]
@@ -43,37 +52,41 @@ namespace PW.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var prepareResult = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
+                OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
 
-                if (!prepareResult.Succeeded)
+                if (!result.Succeeded)
                 {
-                    await _notificationService.ErrorNotificationAsync(prepareResult.Errors.FirstOrDefault());
+                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
                     return RedirectToAction(nameof(Index));
                 }
 
-                return View(prepareResult.Data);
+                return View(result.Data);
             }
 
             OperationResult updateResult = await _userOrchestrator.UpdateUserAsync(userEditViewModel);
 
             if (!updateResult.Succeeded)
             {
-                await _notificationService.ErrorNotificationAsync(updateResult.Errors.FirstOrDefault());
+                ModelState.AddErrors(updateResult);
 
-                var prepareResult = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
+                OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
 
-                if (prepareResult.Succeeded)
-                    return View(prepareResult.Data);
+                if (!result.Succeeded)
+                {
+                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                    return RedirectToAction(nameof(Index));
+                }
 
-                return RedirectToAction(nameof(Index));
+                return View(result.Data);
             }
+
             await _notificationService.SuccessNotificationAsync("User updated successfully.");
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Create()
         {
-            var result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
+            OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
 
             if (!result.Succeeded)
             {
@@ -90,7 +103,7 @@ namespace PW.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
+                OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
 
                 if (!result.Succeeded)
                 {
@@ -101,13 +114,20 @@ namespace PW.Web.Areas.Admin.Controllers
                 return View(result.Data);
             }
 
-            var createResult = await _userOrchestrator.CreateUserAsync(model);
+            OperationResult createResult = await _userOrchestrator.CreateUserAsync(model);
 
             if (!createResult.Succeeded)
             {
-                await _notificationService.ErrorNotificationAsync(createResult.Errors.FirstOrDefault());
+                ModelState.AddErrors(createResult);
 
-                var result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
+                OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
+
+                if (!result.Succeeded)
+                {
+                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                    return RedirectToAction(nameof(Index));
+                }
+
                 return View(result.Data);
             }
 
@@ -119,19 +139,14 @@ namespace PW.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var result = await _userOrchestrator.DeleteUserAsync(id);
+            OperationResult result = await _userOrchestrator.DeleteUserAsync(id);
 
             if (!result.Succeeded)
-            {
                 await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-                return RedirectToAction(nameof(Index));
-            }
+            else
+                await _notificationService.SuccessNotificationAsync("User deleted successfully.");
 
-            await _notificationService.SuccessNotificationAsync("User deleted successfully.");
             return RedirectToAction(nameof(Index));
         }
-
-
     }
-
 }
