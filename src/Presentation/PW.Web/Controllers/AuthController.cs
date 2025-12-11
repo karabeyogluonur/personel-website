@@ -5,48 +5,49 @@ using PW.Web.Extensions;
 using PW.Web.Features.Auth.Services;
 using PW.Web.Features.Auth.ViewModels;
 
-namespace PW.Web.Controllers;
-
-public class AuthController : BasePublicController
+namespace PW.Web.Controllers
 {
-    private readonly IAuthOrchestrator _authOrchestrator;
-
-    public AuthController(IAuthOrchestrator authOrchestrator)
+    public class AuthController : BasePublicController
     {
-        _authOrchestrator = authOrchestrator;
-    }
+        private readonly IAuthOrchestrator _authOrchestrator;
 
-    public IActionResult Login()
-    {
-        if (User.Identity.IsAuthenticated)
-            return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
+        public AuthController(IAuthOrchestrator authOrchestrator)
+        {
+            _authOrchestrator = authOrchestrator;
+        }
 
-        return View();
-    }
+        public IActionResult Login()
+        {
+            if (User.Identity!.IsAuthenticated)
+                return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel loginViewModel)
-    {
-        if (!ModelState.IsValid)
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel loginViewModel)
+        {
+            if (!ModelState.IsValid)
+                return View(loginViewModel);
+
+            OperationResult result = await _authOrchestrator.LoginAsync(loginViewModel);
+
+            if (result.Succeeded)
+                return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
+
+            ModelState.AddErrors(result);
             return View(loginViewModel);
+        }
 
-        OperationResult result = await _authOrchestrator.LoginAsync(loginViewModel);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            if (User.Identity!.IsAuthenticated)
+                await _authOrchestrator.LogoutAsync();
 
-        if (result.Succeeded)
-            return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
-
-        ModelState.AddErrors(result);
-        return View(loginViewModel);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
-    {
-        if (User.Identity.IsAuthenticated)
-            await _authOrchestrator.LogoutAsync();
-
-        return RedirectToAction("Login");
+            return RedirectToAction("Login");
+        }
     }
 }
