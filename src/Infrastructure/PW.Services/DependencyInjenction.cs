@@ -4,9 +4,11 @@ using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Messages;
+using PW.Application.Interfaces.Storage;
 using PW.Domain.Interfaces;
 using PW.Services.Configuration;
 using PW.Services.Localization;
+using PW.Services.Storage;
 
 namespace PW.Services
 {
@@ -18,6 +20,8 @@ namespace PW.Services
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<ISettingService, SettingService>();
             builder.Services.AddScoped<ILocalizationService, LocalizationService>();
+            builder.Services.AddScoped<IStorageService, LocalStorageService>();
+            builder.Services.AddScoped<IAssetService, AssetService>();
 
             #region  Setting Registration
 
