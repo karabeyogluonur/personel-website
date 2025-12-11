@@ -25,6 +25,7 @@
 <div class="card mb-5">
     <div class="card-body">
         <form asp-controller="User" asp-action="Edit" method="post" class="form">
+            <validation-alert />
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
 

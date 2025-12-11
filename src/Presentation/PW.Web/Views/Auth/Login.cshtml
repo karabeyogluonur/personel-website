@@ -8,6 +8,7 @@
         <div class="d-flex flex-center flex-column flex-lg-row-fluid">
             <div class="w-lg-500px p-10">
                 <form class="form w-100" asp-controller="Auth" asp-action="Login" method="POST" id="login-form">
+                    <validation-alert />
                     @Html.AntiForgeryToken()
                     <div class="text-center mb-11">
                         <h1 class="text-gray-900 fw-bolder mb-3">@T["Public.Auth.Login.Title"]</h1>
