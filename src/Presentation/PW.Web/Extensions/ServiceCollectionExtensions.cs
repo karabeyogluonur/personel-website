@@ -6,6 +6,7 @@ using PW.Application.Common.Interfaces;
 using PW.Identity;         // AddIdentityServices için
 using PW.Persistence;      // AddPersistenceServices için
 using PW.Services;         // AddServiceServices için
+using PW.Web.Areas.Admin.Features.Language.Services;
 using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
 using PW.Web.Services;     // WebWorkContext için
@@ -52,6 +53,7 @@ namespace PW.Web.Extensions
         {
             services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
             services.AddScoped<IUserOrchestrator, UserOrchestrator>();
+            services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
             return services;
         }
 

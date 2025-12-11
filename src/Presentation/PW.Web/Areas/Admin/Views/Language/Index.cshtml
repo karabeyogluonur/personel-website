@@ -1,0 +1,190 @@
+@using PW.Web.Areas.Admin.Features.Language.ViewModels
+@model LanguageListViewModel
+
+<div class="card mb-5">
+    <div class="card-body py-4">
+        <div id="kt_app_toolbar" class="app-toolbar">
+            <div class="d-flex flex-stack w-100">
+                <div class="page-title d-flex flex-column justify-content-center gap-2">
+                    <h1 class="page-heading fw-bold fs-2 text-gray-900 mb-0">
+                        Language Management
+                    </h1>
+
+                    <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="text-gray-600 text-hover-primary">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="text-gray-600">Languages</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="d-flex align-items-center">
+                    <a href="@Url.Action("Create", "Language")"
+                        class="btn btn-sm btn-primary d-flex align-items-center px-4">
+                        <i class="ki-outline ki-plus fs-2 me-2"></i>
+                        Add Language
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-5">
+    <div class="card-body">
+
+        <table class="table table-row-dashed table-hover align-middle gs-0 gy-4">
+            <thead>
+                <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
+                    <th class="min-w-150px">Language</th>
+                    <th class="min-w-100px">ISO Code</th>
+                    <th class="min-w-100px">Order</th>
+                    <th class="min-w-150px">Status</th>
+                    <th class="min-w-150px">Created Date</th>
+                    <th class="min-w-150px">Modified Date</th>
+                    <th class="text-end min-w-100px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="fw-semibold text-gray-700">
+                @if (Model.Languages != null && Model.Languages.Any())
+                {
+                    @foreach (var lang in Model.Languages.OrderBy(language => language.DisplayOrder))
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
+                                            default-src="/assets/media/flags/default.svg" class="w-20px h-20px rounded"
+                                            alt="@lang.Code" />
+
+                                        @if (string.IsNullOrEmpty(lang.FlagImageFileName))
+                                        {
+                                            <span class="symbol-label bg-light-primary text-primary fw-bold">
+                                                @lang.Code.Substring(0, 2).ToUpper()
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <span class="">@lang.Name</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge badge-light fw-bold">@lang.Code</span>
+                            </td>
+
+                            <td>
+                                @lang.DisplayOrder
+                            </td>
+
+                            <td>
+                                @if (lang.IsDefault)
+                                {
+                                    <span class="badge badge-light-primary me-1">Default</span>
+                                }
+
+                                @if (lang.IsPublished)
+                                {
+                                    <span class="badge badge-light-success">Published</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-light-secondary">Draft</span>
+                                }
+                            </td>
+
+                            <td class="dt-type-date">
+                                @lang.CreatedAt
+                            </td>
+                            <td class="dt-type-date">
+                                @lang.UpdatedAt
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-area="Admin" asp-controller="Language" asp-action="Edit" asp-route-id="@lang.Id"
+                                    class="btn btn-icon btn-light-primary w-30px h-30px me-3">
+                                    <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit"
+                                        data-bs-original-title="Edit">
+                                        <i class="ki-duotone ki-pencil fs-3">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
+                                    </span>
+                                </a>
+
+                                <a href="javascript:void(0);" class="btn btn-icon btn-light-danger w-30px h-30px me-3"
+                                    data-bs-toggle="modal" data-bs-target="#deleteLanguageModal" data-lang-code="@lang.Code"
+                                    data-lang-name="@lang.Name" aria-label="Delete">
+                                    <i class="ki-duotone ki-trash fs-3">
+                                        <span class="path1"></span><span class="path2"></span>
+                                        <span class="path3"></span><span class="path4"></span>
+                                        <span class="path5"></span>
+                                    </i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No languages found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<div class="modal fade" id="deleteLanguageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Language</h5>
+                <button type="button" class="btn btn-sm btn-icon" data-bs-dismiss="modal">
+                    <i class="ki-outline ki-cross fs-2"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p class="fs-6 text-gray-700">
+                    Are you sure you want to delete <strong id="deleteLangName"></strong>?
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+                <form id="deleteLanguageForm" asp-area="Admin" asp-controller="Language" asp-action="Delete"
+                    method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteLangCode" name="code" />
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const deleteModal = document.getElementById('deleteLanguageModal');
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const langCode = button.getAttribute('data-lang-code');
+            const langName = button.getAttribute('data-lang-name');
+
+            document.getElementById('deleteLangCode').value = langCode;
+            document.getElementById('deleteLangName').textContent = langName;
+        });
+    </script>
+}

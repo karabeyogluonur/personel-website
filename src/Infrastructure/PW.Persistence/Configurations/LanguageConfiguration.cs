@@ -27,7 +27,8 @@ namespace PW.Persistence.Configurations.Localization
 
             builder.HasIndex(l => l.Code)
                 .IsUnique()
-                .HasDatabaseName("IX_Language_Code_Unique");
+                .HasFilter("\"IsDeleted\" = false")
+                .HasDatabaseName("IX_Language_Code_Unique_Active");
 
             builder.Property(l => l.IsDeleted).IsRequired();
             builder.Property(l => l.DeletedAt).IsRequired(false);
