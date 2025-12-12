@@ -26,7 +26,6 @@ namespace PW.Web.Services
                 return _cachedLanguage;
 
             var requestCulture = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>()?.RequestCulture;
-            var cultureCode = requestCulture?.UICulture.Name ?? CultureInfo.CurrentUICulture.Name;
             var isoCode = requestCulture?.UICulture.TwoLetterISOLanguageName ?? CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
             var language = await _languageService.GetLanguageByCodeAsync(isoCode);
@@ -36,6 +35,34 @@ namespace PW.Web.Services
 
             _cachedLanguage = language;
             return _cachedLanguage;
+        }
+
+        public async Task SetCurrentLanguageAsync(Language language)
+        {
+            if (language == null) return;
+
+            _cachedLanguage = language;
+
+            var cultureInfo = new CultureInfo(language.Code);
+
+            CultureInfo.CurrentCulture = cultureInfo;
+            CultureInfo.CurrentUICulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+            var requestCulture = new RequestCulture(cultureInfo);
+            _httpContextAccessor.HttpContext?.Features.Set<IRequestCultureFeature>(new RequestCultureFeature(requestCulture, null));
+
+            var cookieValue = CookieRequestCultureProvider.MakeCookieValue(requestCulture);
+            var cookieOptions = new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) };
+
+            _httpContextAccessor.HttpContext?.Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                cookieValue,
+                cookieOptions
+            );
+
+            await Task.CompletedTask;
         }
     }
 }
