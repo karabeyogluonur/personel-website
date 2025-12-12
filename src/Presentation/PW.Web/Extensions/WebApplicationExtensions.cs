@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Routing.Constraints;
-using Microsoft.Extensions.Options;
+using PW.Application.Interfaces.Localization;
 using PW.Web.Middlewares;
 
 namespace PW.Web.Extensions
@@ -15,28 +14,30 @@ namespace PW.Web.Extensions
             else
             {
                 app.UseMiddleware<GlobalExceptionMiddleware>();
-                app.UseStatusCodePagesWithReExecute("/Error/{0}");
                 app.UseHsts();
             }
 
+            app.UseStatusCodePagesWithReExecute("/Error/{0}");
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseMiddleware<DynamicLocalizationMiddleware>();
             app.UseRouting();
-            app.UseRequestLocalization();
             app.UseAuthentication();
             app.UseAuthorization();
 
             return app;
         }
 
-        public static WebApplication ConfigureRoutes(this WebApplication app, IRouteConstraint cultureConstraint)
+        public static WebApplication ConfigureRoutes(this WebApplication app)
         {
-            app.MapGet("/", context =>
+            app.MapGet("/", async context =>
             {
-                var localizationOptions = context.RequestServices.GetRequiredService<IOptions<RequestLocalizationOptions>>();
-                var defaultCulture = localizationOptions.Value.DefaultRequestCulture.Culture.TwoLetterISOLanguageName;
-                context.Response.Redirect($"/{defaultCulture}");
-                return Task.CompletedTask;
+                var languageService = context.RequestServices.GetRequiredService<ILanguageService>();
+
+                var defaultLang = await languageService.GetDefaultLanguageAsync();
+
+                var code = defaultLang?.Code ?? "en";
+                context.Response.Redirect($"/{code}", permanent: false);
             });
 
             app.MapControllerRoute(
@@ -45,9 +46,9 @@ namespace PW.Web.Extensions
             );
 
             app.MapControllerRoute(
-                name: "localized-default",
+                name: "defaultWithLanguage",
                 pattern: "{culture}/{controller=Home}/{action=Index}/{id?}",
-                constraints: new { culture = cultureConstraint }
+                constraints: new { culture = @"^[a-zA-Z]{2}$" }
             );
 
             app.MapControllerRoute(

@@ -52,11 +52,6 @@ namespace PW.Services.Localization
             _languageRepository.Update(language);
             await _unitOfWork.CommitAsync();
         }
-
-        public IQueryable<Language> GetAllPublishedLanguages()
-        {
-            return _languageRepository.GetAll(predicate: language => language.IsPublished);
-        }
         public async Task<IList<Language>> GetAllPublishedLanguagesAsync()
         {
             return await _languageRepository.GetAllAsync(predicate: language => language.IsPublished);
@@ -74,6 +69,11 @@ namespace PW.Services.Localization
         {
             _languageRepository.Delete(language);
             await _unitOfWork.CommitAsync();
+        }
+
+        public Task<Language> GetDefaultLanguageAsync()
+        {
+            return _languageRepository.GetFirstOrDefaultAsync(predicate: language => language.IsPublished);
         }
     }
 }

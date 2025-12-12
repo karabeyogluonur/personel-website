@@ -1,10 +1,12 @@
+using Microsoft.Extensions.Localization;
 using PW.Identity;
 using PW.Persistence;
 using PW.Web.Extensions;
+using PW.Web.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.AddProjectServices(builder);
-var localizationConfig = builder.Services.AddDatabaseLocalization();
 
 var app = builder.Build();
 
@@ -15,6 +17,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.ConfigurePipeline();
-app.ConfigureRoutes(localizationConfig.CultureConstraint);
+app.ConfigureRoutes();
 
 app.Run();
