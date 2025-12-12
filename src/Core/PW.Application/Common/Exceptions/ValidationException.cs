@@ -1,4 +1,4 @@
-namespace Application.Common.Exceptions;
+namespace PW.Application.Common.Exceptions;
 
 public class ValidationException : BaseException
 {

@@ -12,8 +12,8 @@ namespace PW.Web.Controllers
             return statusCode switch
             {
                 404 => View("NotFound"),
-                401 => View("Unauthorized"),
-                403 => View("Unauthorized"),
+                401 => View("AccessDenied"),
+                403 => View("Forbidden"),
                 500 => View("Error"),
                 _ => View("Error")
             };

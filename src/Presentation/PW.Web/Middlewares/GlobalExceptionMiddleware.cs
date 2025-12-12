@@ -1,5 +1,5 @@
-using Application.Common.Exceptions;
 using System.Text.Json;
+using PW.Application.Common.Exceptions; // Exception sınıflarının olduğu namespace
 
 namespace PW.Web.Middlewares
 {
@@ -7,11 +7,13 @@ namespace PW.Web.Middlewares
     {
         private readonly RequestDelegate _next;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-        public GlobalExceptionMiddleware(RequestDelegate next, IWebHostEnvironment env)
+        public GlobalExceptionMiddleware(RequestDelegate next, IWebHostEnvironment env, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
             _env = env;
+            _logger = logger;
         }
 
         public async Task Invoke(HttpContext context)
@@ -22,6 +24,11 @@ namespace PW.Web.Middlewares
             }
             catch (Exception ex)
             {
+                if (context.Response.HasStarted)
+                {
+                    throw;
+                }
+
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -29,53 +36,78 @@ namespace PW.Web.Middlewares
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
             int statusCode;
-            object response;
+            object responseModel;
 
             switch (ex)
             {
+                case ValidationException ve:
+                    statusCode = 400;
+                    responseModel = new
+                    {
+                        title = ve.Message,
+                        status = statusCode,
+                        errors = ve.Errors
+                    };
+                    break;
+
+                case UnauthorizedException ue:
+                    statusCode = ue.StatusCode;
+                    responseModel = new
+                    {
+                        title = ue.Message,
+                        status = statusCode
+                    };
+                    break;
+
                 case BaseException be:
                     statusCode = be.StatusCode;
-                    response = new
+                    responseModel = new
                     {
                         title = be.Message,
                         status = statusCode,
-                        errors = ex is ValidationException ve ? ve.Errors : null
+                        errors = (object)null
                     };
                     break;
 
                 case UnauthorizedAccessException:
                     statusCode = 401;
-                    response = new { title = "Unauthorized", status = statusCode };
+                    responseModel = new { title = "Unauthorized Access", status = statusCode };
                     break;
 
                 default:
                     statusCode = 500;
-                    response = new
+                    responseModel = new
                     {
                         title = "An unexpected error occurred.",
                         status = statusCode,
-                        detail = _env.IsDevelopment() ? ex.Message : null
+                        detail = _env.IsDevelopment() ? ex.Message : "Internal Server Error"
                     };
                     break;
             }
 
+            context.Response.Clear();
+            context.Response.StatusCode = statusCode;
+
             if (IsJsonRequest(context.Request))
             {
-                context.Response.StatusCode = statusCode;
                 context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                await context.Response.WriteAsync(JsonSerializer.Serialize(responseModel, options));
                 return;
             }
 
-            context.Items["ErrorException"] = ex;
-            context.Items["ErrorStatusCode"] = statusCode;
-            context.Response.Redirect("/Error/500");
+            context.Response.Redirect($"/Error/{statusCode}");
         }
 
         private bool IsJsonRequest(HttpRequest request)
         {
+            if (request.Headers["X-Requested-With"] == "XMLHttpRequest") return true;
+
             if (request.Headers.TryGetValue("Accept", out var acceptValues))
+            {
                 return acceptValues.Any(a => a.Contains("application/json"));
+            }
 
             return false;
         }
