@@ -8,6 +8,7 @@ using PW.Application.Common.Interfaces;
 using PW.Identity;
 using PW.Persistence;
 using PW.Services;
+using PW.Web.Areas.Admin.Features.Configuration.Services;
 using PW.Web.Areas.Admin.Features.Language.Services;
 using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
@@ -69,6 +70,8 @@ namespace PW.Web.Extensions
                 options.RequestCultureProviders.Add(new RouteDataRequestCultureProvider() { Options = options });
                 options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
                 options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
+                options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+
             });
 
             return services;
@@ -79,6 +82,7 @@ namespace PW.Web.Extensions
             services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
             services.AddScoped<IUserOrchestrator, UserOrchestrator>();
             services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
+            services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
             return services;
         }
 

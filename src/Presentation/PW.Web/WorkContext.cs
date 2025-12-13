@@ -26,12 +26,26 @@ namespace PW.Web.Services
                 return _cachedLanguage;
 
             var requestCulture = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>()?.RequestCulture;
-            var isoCode = requestCulture?.UICulture.TwoLetterISOLanguageName ?? CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+            string isoCode = requestCulture?.UICulture.TwoLetterISOLanguageName;
+
+            if (string.IsNullOrEmpty(isoCode))
+            {
+                var defaultCulture = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>()
+                    ?.RequestCulture.UICulture.TwoLetterISOLanguageName;
+
+                isoCode = defaultCulture ?? "en";
+            }
 
             var language = await _languageService.GetLanguageByCodeAsync(isoCode);
 
             if (language == null || !language.IsPublished)
-                language = (await _languageService.GetAllPublishedLanguagesAsync()).FirstOrDefault(x => x.IsDefault);
+            {
+                language = await _languageService.GetDefaultLanguageAsync();
+
+                if (language == null)
+                    throw new InvalidOperationException("Default language is not configured in the database.");
+            }
 
             _cachedLanguage = language;
             return _cachedLanguage;

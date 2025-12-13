@@ -1,3 +1,4 @@
+using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Localization;
 using PW.Web.Middlewares;
 
@@ -21,6 +22,7 @@ namespace PW.Web.Extensions
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseMiddleware<DynamicLocalizationMiddleware>();
+            app.UseMiddleware<CultureRedirectMiddleware>();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -32,9 +34,9 @@ namespace PW.Web.Extensions
         {
             app.MapGet("/", async context =>
             {
-                var languageService = context.RequestServices.GetRequiredService<ILanguageService>();
+                var workContext = context.RequestServices.GetRequiredService<IWorkContext>();
 
-                var defaultLang = await languageService.GetDefaultLanguageAsync();
+                var defaultLang = await workContext.GetCurrentLanguageAsync();
 
                 var code = defaultLang?.Code ?? "en";
                 context.Response.Redirect($"/{code}", permanent: false);
