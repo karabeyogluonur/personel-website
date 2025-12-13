@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using System.Linq;
+using System.Linq.Expressions;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Repositories;
@@ -12,44 +12,52 @@ namespace PW.Services.Configuration
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<Setting> _settingRepository;
+        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly ILocalizationService _localizationService;
 
         public SettingService(IUnitOfWork unitOfWork, ILocalizationService localizationService)
         {
             _unitOfWork = unitOfWork;
             _settingRepository = _unitOfWork.GetRepository<Setting>();
+            _localizedPropertyRepository = _unitOfWork.GetRepository<LocalizedProperty>();
             _localizationService = localizationService;
         }
 
+        #region Utilities
         private string GetPrefix<T>()
         {
             string className = typeof(T).Name;
             if (className.EndsWith("Settings"))
-            {
                 className = className.Substring(0, className.Length - "Settings".Length);
-            }
             return className;
         }
 
-        public T LoadSetting<T>(int languageId = 0) where T : ISettings, new()
+        private string GetKey<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector)
+        {
+            if (keySelector.Body is not MemberExpression member)
+                throw new ArgumentException($"Expression '{keySelector}' refers to a method, not a property.");
+
+            string className = typeof(TSettings).Name;
+            if (className.EndsWith("Settings"))
+                className = className.Substring(0, className.Length - "Settings".Length);
+
+            return $"{className}.{member.Member.Name}";
+        }
+        #endregion
+
+        public T LoadSettings<T>(int languageId = 0) where T : ISettings, new()
         {
             var settings = new T();
             string prefix = GetPrefix<T>();
 
-            var allSettings = _settingRepository.GetAll()
-                .Where(x => x.Name.StartsWith(prefix))
-                .ToList();
+            var allSettings = _settingRepository.GetAll(predicate: x => x.Name.StartsWith(prefix)).ToList();
 
             Dictionary<int, string> translations = null;
 
             if (languageId > 0 && allSettings.Any())
             {
                 var settingIds = allSettings.Select(x => x.Id).ToList();
-
-                translations = _localizationService
-                    .GetSettingsTranslationsAsync(settingIds, languageId)
-                    .GetAwaiter()
-                    .GetResult();
+                translations = _localizationService.GetSettingsTranslationsAsync(settingIds, languageId).GetAwaiter().GetResult();
             }
 
             foreach (var prop in typeof(T).GetProperties())
@@ -57,7 +65,6 @@ namespace PW.Services.Configuration
                 if (!prop.CanWrite || !prop.CanRead) continue;
 
                 string key = $"{prefix}.{prop.Name}";
-
                 var setting = allSettings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
 
                 if (setting == null) continue;
@@ -65,24 +72,30 @@ namespace PW.Services.Configuration
                 string valueStr = setting.Value;
 
                 if (translations != null && translations.ContainsKey(setting.Id))
-                {
                     valueStr = translations[setting.Id];
-                }
 
                 var typeConverter = TypeDescriptor.GetConverter(prop.PropertyType);
                 if (typeConverter.CanConvertFrom(typeof(string)))
                 {
-                    object value = typeConverter.ConvertFrom(valueStr);
-                    prop.SetValue(settings, value);
+                    try
+                    {
+                        object value = typeConverter.ConvertFrom(valueStr);
+                        prop.SetValue(settings, value);
+                    }
+                    catch { }
                 }
             }
 
             return settings;
         }
 
-        public async Task SaveSettingAsync<T>(T settings) where T : ISettings
+        public async Task SaveSettingsAsync<T>(T settings) where T : ISettings
         {
             string prefix = GetPrefix<T>();
+
+            var existingSettings = await _settingRepository.GetAllAsync(
+                predicate: x => x.Name.StartsWith(prefix),
+                disableTracking: false);
 
             foreach (var prop in typeof(T).GetProperties())
             {
@@ -90,40 +103,31 @@ namespace PW.Services.Configuration
 
                 string key = $"{prefix}.{prop.Name}";
                 dynamic value = prop.GetValue(settings);
-                string valueStr = value != null ? value.ToString() : "";
+                string valueStr = TypeDescriptor.GetConverter(prop.PropertyType).ConvertToInvariantString(value);
 
-                await SetSettingAsync(key, valueStr);
+                var setting = existingSettings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+
+                if (setting != null)
+                {
+                    if (setting.Value != valueStr)
+                        setting.Value = valueStr;
+                }
+                else
+                {
+                    await _settingRepository.InsertAsync(new Setting { Name = key, Value = valueStr, IsPublic = true });
+                }
             }
 
             await _unitOfWork.CommitAsync();
         }
 
-        public async Task SetSettingAsync<T>(string key, T value, bool isPublic = true)
+        public TProp GetSettingValue<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, int languageId = 0)
+            where TSettings : ISettings, new()
         {
-            string valueStr = TypeDescriptor.GetConverter(typeof(T)).ConvertToInvariantString(value);
+            string key = GetKey(keySelector);
+            TProp defaultValue = default;
 
             var setting = _settingRepository.GetFirstOrDefault(predicate: x => x.Name == key);
-
-            if (setting != null)
-            {
-                setting.Value = valueStr;
-                _settingRepository.Update(setting);
-            }
-            else
-            {
-                var newSetting = new Setting
-                {
-                    Name = key,
-                    Value = valueStr,
-                    IsPublic = isPublic
-                };
-                await _settingRepository.InsertAsync(newSetting);
-            }
-        }
-
-        public T GetSettingByKey<T>(string key, T defaultValue = default, int languageId = 0)
-        {
-            var setting = _settingRepository.GetAll().FirstOrDefault(x => x.Name == key);
 
             if (setting != null)
             {
@@ -131,21 +135,76 @@ namespace PW.Services.Configuration
 
                 if (languageId > 0)
                 {
-                    var localizedValue = _localizationService
-                        .GetLocalizedAsync(setting, x => x.Value, languageId)
-                        .GetAwaiter().GetResult();
-
+                    var localizedValue = _localizationService.GetLocalizedAsync(setting, x => x.Value, languageId).GetAwaiter().GetResult();
                     if (!string.IsNullOrEmpty(localizedValue))
                         valueStr = localizedValue;
                 }
 
-                var typeConverter = TypeDescriptor.GetConverter(typeof(T));
+                var typeConverter = TypeDescriptor.GetConverter(typeof(TProp));
                 if (typeConverter.CanConvertFrom(typeof(string)))
                 {
-                    return (T)typeConverter.ConvertFrom(valueStr);
+                    try { return (TProp)typeConverter.ConvertFrom(valueStr); }
+                    catch { return defaultValue; }
                 }
             }
             return defaultValue;
+        }
+
+        public async Task<string> GetLocalizedSettingValueAsync<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, int languageId)
+            where TSettings : ISettings, new()
+        {
+            string key = GetKey(keySelector);
+
+            var setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key);
+            if (setting == null) return null;
+
+            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
+                x.LanguageId == languageId &&
+                x.EntityId == setting.Id &&
+                x.LocaleKeyGroup == "Setting" &&
+                x.LocaleKey == "Value");
+
+            return prop?.LocaleValue;
+        }
+
+        public async Task SaveLocalizedSettingValueAsync<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, string value, int languageId)
+            where TSettings : ISettings, new()
+        {
+            string key = GetKey(keySelector);
+
+            var setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key, disableTracking: false);
+
+            if (setting == null) return;
+
+            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
+                x.LanguageId == languageId &&
+                x.EntityId == setting.Id &&
+                x.LocaleKeyGroup == "Setting" &&
+                x.LocaleKey == "Value",
+                disableTracking: false);
+
+            string valueStr = value ?? string.Empty;
+
+            if (prop != null)
+            {
+                if (string.IsNullOrWhiteSpace(valueStr))
+                    _localizedPropertyRepository.Delete(prop);
+                else
+                    prop.LocaleValue = valueStr;
+            }
+            else if (!string.IsNullOrWhiteSpace(valueStr))
+            {
+                await _localizedPropertyRepository.InsertAsync(new LocalizedProperty
+                {
+                    EntityId = setting.Id,
+                    LanguageId = languageId,
+                    LocaleKeyGroup = "Setting",
+                    LocaleKey = "Value",
+                    LocaleValue = valueStr
+                });
+            }
+
+            await _unitOfWork.CommitAsync();
         }
     }
 }

@@ -54,22 +54,77 @@ namespace PW.Persistence
             {
                 FirstName = "Onur",
                 LastName = "Karabeyoğlu",
-                Biography = "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir Yazılım Mimarıyım.",
+                JobTitle = "Software Developer",
+                Biography = "Hello, I am Onur. I am a software developer specializing in .NET technologies.",
+                AvatarFileName = "",
+                CoverFileName = ""
             };
 
             await SeedSettingsHelperAsync(defaultProfileSettings);
 
             if (trLang != null && enLang != null)
             {
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.FirstName),
+                    languageId: enLang.Id,
+                    translation: "Onur");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.LastName),
+                    languageId: enLang.Id,
+                    translation: "Karabeyoglu");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.JobTitle),
+                    languageId: enLang.Id,
+                    translation: "Software Developer");
+
                 await AddSettingTranslationAsync<ProfileSettings>(
                     propName: nameof(ProfileSettings.Biography),
                     languageId: enLang.Id,
-                    translation: "Hello, I am Onur. I am a Software Architect specializing in .NET technologies.");
+                    translation: "Hello, I am Onur. I am a software developer specializing in .NET technologies.");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.AvatarFileName),
+                    languageId: enLang.Id,
+                    translation: "");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.CoverFileName),
+                    languageId: enLang.Id,
+                    translation: "");
+
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.FirstName),
+                    languageId: trLang.Id,
+                    translation: "Onur");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.LastName),
+                    languageId: trLang.Id,
+                    translation: "Karabeyoğlu");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.JobTitle),
+                    languageId: trLang.Id,
+                    translation: "Yazılım Geliştirici");
 
                 await AddSettingTranslationAsync<ProfileSettings>(
                     propName: nameof(ProfileSettings.Biography),
                     languageId: trLang.Id,
-                    translation: "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir Yazılım Mimarısıyım.");
+                    translation: "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir yazılım geliştiriciyim.");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.AvatarFileName),
+                    languageId: trLang.Id,
+                    translation: "");
+
+                await AddSettingTranslationAsync<ProfileSettings>(
+                    propName: nameof(ProfileSettings.CoverFileName),
+                    languageId: trLang.Id,
+                    translation: "");
             }
 
             await _context.SaveChangesAsync();

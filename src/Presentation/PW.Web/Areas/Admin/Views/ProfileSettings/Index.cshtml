@@ -1,0 +1,271 @@
+@using PW.Application.Common.Constants
+@using PW.Web.Areas.Admin.Features.Configuration.ViewModels
+@model ProfileSettingsViewModel
+
+@{
+    ViewData["Title"] = "Public Profile Settings";
+}
+
+<div class="card mb-5">
+    <div class="card-body py-4">
+        <div id="kt_app_toolbar" class="app-toolbar">
+            <div class="d-flex flex-stack w-100">
+                <div class="page-title d-flex flex-column justify-content-center gap-2">
+                    <h1 class="page-heading fw-bold fs-2 text-gray-900 mb-0">
+                        Public Profile Configuration
+                    </h1>
+                    <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="text-gray-600 text-hover-primary">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="text-gray-600">Configuration</span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item text-gray-800 fw-semibold">
+                            Public Profile
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-controller="ProfileSettings" asp-action="Index" method="post" enctype="multipart/form-data" class="form">
+
+    <validation-summary />
+    @Html.AntiForgeryToken()
+
+    <div class="card card-flush">
+        <div class="card-header card-header-stretch">
+            <div class="card-toolbar w-100">
+                <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 w-100">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab_standard">Standard</a>
+                    </li>
+                    @foreach (var lang in Model.AvailableLanguages)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab_lang_@lang.Id">
+                                <div class="d-flex align-items-center">
+                                    <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
+                                        default-src="/uploads/system/blanks/image.png" class="w-15px h-15px rounded-1 me-2"
+                                        alt="@lang.Name" />
+                                    @lang.Name
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-body pt-5">
+            <div class="tab-content" id="profileTabContent">
+
+                <div class="tab-pane fade show active" id="tab_standard" role="tabpanel">
+
+                    <div class="row mb-7">
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold mb-2">Avatar</label>
+                            <div class="d-flex align-items-center gap-5 mb-3">
+                                <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
+                                    <img file-name="@Model.AvatarPath" folder="@StoragePaths.System_Profiles"
+                                        default-src="/uploads/system/blanks/avatar.png" alt="Avatar" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    @if (!string.IsNullOrEmpty(Model.AvatarPath))
+                                    {
+                                        <div class="form-check form-check-custom form-check-solid mb-2">
+                                            <input class="form-check-input" type="checkbox" asp-for="RemoveAvatar" />
+                                            <label class="form-check-label text-gray-700 fs-7" asp-for="RemoveAvatar">Remove
+                                                current</label>
+                                        </div>
+                                    }
+                                    <input type="file" asp-for="AvatarImage" class="form-control form-control-sm"
+                                        accept=".png, .jpg, .jpeg" />
+                                    <div class="text-muted fs-8 mt-2">Allowed types: png, jpg, jpeg.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fs-7 fw-semibold mb-2">Cover Image</label>
+                            <div class="d-flex align-items-center gap-5 mb-3">
+                                <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
+                                    <img file-name="@Model.CoverPath" folder="@StoragePaths.System_Profiles"
+                                        default-src="/uploads/system/blanks/cover.jpg" style="object-fit:cover"
+                                        alt="Cover" />
+                                </div>
+                                <div class="d-flex flex-column">
+                                    @if (!string.IsNullOrEmpty(Model.CoverPath))
+                                    {
+                                        <div class="form-check form-check-custom form-check-solid mb-2">
+                                            <input class="form-check-input" type="checkbox" asp-for="RemoveCover" />
+                                            <label class="form-check-label text-gray-700 fs-7" asp-for="RemoveCover">Remove
+                                                current</label>
+                                        </div>
+                                    }
+                                    <input type="file" asp-for="CoverImage" class="form-control form-control-sm"
+                                        accept=".png, .jpg, .jpeg" />
+                                    <div class="text-muted fs-8 mt-2">Allowed types: png, jpg, jpeg.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="separator separator-dashed my-6"></div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-6 fv-row mb-7">
+                            <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
+                            <input asp-for="FirstName" class="form-control form-control-sm" />
+                            <span asp-validation-for="FirstName"
+                                class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                        </div>
+                        <div class="col-md-6 fv-row mb-7">
+                            <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
+                            <input asp-for="LastName" class="form-control form-control-sm" />
+                            <span asp-validation-for="LastName"
+                                class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-12 fv-row mb-7">
+                            <label asp-for="JobTitle" class="form-label fs-7 fw-semibold"></label>
+                            <input asp-for="JobTitle" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-12 fv-row mb-7">
+                            <label asp-for="Biography" class="form-label fs-7 fw-semibold"></label>
+                            <textarea asp-for="Biography" class="form-control form-control-sm" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @for (int i = 0; i < Model.Locales.Count; i++)
+                {
+                    <div class="tab-pane fade" id="tab_lang_@Model.Locales[i].LanguageId" role="tabpanel">
+
+                        <input type="hidden" asp-for="Locales[i].LanguageId" />
+                        <input type="hidden" asp-for="Locales[i].LanguageCode" />
+
+                        <div
+                            class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
+                            <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4 mb-5 mb-sm-0 flex-shrink-0"><span
+                                    class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                            <div class="d-flex flex-column pe-0 pe-sm-10">
+                                <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
+                                                                    Model.Locales[i].LanguageId)?.Name</h5>
+                            <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
+                                this language. Leave empty to use Standard values.</span>
+                        </div>
+                    </div>
+
+                        <div class="row mb-7">
+                            <div class="col-md-6">
+                                <label class="form-label fs-7 fw-semibold mb-2">Avatar
+                                    (@Model.Locales[i].LanguageCode)</label>
+                                <div class="d-flex align-items-center gap-5 mb-3">
+                                    <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
+                                        <img file-name="@Model.Locales[i].AvatarPath" folder="@StoragePaths.System_Profiles"
+                                            default-src="/uploads/system/blanks/avatar.png" alt="Avatar Local" />
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                    @if (!string.IsNullOrEmpty(Model.Locales[i].AvatarPath))
+                                        {
+                                            <div class="form-check form-check-custom form-check-solid mb-2">
+                                                <input class="form-check-input" type="checkbox"
+                                                    asp-for="Locales[i].RemoveAvatar" />
+                                                <label class="form-check-label text-gray-700 fs-7"
+                                                    asp-for="Locales[i].RemoveAvatar">Revert to Standard</label>
+                                            </div>
+                                        }
+                                        <input type="file" asp-for="Locales[i].AvatarImage"
+                                            class="form-control form-control-sm" accept=".png, .jpg, .jpeg" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fs-7 fw-semibold mb-2">Cover Image
+                                    (@Model.Locales[i].LanguageCode)</label>
+                                <div class="d-flex align-items-center gap-5 mb-3">
+                                    <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
+                                        <img file-name="@Model.Locales[i].CoverPath" folder="@StoragePaths.System_Profiles"
+                                            default-src="/uploads/system/blanks/cover.jpg" style="object-fit:cover"
+                                            alt="Cover Local" />
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        @if (!string.IsNullOrEmpty(Model.Locales[i].CoverPath))
+                                        {
+                                            <div class="form-check form-check-custom form-check-solid mb-2">
+                                                <input class="form-check-input" type="checkbox"
+                                                    asp-for="Locales[i].RemoveCover" />
+                                                <label class="form-check-label text-gray-700 fs-7"
+                                                    asp-for="Locales[i].RemoveCover">Revert to Standard</label>
+                                            </div>
+                                        }
+                                        <input type="file" asp-for="Locales[i].CoverImage"
+                                            class="form-control form-control-sm" accept=".png, .jpg, .jpeg" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-6 fv-row mb-7">
+                                <label class="form-label fs-7 fw-semibold">First Name</label>
+                                <input asp-for="Locales[i].FirstName" class="form-control form-control-sm"
+                                    placeholder="Standard: @Model.FirstName" />
+                            </div>
+                            <div class="col-md-6 fv-row mb-7">
+                                <label class="form-label fs-7 fw-semibold">Last Name</label>
+                                <input asp-for="Locales[i].LastName" class="form-control form-control-sm"
+                                    placeholder="Standard: @Model.LastName" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-12 fv-row mb-7">
+                                <label class="form-label fs-7 fw-semibold">Job Title</label>
+                                <input asp-for="Locales[i].JobTitle" class="form-control form-control-sm"
+                                    placeholder="Standard: @Model.JobTitle" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-12 fv-row mb-7">
+                                <label class="form-label fs-7 fw-semibold">Biography</label>
+                                <textarea asp-for="Locales[i].Biography" class="form-control form-control-sm" rows="4"
+                                    placeholder="Standard: @Model.Biography"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end py-6 px-9">
+            <a asp-action="Index" class="btn btn-sm btn-light me-3">Discard</a>
+
+            <button type="submit" class="btn btn-sm btn-primary">
+                <span class="indicator-label">Save Changes</span>
+                <span class="indicator-progress">
+                    Please wait...
+                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                </span>
+            </button>
+        </div>
+    </div>
+</form>

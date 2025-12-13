@@ -39,7 +39,7 @@ namespace PW.Services
                     var currentLanguage = workContext.GetCurrentLanguageAsync().GetAwaiter().GetResult();
                     int currentLanguageId = currentLanguage?.Id ?? 0;
 
-                    var method = settingService.GetType().GetMethod(nameof(ISettingService.LoadSetting));
+                    var method = settingService.GetType().GetMethod(nameof(ISettingService.LoadSettings));
                     var genericMethod = method?.MakeGenericMethod(type);
 
                     return genericMethod?.Invoke(settingService, new object[] { currentLanguageId });

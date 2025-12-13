@@ -1,1 +1,66 @@
 ﻿@inject ProfileSettings PS
+<div class="card mb-5 mb-xxl-8">
+    <div class="d-flex flex-wrap flex-sm-nowrap h-150px h-lg-150px rounded-top w-100" bg-file-name="@PS.CoverFileName"
+        bg-folder="@StoragePaths.System_Profiles" bg-default-src="/uploads/system/blanks/cover.jpg"
+        style="background-size: cover; background-position: center;">
+    </div>
+    <div class="card-body pt-9 pb-0 mt-n20">
+        <div class="d-flex flex-wrap flex-sm-nowrap">
+            <div class="me-7 mb-4">
+                <div class="symbol symbol-100px symbol-lg-140px symbol-fixed position-relative">
+                    <img file-name="@PS.AvatarFileName" folder="@StoragePaths.System_Profiles"
+                        default-src="/uploads/system/blanks/avatar.png" />
+                    <div
+                        class="position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border border-4 border-body h-20px w-20px">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap flex-sm-nowrap">
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center mb-2">
+                            <a href="#" class="text-gray-900 text-hover-primary fs-4 fw-bold me-1">@PS.FirstName
+                                @PS.LastName</a>
+                            <a href="#">
+                                <i class="ki-solid ki-verify fs-2 text-primary">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                </i>
+                            </a>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span href="#" class="text-gray-600 fw-bold fs-7 me-1">@PS.Biography</span>
+                        </div>
+                        <div class="d-flex flex-wrap fw-semibold fs-7 mb-4 pe-2">
+                            <span class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2">
+                                <i class="ki-duotone ki-message-programming fs-7 me-1">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i>@PS.JobTitle</span>
+                            <span class="d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2">
+                                <i class="ki-duotone ki-geolocation-home fs-7 me-1">
+                                    <span class="path1"></span>
+                                    <span class="path2"></span>
+                                    <span class="path3"></span>
+                                </i> İstanbul</span>
+                        </div>
+                    </div>
+                    <div class="d-flex my-4">
+                        <a href="#" class="btn btn-sm btn-light me-2">
+                            <i class="bi bi-github fs-6 text-gray-600"></i>
+                            <span class="indicator-label">Github</span>
+                        </a>
+                        <a href="#" class="btn btn-sm btn-light me-2">
+                            <i class="bi bi-linkedin fs-6 text-gray-600"></i>
+                            <span class="indicator-label">Linkedin</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
