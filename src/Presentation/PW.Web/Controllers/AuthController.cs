@@ -21,7 +21,13 @@ namespace PW.Web.Controllers
             if (User.Identity!.IsAuthenticated)
                 return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
 
-            return View();
+            LoginViewModel loginViewModel = new LoginViewModel
+            {
+                Email = "admin@pw.com",
+                Password = "Pass123*"
+            };
+
+            return View(loginViewModel);
         }
 
         [HttpPost]
