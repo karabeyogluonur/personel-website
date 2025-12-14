@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PW.Domain.Configuration;
 using PW.Domain.Entities;
 using PW.Persistence.Contexts;
-using System.ComponentModel;
+using PW.Application.Common.Extensions;
 
 namespace PW.Persistence
 {
@@ -62,80 +62,52 @@ namespace PW.Persistence
 
             await SeedSettingsHelperAsync(defaultProfileSettings);
 
+            var defaultGeneralSettings = new GeneralSettings
+            {
+                SiteTitle = "My Portfolio",
+                LightThemeLogoFileName = "",
+                DarkThemeLogoFileName = "",
+                LightThemeFaviconFileName = "",
+                DarkThemeFaviconFileName = ""
+            };
+
+            await SeedSettingsHelperAsync(defaultGeneralSettings);
+
             if (trLang != null && enLang != null)
             {
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.FirstName), enLang.Id, "Onur");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.LastName), enLang.Id, "Karabeyoglu");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.JobTitle), enLang.Id, "Software Developer");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.Biography), enLang.Id, "Hello, I am Onur. I am a software developer specializing in .NET technologies.");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.AvatarFileName), enLang.Id, "");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.CoverFileName), enLang.Id, "");
 
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.FirstName),
-                    languageId: enLang.Id,
-                    translation: "Onur");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.SiteTitle), enLang.Id, "My Personal Portfolio");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.LightThemeLogoFileName), enLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.DarkThemeLogoFileName), enLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.LightThemeFaviconFileName), enLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.DarkThemeFaviconFileName), enLang.Id, "");
 
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.LastName),
-                    languageId: enLang.Id,
-                    translation: "Karabeyoglu");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.FirstName), trLang.Id, "Onur");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.LastName), trLang.Id, "Karabeyoğlu");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.JobTitle), trLang.Id, "Yazılım Geliştirici");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.Biography), trLang.Id, "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir yazılım geliştiriciyim.");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.AvatarFileName), trLang.Id, "");
+                await AddSettingTranslationAsync<ProfileSettings>(nameof(ProfileSettings.CoverFileName), trLang.Id, "");
 
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.JobTitle),
-                    languageId: enLang.Id,
-                    translation: "Software Developer");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.Biography),
-                    languageId: enLang.Id,
-                    translation: "Hello, I am Onur. I am a software developer specializing in .NET technologies.");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.AvatarFileName),
-                    languageId: enLang.Id,
-                    translation: "");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.CoverFileName),
-                    languageId: enLang.Id,
-                    translation: "");
-
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.FirstName),
-                    languageId: trLang.Id,
-                    translation: "Onur");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.LastName),
-                    languageId: trLang.Id,
-                    translation: "Karabeyoğlu");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.JobTitle),
-                    languageId: trLang.Id,
-                    translation: "Yazılım Geliştirici");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.Biography),
-                    languageId: trLang.Id,
-                    translation: "Merhaba, ben Onur. .NET teknolojileri üzerine uzmanlaşmış bir yazılım geliştiriciyim.");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.AvatarFileName),
-                    languageId: trLang.Id,
-                    translation: "");
-
-                await AddSettingTranslationAsync<ProfileSettings>(
-                    propName: nameof(ProfileSettings.CoverFileName),
-                    languageId: trLang.Id,
-                    translation: "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.SiteTitle), trLang.Id, "Kişisel Portfolyom");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.LightThemeLogoFileName), trLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.DarkThemeLogoFileName), trLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.LightThemeFaviconFileName), trLang.Id, "");
+                await AddSettingTranslationAsync<GeneralSettings>(nameof(GeneralSettings.DarkThemeFaviconFileName), trLang.Id, "");
             }
 
             await _context.SaveChangesAsync();
         }
+
         private async Task AddSettingTranslationAsync<T>(string propName, int languageId, string translation)
         {
-            string className = typeof(T).Name;
-            if (className.EndsWith("Settings"))
-                className = className.Substring(0, className.Length - "Settings".Length);
-
-            string key = $"{className}.{propName}";
+            string key = typeof(T).BuildSettingKey(propName);
 
             var setting = await _context.Settings.FirstOrDefaultAsync(x => x.Name == key);
 
@@ -164,30 +136,19 @@ namespace PW.Persistence
 
         private async Task SeedSettingsHelperAsync<T>(T settings) where T : class
         {
-            string className = typeof(T).Name;
-
-            if (className.EndsWith("Settings"))
-                className = className.Substring(0, className.Length - "Settings".Length);
-
-            string prefix = className;
-
             foreach (var prop in typeof(T).GetProperties())
             {
                 if (!prop.CanRead) continue;
 
-                string key = $"{prefix}.{prop.Name}";
+                string key = typeof(T).BuildSettingKey(prop.Name);
 
                 bool exists = await _context.Settings.AnyAsync(x => x.Name == key);
 
                 if (!exists)
                 {
                     dynamic value = prop.GetValue(settings);
-                    string valueStr = "";
 
-                    var converter = TypeDescriptor.GetConverter(prop.PropertyType);
-
-                    if (value != null)
-                        valueStr = converter.ConvertToInvariantString(value);
+                    string valueStr = ((object)value).ToInvariantString();
 
                     var newSetting = new Setting
                     {
@@ -202,21 +163,21 @@ namespace PW.Persistence
             await _context.SaveChangesAsync();
         }
     }
+
     public static class DatabaseInitialiserExtensions
     {
         public static async Task InitialiseDatabaseAsync(this WebApplication app)
         {
             using var scope = app.Services.CreateScope();
-            DatabaseInitialiser initialiser;
             try
             {
-                initialiser = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
+                var initialiser = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
+                await initialiser.InitialiseAsync();
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
-            await initialiser.InitialiseAsync();
         }
     }
 }
