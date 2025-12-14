@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using PW.Application.Common.Constants;
+using PW.Application.Interfaces.Caching;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Repositories;
 using PW.Domain.Common;
@@ -13,11 +15,13 @@ namespace PW.Services.Localization
     {
         private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICacheService _cacheService;
 
-        public LocalizationService(IUnitOfWork unitOfWork)
+        public LocalizationService(IUnitOfWork unitOfWork, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _localizedPropertyRepository = unitOfWork.GetRepository<LocalizedProperty>();
+            _cacheService = cacheService;
         }
 
         public async Task<string> GetLocalizedAsync<T>(T entity, Expression<Func<T, string>> keySelector, int languageId)
@@ -34,20 +38,26 @@ namespace PW.Services.Localization
             string localeKey = propInfo.Name;
             string localeKeyGroup = typeof(T).Name;
 
-            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
+            string cacheKey = $"{CacheKeys.Localization.Property}:{localeKeyGroup}:{entity.Id}:{languageId}:{localeKey}";
+
+            return await _cacheService.GetOrSetAsync(cacheKey, async () =>
+            {
+                var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
                     x.LanguageId == languageId &&
                     x.EntityId == entity.Id &&
                     x.LocaleKeyGroup == localeKeyGroup &&
                     x.LocaleKey == localeKey
                 );
 
-            if (prop != null && !string.IsNullOrEmpty(prop.LocaleValue))
-            {
-                return prop.LocaleValue;
-            }
+                if (prop != null && !string.IsNullOrEmpty(prop.LocaleValue))
+                {
+                    return prop.LocaleValue;
+                }
 
-            var defaultValue = (string)propInfo.GetValue(entity);
-            return defaultValue ?? string.Empty;
+                var defaultValue = (string)propInfo.GetValue(entity);
+                return defaultValue ?? string.Empty;
+
+            }, CacheDurations.Long);
         }
 
         public async Task SaveLocalizedValueAsync<T>(T entity, Expression<Func<T, string>> keySelector, string localeValue, int languageId)
@@ -71,6 +81,7 @@ namespace PW.Services.Localization
                     _localizedPropertyRepository.Delete(prop);
                 else
                     prop.LocaleValue = localeValue;
+
                 _localizedPropertyRepository.Update(prop);
             }
             else
@@ -90,20 +101,32 @@ namespace PW.Services.Localization
             }
 
             await _unitOfWork.CommitAsync();
+
+            string propCacheKey = $"{CacheKeys.Localization.Property}:{localeKeyGroup}:{entity.Id}:{languageId}:{localeKey}";
+            await _cacheService.RemoveAsync(propCacheKey);
+
+            string dictCacheKey = $"{CacheKeys.Localization.Dictionary}:{localeKeyGroup}:{languageId}";
+            await _cacheService.RemoveAsync(dictCacheKey);
         }
 
         public async Task<Dictionary<string, string>> GetLocalizedDictionaryAsync(string keyGroup, int languageId)
         {
-            var translations = await _localizedPropertyRepository.GetAll()
-                .Where(x => x.LocaleKeyGroup == keyGroup && x.LanguageId == languageId)
-                .Select(x => new { x.LocaleKey, x.LocaleValue })
-                .ToListAsync();
+            string cacheKey = $"{CacheKeys.Localization.Dictionary}:{keyGroup}:{languageId}";
 
-            return translations.ToDictionary(x => x.LocaleKey, x => x.LocaleValue);
+            return await _cacheService.GetOrSetAsync(cacheKey, async () =>
+            {
+                var translations = await _localizedPropertyRepository.GetAll()
+                    .Where(x => x.LocaleKeyGroup == keyGroup && x.LanguageId == languageId)
+                    .Select(x => new { x.LocaleKey, x.LocaleValue })
+                    .ToListAsync();
+
+                return translations.ToDictionary(x => x.LocaleKey, x => x.LocaleValue);
+            }, CacheDurations.Long);
         }
 
         public async Task<Dictionary<int, string>> GetSettingsTranslationsAsync(List<int> settingIds, int languageId)
         {
+
             if (settingIds == null || !settingIds.Any())
                 return new Dictionary<int, string>();
 
