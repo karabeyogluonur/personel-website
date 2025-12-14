@@ -1,10 +1,13 @@
 using FluentValidation;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
+using PW.Application.Common.Extensions;
 
 namespace PW.Web.Areas.Admin.Features.Language.Validators
 {
     public class LanguageEditViewModelValidator : AbstractValidator<LanguageEditViewModel>
     {
+        private const int MaxFileSize = 2 * 1024 * 1024; //2MB
+
         public LanguageEditViewModelValidator()
         {
             RuleFor(x => x.Id).GreaterThan(0);
@@ -21,26 +24,8 @@ namespace PW.Web.Areas.Admin.Features.Language.Validators
             RuleFor(x => x.DisplayOrder).GreaterThanOrEqualTo(0);
 
             RuleFor(x => x.FlagImage)
-            .Must(HaveSupportedFileType)
-            .When(x => x.FlagImage is not null)
-            .WithMessage("Only .jpg, .jpeg, .png, and .svg file types are allowed.");
-
-            RuleFor(x => x.FlagImage)
-                .Must(HaveValidSize)
-                .When(x => x.FlagImage is not null)
-                .WithMessage("File size cannot exceed 2MB.");
-        }
-
-        private bool HaveSupportedFileType(IFormFile file)
-        {
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            return new[] { ".jpg", ".jpeg", ".png", ".svg" }.Contains(ext);
-        }
-
-        private bool HaveValidSize(IFormFile file)
-        {
-            if (file == null) return true;
-            return file.Length <= 2 * 1024 * 1024;
+                .AllowedExtensions(".jpg", ".jpeg", ".png", ".svg")
+                .MaxFileSize(MaxFileSize);
         }
     }
 }

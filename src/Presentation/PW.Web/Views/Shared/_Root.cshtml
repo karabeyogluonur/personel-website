@@ -1,20 +1,29 @@
+@inject GeneralSettings GS
+
 <!DOCTYPE html>
 
 <html lang="en">
 
 <head>
-    <title>Home - Personel Website</title>
+    <title>@GS.SiteTitle</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="shortcut icon" href="~/themes/metronic/assets/media/logos/favicon-light.ico" />
-    <link rel="icon" href="~/themes/metronic/assets/media/logos/favicon-light.ico"
+
+    <link icon-file-name="@GS.LightThemeFaviconFileName" icon-folder="@StoragePaths.System_Generals"
+        icon-default-src="/uploads/system/defaults/light-favicon.ico" rel="icon" />
+
+    <link icon-file-name="@GS.LightThemeFaviconFileName" icon-folder="@StoragePaths.System_Generals"
+        icon-default-src="/uploads/system/defaults/light-favicon.ico" rel="icon"
         media="(prefers-color-scheme: light)" />
-    <link rel="icon" href="~/themes/metronic/assets/media/logos/favicon-black.ico"
-        media="(prefers-color-scheme: dark)" />
+
+    <link rel="icon" icon-file-name="@GS.DarkThemeFaviconFileName" icon-folder="@StoragePaths.System_Generals"
+        icon-default-src="/uploads/system/defaults/dark-favicon.ico" media="(prefers-color-scheme: dark)" />
+
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
     <link href="~/themes/metronic/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
     <link href="~/themes/metronic/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
     @await RenderSectionAsync("Styles", required: false)
+
 </head>
 
 <body id="kt_app_body" data-kt-app-layout="light-header" data-kt-app-header-fixed="true" class="app-default">

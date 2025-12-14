@@ -1,10 +1,13 @@
 using FluentValidation;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
+using PW.Application.Common.Extensions;
 
 namespace PW.Web.Areas.Admin.Features.Configuration.Validators
 {
     public class ProfileSettingsViewModelValidator : AbstractValidator<ProfileSettingsViewModel>
     {
+        private const int MaxFileSize = 2 * 1024 * 1024; //2MB
+
         public ProfileSettingsViewModelValidator()
         {
             RuleFor(x => x.FirstName)
@@ -15,38 +18,18 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Validators
                 .NotEmpty().WithMessage("Last Name is required.")
                 .MaximumLength(50).WithMessage("Last Name cannot exceed 50 characters.");
 
-            RuleFor(x => x.JobTitle)
-                .MaximumLength(100).WithMessage("Job Title cannot exceed 100 characters.");
-
-            RuleFor(x => x.Biography)
-                .MaximumLength(1000).WithMessage("Biography cannot exceed 1000 characters.");
+            RuleFor(x => x.JobTitle).MaximumLength(100).WithMessage("Job Title cannot exceed 100 characters.");
+            RuleFor(x => x.Biography).MaximumLength(1000).WithMessage("Biography cannot exceed 1000 characters.");
 
             RuleFor(x => x.AvatarImage)
-                .Must(HaveSupportedFileType).When(x => x.AvatarImage != null)
-                .WithMessage("Only .jpg, .jpeg, and .png files are allowed for Avatar.")
-                .Must(HaveValidSize).When(x => x.AvatarImage != null)
-                .WithMessage("Avatar file size cannot exceed 2MB.");
+                .AllowedExtensions(".jpg", ".jpeg", ".png")
+                .MaxFileSize(MaxFileSize);
 
             RuleFor(x => x.CoverImage)
-                .Must(HaveSupportedFileType).When(x => x.CoverImage != null)
-                .WithMessage("Only .jpg, .jpeg, and .png files are allowed for Cover Image.")
-                .Must(HaveValidSize).When(x => x.CoverImage != null)
-                .WithMessage("Cover Image file size cannot exceed 2MB.");
+                .AllowedExtensions(".jpg", ".jpeg", ".png")
+                .MaxFileSize(MaxFileSize);
 
             RuleForEach(x => x.Locales).SetValidator(new ProfileSettingsLocalizedModelValidator());
-        }
-
-        private bool HaveSupportedFileType(IFormFile file)
-        {
-            if (file == null) return true;
-            string ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            return new[] { ".jpg", ".jpeg", ".png" }.Contains(ext);
-        }
-
-        private bool HaveValidSize(IFormFile file)
-        {
-            if (file == null) return true;
-            return file.Length <= 2 * 1024 * 1024;
         }
     }
 

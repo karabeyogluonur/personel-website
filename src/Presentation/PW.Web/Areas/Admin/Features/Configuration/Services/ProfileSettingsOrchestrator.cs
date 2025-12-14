@@ -3,10 +3,8 @@ using PW.Application.Common.Constants;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
-using PW.Application.Interfaces.Repositories;
 using PW.Application.Interfaces.Storage;
 using PW.Domain.Configuration;
-using PW.Domain.Entities;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
 
@@ -33,65 +31,65 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
 
         public async Task<OperationResult<ProfileSettingsViewModel>> PrepareProfileSettingsViewModelAsync()
         {
-            ProfileSettings settings = _settingService.LoadSettings<ProfileSettings>();
-            ProfileSettingsViewModel model = _mapper.Map<ProfileSettingsViewModel>(settings);
+            ProfileSettings profileSettings = _settingService.LoadSettings<ProfileSettings>();
+            ProfileSettingsViewModel profileSettingsViewModel = _mapper.Map<ProfileSettingsViewModel>(profileSettings);
 
             IList<Domain.Entities.Language> languages = await _languageService.GetAllPublishedLanguagesAsync();
-            model.AvailableLanguages = _mapper.Map<List<LanguageListItemViewModel>>(languages);
+            profileSettingsViewModel.AvailableLanguages = _mapper.Map<List<LanguageListItemViewModel>>(languages);
 
-            foreach (Domain.Entities.Language lang in languages)
+            foreach (Domain.Entities.Language language in languages)
             {
 
                 ProfileSettingsLocalizedViewModel locale = new ProfileSettingsLocalizedViewModel
                 {
-                    LanguageId = lang.Id,
-                    LanguageCode = lang.Code,
-                    FirstName = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.FirstName, lang.Id),
-                    LastName = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.LastName, lang.Id),
-                    Biography = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.Biography, lang.Id),
-                    JobTitle = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.JobTitle, lang.Id),
-                    AvatarPath = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, lang.Id),
-                    CoverPath = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, lang.Id)
+                    LanguageId = language.Id,
+                    LanguageCode = language.Code,
+                    FirstName = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.FirstName, language.Id),
+                    LastName = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.LastName, language.Id),
+                    Biography = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.Biography, language.Id),
+                    JobTitle = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.JobTitle, language.Id),
+                    AvatarPath = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, language.Id),
+                    CoverPath = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, language.Id)
                 };
-                model.Locales.Add(locale);
+                profileSettingsViewModel.Locales.Add(locale);
             }
 
-            return OperationResult<ProfileSettingsViewModel>.Success(model);
+            return OperationResult<ProfileSettingsViewModel>.Success(profileSettingsViewModel);
         }
 
-        public async Task<OperationResult> UpdateProfileSettingsAsync(ProfileSettingsViewModel model)
+        public async Task<OperationResult> UpdateProfileSettingsAsync(ProfileSettingsViewModel profileSettingsViewModel)
         {
-            ProfileSettings currentSettings = _settingService.LoadSettings<ProfileSettings>();
+            ProfileSettings currentProfileSettings = _settingService.LoadSettings<ProfileSettings>();
 
-            currentSettings.AvatarFileName = await ProcessFileAsync(
-                model.AvatarImage, currentSettings.AvatarFileName, model.RemoveAvatar, "avatar");
+            currentProfileSettings.AvatarFileName = await ProcessFileAsync(
+                profileSettingsViewModel.AvatarImage, currentProfileSettings.AvatarFileName, profileSettingsViewModel.RemoveAvatar, "avatar");
 
-            currentSettings.CoverFileName = await ProcessFileAsync(
-                model.CoverImage, currentSettings.CoverFileName, model.RemoveCover, "cover");
+            currentProfileSettings.CoverFileName = await ProcessFileAsync(
+                profileSettingsViewModel.CoverImage, currentProfileSettings.CoverFileName, profileSettingsViewModel.RemoveCover, "cover");
 
-            currentSettings.FirstName = model.FirstName;
-            currentSettings.LastName = model.LastName;
-            currentSettings.Biography = model.Biography;
-            currentSettings.JobTitle = model.JobTitle;
+            currentProfileSettings.FirstName = profileSettingsViewModel.FirstName;
+            currentProfileSettings.LastName = profileSettingsViewModel.LastName;
+            currentProfileSettings.Biography = profileSettingsViewModel.Biography;
+            currentProfileSettings.JobTitle = profileSettingsViewModel.JobTitle;
 
-            await _settingService.SaveSettingsAsync(currentSettings);
+            await _settingService.SaveSettingsAsync(currentProfileSettings);
 
-            foreach (ProfileSettingsLocalizedViewModel locale in model.Locales)
+            foreach (ProfileSettingsLocalizedViewModel profileSettingsLocalizedViewModel in profileSettingsViewModel.Locales)
             {
-                string currentLocAvatar = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, locale.LanguageId);
-                string newLocAvatar = await ProcessFileAsync(
-                    locale.AvatarImage, currentLocAvatar, locale.RemoveAvatar, $"avatar-{locale.LanguageCode}");
+                string currentLocalizedAvatar = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, profileSettingsLocalizedViewModel.LanguageId);
+                string newLocalizedAvatar = await ProcessFileAsync(
+                    profileSettingsLocalizedViewModel.AvatarImage, currentLocalizedAvatar, profileSettingsLocalizedViewModel.RemoveAvatar, $"avatar-{profileSettingsLocalizedViewModel.LanguageCode}");
 
-                string currentLocCover = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, locale.LanguageId);
-                string newLocCover = await ProcessFileAsync(
-                    locale.CoverImage, currentLocCover, locale.RemoveCover, $"cover-{locale.LanguageCode}");
+                string currentLocalizedCover = await _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, profileSettingsLocalizedViewModel.LanguageId);
+                string newLocalizedCover = await ProcessFileAsync(
+                    profileSettingsLocalizedViewModel.CoverImage, currentLocalizedCover, profileSettingsLocalizedViewModel.RemoveCover, $"cover-{profileSettingsLocalizedViewModel.LanguageCode}");
 
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.FirstName, locale.FirstName, locale.LanguageId);
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.LastName, locale.LastName, locale.LanguageId);
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.Biography, locale.Biography, locale.LanguageId);
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.JobTitle, locale.JobTitle, locale.LanguageId);
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, newLocAvatar, locale.LanguageId);
-                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, newLocCover, locale.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.FirstName, profileSettingsLocalizedViewModel.FirstName, profileSettingsLocalizedViewModel.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.LastName, profileSettingsLocalizedViewModel.LastName, profileSettingsLocalizedViewModel.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.Biography, profileSettingsLocalizedViewModel.Biography, profileSettingsLocalizedViewModel.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.JobTitle, profileSettingsLocalizedViewModel.JobTitle, profileSettingsLocalizedViewModel.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.AvatarFileName, newLocalizedAvatar, profileSettingsLocalizedViewModel.LanguageId);
+                await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(x => x.CoverFileName, newLocalizedCover, profileSettingsLocalizedViewModel.LanguageId);
             }
 
             return OperationResult.Success();
@@ -99,22 +97,22 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
 
         private async Task<string> ProcessFileAsync(IFormFile newFile, string currentFileName, bool isRemove, string namePrefix)
         {
-            if (isRemove && !string.IsNullOrEmpty(currentFileName))
-            {
-                await _storageService.DeleteAsync(StoragePaths.System_Profiles, currentFileName);
-                return null;
-            }
-
             if (newFile is not null)
             {
                 if (!string.IsNullOrEmpty(currentFileName))
-                    await _storageService.DeleteAsync(StoragePaths.System_Profiles, currentFileName);
+                    await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
 
-                string ext = Path.GetExtension(newFile.FileName).ToLowerInvariant();
-                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString().Substring(0, 8)}{ext}";
+                string extension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
+                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
 
-                await _storageService.UploadAsync(newFile, StoragePaths.System_Profiles, fileName);
+                await _storageService.UploadAsync(newFile, StoragePaths.System_Generals, fileName);
                 return fileName;
+            }
+
+            if (isRemove && !string.IsNullOrEmpty(currentFileName))
+            {
+                await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
+                return null;
             }
 
             return currentFileName;

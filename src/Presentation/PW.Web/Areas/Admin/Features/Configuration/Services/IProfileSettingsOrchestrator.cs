@@ -6,6 +6,6 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
     public interface IProfileSettingsOrchestrator
     {
         Task<OperationResult<ProfileSettingsViewModel>> PrepareProfileSettingsViewModelAsync();
-        Task<OperationResult> UpdateProfileSettingsAsync(ProfileSettingsViewModel model);
+        Task<OperationResult> UpdateProfileSettingsAsync(ProfileSettingsViewModel profileSettingsViewModel);
     }
 }

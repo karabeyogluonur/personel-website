@@ -22,7 +22,7 @@ namespace PW.Web.Extensions
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseMiddleware<DynamicLocalizationMiddleware>();
-            app.UseMiddleware<CultureRedirectMiddleware>();
+            //app.UseMiddleware<CultureRedirectMiddleware>();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();

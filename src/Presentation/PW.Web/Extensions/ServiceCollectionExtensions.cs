@@ -83,6 +83,7 @@ namespace PW.Web.Extensions
             services.AddScoped<IUserOrchestrator, UserOrchestrator>();
             services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
             services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
+            services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
             return services;
         }
 

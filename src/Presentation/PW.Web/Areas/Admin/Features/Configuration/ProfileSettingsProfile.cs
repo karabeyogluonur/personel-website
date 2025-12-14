@@ -1,4 +1,5 @@
 using AutoMapper;
+using PW.Domain.Configuration;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Configuration
@@ -7,7 +8,7 @@ namespace PW.Web.Areas.Admin.Features.Configuration
     {
         public ProfileSettingsProfile()
         {
-            CreateMap<Domain.Configuration.ProfileSettings, ProfileSettingsViewModel>()
+            CreateMap<ProfileSettings, ProfileSettingsViewModel>()
                 .ForMember(dest => dest.AvatarPath, opt => opt.MapFrom(src => src.AvatarFileName))
                 .ForMember(dest => dest.CoverPath, opt => opt.MapFrom(src => src.CoverFileName))
                 .ForMember(dest => dest.AvatarImage, opt => opt.Ignore())
