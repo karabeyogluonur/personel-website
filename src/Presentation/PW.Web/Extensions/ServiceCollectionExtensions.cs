@@ -12,7 +12,6 @@ using PW.Web.Areas.Admin.Features.Configuration.Services;
 using PW.Web.Areas.Admin.Features.Language.Services;
 using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
-using PW.Web.Services;
 using System.Globalization;
 using System.Reflection;
 

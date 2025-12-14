@@ -4,7 +4,7 @@ using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Localization;
 using PW.Domain.Entities;
 
-namespace PW.Web.Services
+namespace PW.Web
 {
     public class WorkContext : IWorkContext
     {
@@ -25,16 +25,13 @@ namespace PW.Web.Services
             if (_cachedLanguage != null)
                 return _cachedLanguage;
 
-            var requestCulture = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>()?.RequestCulture;
+            var requestCultureFeature = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>();
 
-            string isoCode = requestCulture?.UICulture.TwoLetterISOLanguageName;
+            string isoCode = requestCultureFeature?.RequestCulture.UICulture.TwoLetterISOLanguageName;
 
             if (string.IsNullOrEmpty(isoCode))
             {
-                var defaultCulture = _httpContextAccessor.HttpContext?.Features.Get<IRequestCultureFeature>()
-                    ?.RequestCulture.UICulture.TwoLetterISOLanguageName;
-
-                isoCode = defaultCulture ?? "en";
+                isoCode = "en";
             }
 
             var language = await _languageService.GetLanguageByCodeAsync(isoCode);
@@ -44,7 +41,7 @@ namespace PW.Web.Services
                 language = await _languageService.GetDefaultLanguageAsync();
 
                 if (language == null)
-                    throw new InvalidOperationException("Default language is not configured in the database.");
+                    throw new InvalidOperationException("Default language not found.");
             }
 
             _cachedLanguage = language;
@@ -61,17 +58,24 @@ namespace PW.Web.Services
 
             CultureInfo.CurrentCulture = cultureInfo;
             CultureInfo.CurrentUICulture = cultureInfo;
-            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
             var requestCulture = new RequestCulture(cultureInfo);
             _httpContextAccessor.HttpContext?.Features.Set<IRequestCultureFeature>(new RequestCultureFeature(requestCulture, null));
 
+            var cookieName = CookieRequestCultureProvider.DefaultCookieName;
             var cookieValue = CookieRequestCultureProvider.MakeCookieValue(requestCulture);
-            var cookieOptions = new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) };
+
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddYears(1),
+                IsEssential = true,
+                Path = "/",
+                HttpOnly = false,
+                Secure = _httpContextAccessor.HttpContext?.Request.IsHttps ?? false
+            };
 
             _httpContextAccessor.HttpContext?.Response.Cookies.Append(
-                CookieRequestCultureProvider.DefaultCookieName,
+                cookieName,
                 cookieValue,
                 cookieOptions
             );

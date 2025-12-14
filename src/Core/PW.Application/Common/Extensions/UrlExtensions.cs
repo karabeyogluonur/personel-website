@@ -6,25 +6,29 @@ namespace PW.Application.Common.Extensions
     {
         public static string SwitchLanguageInUrl(this string url, string newCulture)
         {
-            if (string.IsNullOrWhiteSpace(url) || url == "/")
-                return $"/{newCulture}";
+            if (string.IsNullOrWhiteSpace(url)) return "/";
+            if (url == "/") return $"/{newCulture}";
 
+            string path = url;
             string queryString = string.Empty;
             int queryIndex = url.IndexOf('?');
 
-            string path = url;
             if (queryIndex >= 0)
             {
-                queryString = url.Substring(queryIndex);
                 path = url.Substring(0, queryIndex);
+                queryString = url.Substring(queryIndex);
             }
 
             var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            bool hasLanguagePrefix = segments.Count > 0 &&
-                                     Regex.IsMatch(segments[0], "^[a-zA-Z]{2}$");
+            if (segments.Count == 0)
+            {
+                return $"/{newCulture}{queryString}";
+            }
 
-            if (hasLanguagePrefix)
+            bool firstSegmentIsLanguage = Regex.IsMatch(segments[0], "^[a-zA-Z]{2}$");
+
+            if (firstSegmentIsLanguage)
             {
                 segments[0] = newCulture;
             }
@@ -32,6 +36,7 @@ namespace PW.Application.Common.Extensions
             {
                 segments.Insert(0, newCulture);
             }
+
             return "/" + string.Join("/", segments) + queryString;
         }
     }

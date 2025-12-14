@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.Extensions;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Localization;
@@ -15,24 +16,33 @@ namespace PW.Web.Middlewares
 
         public async Task InvokeAsync(HttpContext context, IWorkContext workContext, ILanguageService languageService)
         {
-            string path = context.Request.Path.Value ?? string.Empty;
+            var path = context.Request.Path.Value ?? string.Empty;
 
-            if (path.StartsWith("/api") || path.StartsWith("/uploads") || Path.HasExtension(path) || path.StartsWith(AreaNames.Admin))
+            if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/uploads", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith($"/{AreaNames.Admin}", StringComparison.OrdinalIgnoreCase) ||
+                Path.HasExtension(path))
             {
                 await _next(context);
                 return;
             }
 
             var publishedLanguages = await languageService.GetAllPublishedLanguagesAsync();
-            string firstSegment = path.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+            var validLanguageCodes = publishedLanguages.Select(x => x.Code).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
-            bool hasCultureInUrl = publishedLanguages.Any(l => l.Code.Equals(firstSegment, StringComparison.InvariantCultureIgnoreCase));
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            string firstSegment = segments.FirstOrDefault() ?? string.Empty;
 
-            if (!hasCultureInUrl)
+            bool hasValidCulture = validLanguageCodes.Contains(firstSegment);
+
+            if (!hasValidCulture)
             {
                 var currentLang = await workContext.GetCurrentLanguageAsync();
-                var cultureCode = currentLang.Code;
-                var newPath = $"/{cultureCode}{path}";
+
+                var request = context.Request;
+                var query = request.QueryString.HasValue ? request.QueryString.Value : string.Empty;
+
+                var newPath = $"/{currentLang.Code}{path}{query}";
 
                 context.Response.Redirect(newPath, permanent: false);
                 return;

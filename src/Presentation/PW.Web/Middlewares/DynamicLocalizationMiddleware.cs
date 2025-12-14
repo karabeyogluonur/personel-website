@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.Net.Http.Headers;
 using PW.Application.Interfaces.Localization;
 using PW.Domain.Entities;
 
@@ -10,7 +9,7 @@ namespace PW.Web.Middlewares
     public class DynamicLocalizationMiddleware
     {
         private readonly RequestDelegate _next;
-        private const string CookieName = ".AspNetCore.Culture";
+        private string cookieName = CookieRequestCultureProvider.DefaultCookieName;
 
         public DynamicLocalizationMiddleware(RequestDelegate next)
         {
@@ -26,8 +25,10 @@ namespace PW.Web.Middlewares
                 await _next(context);
                 return;
             }
+
             var defaultLanguage = publishedLanguages.FirstOrDefault(l => l.IsDefault) ?? publishedLanguages.First();
             string finalLanguageCode = string.Empty;
+            bool languageFoundInUrl = false;
 
             string path = context.Request.Path.Value ?? string.Empty;
             string firstSegment = path.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
@@ -38,44 +39,52 @@ namespace PW.Web.Middlewares
             if (matchedLanguage != null)
             {
                 finalLanguageCode = matchedLanguage.Code;
+                languageFoundInUrl = true;
             }
+
             else if (firstSegment.Length == 2 && Regex.IsMatch(firstSegment, "^[a-zA-Z]{2}$"))
             {
                 context.Response.Redirect("/Error/404");
                 return;
             }
 
-            if (string.IsNullOrEmpty(finalLanguageCode))
+            string currentCookieLanguage = string.Empty;
+            if (context.Request.Cookies.TryGetValue(cookieName, out var cookieValue))
             {
-                if (context.Request.Cookies.TryGetValue(CookieName, out var cookieValue))
+                var match = Regex.Match(cookieValue, @"uic=(?<lang>[a-zA-Z]{2})");
+                if (match.Success)
                 {
-                    var match = Regex.Match(cookieValue, @"uic=(?<lang>[a-zA-Z]{2})");
-                    if (match.Success)
-                    {
-                        var cookieLang = match.Groups["lang"].Value;
-                        if (publishedLanguages.Any(l => l.Code.Equals(cookieLang, StringComparison.InvariantCultureIgnoreCase)))
-                        {
-                            finalLanguageCode = cookieLang;
-                        }
-                    }
+                    currentCookieLanguage = match.Groups["lang"].Value;
+                }
+            }
+
+            if (languageFoundInUrl)
+            {
+                if (!string.Equals(finalLanguageCode, currentCookieLanguage, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    SetCookie(context, finalLanguageCode);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(currentCookieLanguage) &&
+                    publishedLanguages.Any(l => l.Code.Equals(currentCookieLanguage, StringComparison.InvariantCultureIgnoreCase)))
+                {
+                    finalLanguageCode = currentCookieLanguage;
                 }
             }
 
             if (string.IsNullOrEmpty(finalLanguageCode))
             {
                 var userLanguages = context.Request.GetTypedHeaders().AcceptLanguage;
-                if (userLanguages != null)
-                {
-                    var topLanguage = userLanguages.OrderByDescending(x => x.Quality ?? 1)
-                                                   .FirstOrDefault();
+                var topLanguage = userLanguages?.OrderByDescending(x => x.Quality ?? 1).FirstOrDefault();
 
-                    if (topLanguage != null)
+                if (topLanguage != null)
+                {
+                    var isoCode = topLanguage.Value.ToString().Split('-')[0];
+                    if (publishedLanguages.Any(l => l.Code.Equals(isoCode, StringComparison.InvariantCultureIgnoreCase)))
                     {
-                        var isoCode = topLanguage.Value.ToString().Split('-')[0];
-                        if (publishedLanguages.Any(l => l.Code.Equals(isoCode, StringComparison.InvariantCultureIgnoreCase)))
-                        {
-                            finalLanguageCode = isoCode;
-                        }
+                        finalLanguageCode = isoCode;
                     }
                 }
             }
@@ -86,15 +95,30 @@ namespace PW.Web.Middlewares
             }
 
             SetCulture(context, finalLanguageCode);
+
             await _next(context);
         }
 
         private void SetCulture(HttpContext context, string cultureCode)
         {
             var culture = new CultureInfo(cultureCode);
+
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = culture;
+
+            var requestCulture = new RequestCulture(culture);
+            context.Features.Set<IRequestCultureFeature>(new RequestCultureFeature(requestCulture, null));
+        }
+
+        private void SetCookie(HttpContext context, string cultureCode)
+        {
+            var culture = new CultureInfo(cultureCode);
             var requestCulture = new RequestCulture(culture);
 
-            context.Features.Set<IRequestCultureFeature>(new RequestCultureFeature(requestCulture, null));
+            var cookieValue = CookieRequestCultureProvider.MakeCookieValue(requestCulture);
+            var cookieOptions = new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1), IsEssential = true, Path = "/" };
+
+            context.Response.Cookies.Append(cookieName, cookieValue, cookieOptions);
         }
     }
 }
