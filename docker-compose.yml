@@ -9,10 +9,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=pw.db;Port=5432;Database=PersonelWebsiteDB;Username=pw_user;Password=your_strong_password"
+      ConnectionStrings__Redis: "pw.redis:6379,password=StrongRedisPass123!,abortConnect=false"
     depends_on:
       pw.db:
         condition: service_healthy
-
+      pw.redis:
+        condition: service_healthy
     restart: always
 
   pw.db:
@@ -26,15 +28,36 @@ services:
       - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pw_user -d PersonelWebsiteDB -h localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+    restart: always
 
+  pw.redis:
+    container_name: personelwebsite_redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --requirepass "StrongRedisPass123!"
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "StrongRedisPass123!", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     restart: always
 
 volumes:
   db_data:
+  redis_data:

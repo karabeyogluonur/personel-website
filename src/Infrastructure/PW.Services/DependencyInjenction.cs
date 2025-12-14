@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PW.Application.Common.Interfaces;
+using PW.Application.Interfaces.Caching;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Messages;
 using PW.Application.Interfaces.Storage;
 using PW.Domain.Interfaces;
+using PW.Services.Caching;
 using PW.Services.Configuration;
 using PW.Services.Localization;
 using PW.Services.Storage;
@@ -22,6 +24,7 @@ namespace PW.Services
             builder.Services.AddScoped<ILocalizationService, LocalizationService>();
             builder.Services.AddScoped<IStorageService, LocalStorageService>();
             builder.Services.AddScoped<IAssetService, AssetService>();
+            builder.Services.AddSingleton<ILocalCacheService, MemoryCacheManager>();
 
             #region  Setting Registration
 
@@ -48,8 +51,12 @@ namespace PW.Services
 
             #endregion
 
+        }
 
-
+        public static void AddMemoryCacheService(this IHostApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton<ICacheService>(provider =>
+                    provider.GetRequiredService<ILocalCacheService>());
         }
     }
 }

@@ -14,6 +14,8 @@ using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
 using System.Globalization;
 using System.Reflection;
+using PW.Redis;
+using PW.Domain.Configuration;
 
 namespace PW.Web.Extensions
 {
@@ -25,10 +27,10 @@ namespace PW.Web.Extensions
             builder.AddIdentityServices();
             builder.AddApplicationServices();
             builder.AddServiceServices();
+            builder.AddCacheServices();
             services.AddWebInfrastructure();
             services.AddOrchestrators();
             services.ConfigureCustomCookie();
-
             services.AddDatabaseLocalizationServices();
 
             return services;
@@ -84,6 +86,17 @@ namespace PW.Web.Extensions
             services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
             services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
             return services;
+        }
+
+        private static void AddCacheServices(this WebApplicationBuilder builder)
+        {
+            string? redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+
+            if (!string.IsNullOrEmpty(redisConnectionString))
+                builder.AddRedisServices();
+
+            else
+                builder.AddMemoryCacheService();
         }
 
         private static IServiceCollection ConfigureCustomCookie(this IServiceCollection services)
