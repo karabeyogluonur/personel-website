@@ -1,10 +1,12 @@
 using System.Linq.Expressions;
+using PW.Application.Common.Constants;
+using PW.Application.Common.Extensions;
+using PW.Application.Interfaces.Caching;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Repositories;
 using PW.Domain.Entities;
 using PW.Domain.Interfaces;
-using PW.Application.Common.Extensions;
 
 namespace PW.Services.Configuration
 {
@@ -14,53 +16,63 @@ namespace PW.Services.Configuration
         private readonly IRepository<Setting> _settingRepository;
         private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly ILocalizationService _localizationService;
+        private readonly ICacheService _cacheService;
 
-        public SettingService(IUnitOfWork unitOfWork, ILocalizationService localizationService)
+        public SettingService(
+            IUnitOfWork unitOfWork,
+            ILocalizationService localizationService,
+            ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
             _settingRepository = _unitOfWork.GetRepository<Setting>();
             _localizedPropertyRepository = _unitOfWork.GetRepository<LocalizedProperty>();
             _localizationService = localizationService;
+            _cacheService = cacheService;
         }
 
         public T LoadSettings<T>(int languageId = 0) where T : ISettings, new()
         {
-            var settings = new T();
-            string prefix = typeof(T).GetSettingsKeyPrefix();
+            string key = $"{CacheKeys.Settings.All}:{typeof(T).Name}:{languageId}";
 
-            var allSettings = _settingRepository.GetAll(predicate: x => x.Name.StartsWith(prefix)).ToList();
-
-            Dictionary<int, string> translations = null;
-
-            if (languageId > 0 && allSettings.Any())
+            return _cacheService.GetOrSetAsync(key, async () =>
             {
-                var settingIds = allSettings.Select(x => x.Id).ToList();
-                translations = _localizationService.GetSettingsTranslationsAsync(settingIds, languageId).GetAwaiter().GetResult();
-            }
+                var settings = new T();
+                string prefix = typeof(T).GetSettingsKeyPrefix();
 
-            foreach (var prop in typeof(T).GetProperties())
-            {
-                if (!prop.CanWrite || !prop.CanRead) continue;
+                var allSettings = await _settingRepository.GetAllAsync(predicate: x => x.Name.StartsWith(prefix));
 
-                string key = typeof(T).BuildSettingKey(prop.Name);
-                var setting = allSettings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+                Dictionary<int, string> translations = null;
 
-                if (setting == null) continue;
-
-                string valueStr = setting.Value;
-
-                if (translations != null && translations.ContainsKey(setting.Id))
-                    valueStr = translations[setting.Id];
-
-                var value = valueStr.ToType(prop.PropertyType);
-
-                if (value != null)
+                if (languageId > 0 && allSettings.Any())
                 {
-                    prop.SetValue(settings, value);
+                    var settingIds = allSettings.Select(x => x.Id).ToList();
+                    translations = await _localizationService.GetSettingsTranslationsAsync(settingIds, languageId);
                 }
-            }
 
-            return settings;
+                foreach (var prop in typeof(T).GetProperties())
+                {
+                    if (!prop.CanWrite || !prop.CanRead) continue;
+
+                    string settingKey = typeof(T).BuildSettingKey(prop.Name);
+                    var setting = allSettings.FirstOrDefault(x => x.Name.Equals(settingKey, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (setting == null) continue;
+
+                    string valueStr = setting.Value;
+
+                    if (translations != null && translations.ContainsKey(setting.Id))
+                        valueStr = translations[setting.Id];
+
+                    var value = valueStr.ToType(prop.PropertyType);
+
+                    if (value != null)
+                    {
+                        prop.SetValue(settings, value);
+                    }
+                }
+                return settings;
+
+            }, CacheDurations.Long).GetAwaiter().GetResult();
         }
 
         public async Task SaveSettingsAsync<T>(T settings) where T : ISettings
@@ -94,6 +106,9 @@ namespace PW.Services.Configuration
             }
 
             await _unitOfWork.CommitAsync();
+
+            string cacheKey = $"{CacheKeys.Settings.All}:{typeof(T).Name}:0";
+            await _cacheService.RemoveAsync(cacheKey);
         }
 
         public TProp GetSettingValue<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, int languageId = 0)
@@ -175,6 +190,9 @@ namespace PW.Services.Configuration
             }
 
             await _unitOfWork.CommitAsync();
+
+            string cacheKey = $"{CacheKeys.Settings.All}:{typeof(TSettings).Name}:{languageId}";
+            await _cacheService.RemoveAsync(cacheKey);
         }
     }
 }
