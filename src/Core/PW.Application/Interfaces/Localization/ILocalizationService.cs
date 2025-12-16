@@ -13,12 +13,10 @@ namespace PW.Application.Interfaces.Localization
         Task SaveLocalizedValueAsync<T>(T entity, Expression<Func<T, string>> keySelector, string localeValue, int languageId)
             where T : BaseEntity, ILocalizedEntity;
 
-        Task<Dictionary<string, string>> GetLocalizedDictionaryAsync(string keyGroup, int languageId);
+        Task<IList<LocalizedProperty>> GetLocalizedPropertiesAsync(IList<int> entityIds, string localeKeyGroup, int? languageId = null);
 
-        Task<List<LocalizedProperty>> GetLocalizedPropertiesAsync(List<int> entityIds, string localeKeyGroup, int? languageId = null);
+        Task<IDictionary<string, string>> GetLocalizedDictionaryAsync(string localeKeyGroup, int languageId);
 
-        Task<Dictionary<int, string>> GetSettingsTranslationsAsync(List<int> settingIds, int languageId);
-
-        Task<List<LocalizedProperty>> GetTranslationsForListAsync(List<int> entityIds, string localeKeyGroup, int languageId);
+        Task<IDictionary<int, string>> GetLocalizedValuesByEntityIdAsync(IList<int> entityIds, string localeKeyGroup, string localeKey, int languageId);
     }
 }

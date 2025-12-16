@@ -6,55 +6,56 @@ using PW.Application.Interfaces.Repositories;
 using PW.Domain.Common;
 using PW.Domain.Entities;
 using PW.Domain.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace PW.Services.Localization
 {
     public class LocalizationService : ILocalizationService
     {
-        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly ICacheService _cacheService;
 
         public LocalizationService(IUnitOfWork unitOfWork, ICacheService cacheService)
         {
             _unitOfWork = unitOfWork;
-            _localizedPropertyRepository = unitOfWork.GetRepository<LocalizedProperty>();
+            _localizedPropertyRepository = _unitOfWork.GetRepository<LocalizedProperty>();
             _cacheService = cacheService;
         }
 
         public async Task<string> GetLocalizedAsync<T>(T entity, Expression<Func<T, string>> keySelector, int languageId)
             where T : BaseEntity, ILocalizedEntity
         {
-            var member = keySelector.Body as MemberExpression;
-            if (member == null)
+            MemberExpression? memberExpression = keySelector.Body as MemberExpression;
+            if (memberExpression is null)
                 throw new ArgumentException($"Expression '{keySelector}' refers to a method, not a property.");
 
-            var propInfo = member.Member as PropertyInfo;
-            if (propInfo == null)
+            PropertyInfo? propertyInfo = memberExpression.Member as PropertyInfo;
+            if (propertyInfo is null)
                 throw new ArgumentException($"Expression '{keySelector}' refers to a field, not a property.");
 
-            string localeKey = propInfo.Name;
+            string localeKey = propertyInfo.Name;
             string localeKeyGroup = typeof(T).Name;
-
             string cacheKey = $"{CacheKeys.Localization.Property}:{localeKeyGroup}:{entity.Id}:{languageId}:{localeKey}";
 
             return await _cacheService.GetOrSetAsync(cacheKey, async () =>
             {
-                var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
-                    x.LanguageId == languageId &&
-                    x.EntityId == entity.Id &&
-                    x.LocaleKeyGroup == localeKeyGroup &&
-                    x.LocaleKey == localeKey
+                LocalizedProperty? localizedProperty = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: property =>
+                    property.LanguageId == languageId &&
+                    property.EntityId == entity.Id &&
+                    property.LocaleKeyGroup == localeKeyGroup &&
+                    property.LocaleKey == localeKey
                 );
 
-                if (prop != null && !string.IsNullOrEmpty(prop.LocaleValue))
-                {
-                    return prop.LocaleValue;
-                }
+                if (localizedProperty is not null && !string.IsNullOrEmpty(localizedProperty.LocaleValue))
+                    return localizedProperty.LocaleValue;
 
-                var defaultValue = (string)propInfo.GetValue(entity);
+                string? defaultValue = (string?)propertyInfo.GetValue(entity);
                 return defaultValue ?? string.Empty;
 
             }, CacheDurations.Long);
@@ -63,32 +64,36 @@ namespace PW.Services.Localization
         public async Task SaveLocalizedValueAsync<T>(T entity, Expression<Func<T, string>> keySelector, string localeValue, int languageId)
             where T : BaseEntity, ILocalizedEntity
         {
-            var member = keySelector.Body as MemberExpression;
-            var propInfo = member.Member as PropertyInfo;
-            string localeKey = propInfo.Name;
+            MemberExpression? memberExpression = keySelector.Body as MemberExpression;
+            PropertyInfo? propertyInfo = memberExpression?.Member as PropertyInfo;
+
+            if (propertyInfo is null) return;
+
+            string localeKey = propertyInfo.Name;
             string localeKeyGroup = typeof(T).Name;
 
-            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
-                    x.LanguageId == languageId &&
-                    x.EntityId == entity.Id &&
-                    x.LocaleKeyGroup == localeKeyGroup &&
-                    x.LocaleKey == localeKey
-                );
+            LocalizedProperty localizedProperty = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: property =>
+                property.LanguageId == languageId &&
+                property.EntityId == entity.Id &&
+                property.LocaleKeyGroup == localeKeyGroup &&
+                property.LocaleKey == localeKey
+            );
 
-            if (prop != null)
+            if (localizedProperty is not null)
             {
                 if (string.IsNullOrEmpty(localeValue))
-                    _localizedPropertyRepository.Delete(prop);
+                    _localizedPropertyRepository.Delete(localizedProperty);
                 else
-                    prop.LocaleValue = localeValue;
-
-                _localizedPropertyRepository.Update(prop);
+                {
+                    localizedProperty.LocaleValue = localeValue;
+                    _localizedPropertyRepository.Update(localizedProperty);
+                }
             }
             else
             {
                 if (!string.IsNullOrEmpty(localeValue))
                 {
-                    prop = new LocalizedProperty
+                    LocalizedProperty newProperty = new LocalizedProperty
                     {
                         EntityId = entity.Id,
                         LanguageId = languageId,
@@ -96,84 +101,69 @@ namespace PW.Services.Localization
                         LocaleKeyGroup = localeKeyGroup,
                         LocaleValue = localeValue
                     };
-                    await _localizedPropertyRepository.InsertAsync(prop);
+                    await _localizedPropertyRepository.InsertAsync(newProperty);
                 }
             }
 
             await _unitOfWork.CommitAsync();
 
-            string propCacheKey = $"{CacheKeys.Localization.Property}:{localeKeyGroup}:{entity.Id}:{languageId}:{localeKey}";
-            await _cacheService.RemoveAsync(propCacheKey);
+            // Cache Invalidation
+            string propertyCacheKey = $"{CacheKeys.Localization.Property}:{localeKeyGroup}:{entity.Id}:{languageId}:{localeKey}";
+            await _cacheService.RemoveAsync(propertyCacheKey);
 
-            string dictCacheKey = $"{CacheKeys.Localization.Dictionary}:{localeKeyGroup}:{languageId}";
-            await _cacheService.RemoveAsync(dictCacheKey);
+            string dictionaryCacheKey = $"{CacheKeys.Localization.Dictionary}:{localeKeyGroup}:{languageId}";
+            await _cacheService.RemoveAsync(dictionaryCacheKey);
         }
 
-        public async Task<List<LocalizedProperty>> GetLocalizedPropertiesAsync(List<int> entityIds, string localeKeyGroup, int? languageId = null)
+        public async Task<IList<LocalizedProperty>> GetLocalizedPropertiesAsync(IList<int> entityIds, string localeKeyGroup, int? languageId = null)
         {
-            if (entityIds == null || !entityIds.Any())
-            {
+            if (entityIds is null || !entityIds.Any())
                 return new List<LocalizedProperty>();
-            }
 
-            var query = _localizedPropertyRepository.GetAll()
-                .Where(x =>
-                    x.LocaleKeyGroup == localeKeyGroup &&
-                    entityIds.Contains(x.EntityId));
+            IQueryable<LocalizedProperty> query = _localizedPropertyRepository.GetAll();
+
+            query = query.Where(property =>
+                property.LocaleKeyGroup == localeKeyGroup &&
+                entityIds.Contains(property.EntityId));
 
             if (languageId.HasValue && languageId.Value > 0)
             {
-                query = query.Where(x => x.LanguageId == languageId.Value);
+                query = query.Where(property => property.LanguageId == languageId.Value);
             }
 
             return await query.ToListAsync();
         }
 
-        public async Task<Dictionary<string, string>> GetLocalizedDictionaryAsync(string keyGroup, int languageId)
+        public async Task<IDictionary<string, string>> GetLocalizedDictionaryAsync(string localeKeyGroup, int languageId)
         {
-            string cacheKey = $"{CacheKeys.Localization.Dictionary}:{keyGroup}:{languageId}";
+            string cacheKey = $"{CacheKeys.Localization.Dictionary}:{localeKeyGroup}:{languageId}";
 
             return await _cacheService.GetOrSetAsync(cacheKey, async () =>
             {
-                var translations = await _localizedPropertyRepository.GetAll()
-                    .Where(x => x.LocaleKeyGroup == keyGroup && x.LanguageId == languageId)
-                    .Select(x => new { x.LocaleKey, x.LocaleValue })
+                // Explicit Type kullanımı: List<AnonymousType> yerine açıkça veri çekip dictionary'e çeviriyoruz.
+                IList<LocalizedProperty> properties = await _localizedPropertyRepository.GetAll()
+                    .Where(property => property.LocaleKeyGroup == localeKeyGroup && property.LanguageId == languageId)
                     .ToListAsync();
 
-                return translations.ToDictionary(x => x.LocaleKey, x => x.LocaleValue);
+                return properties.ToDictionary(k => k.LocaleKey, v => v.LocaleValue ?? string.Empty);
+
             }, CacheDurations.Long);
         }
 
-        public async Task<Dictionary<int, string>> GetSettingsTranslationsAsync(List<int> settingIds, int languageId)
+        public async Task<IDictionary<int, string>> GetLocalizedValuesByEntityIdAsync(IList<int> entityIds, string localeKeyGroup, string localeKey, int languageId)
         {
-
-            if (settingIds == null || !settingIds.Any())
+            if (entityIds is null || !entityIds.Any())
                 return new Dictionary<int, string>();
 
-            var translations = await _localizedPropertyRepository.GetAll()
-                .Where(x =>
-                    x.LocaleKeyGroup == "Setting" &&
-                    x.LocaleKey == "Value" &&
-                    x.LanguageId == languageId &&
-                    settingIds.Contains(x.EntityId))
-                .Select(x => new { x.EntityId, x.LocaleValue })
+            IList<LocalizedProperty> properties = await _localizedPropertyRepository.GetAll()
+                .Where(property =>
+                    property.LocaleKeyGroup == localeKeyGroup &&
+                    property.LocaleKey == localeKey &&
+                    property.LanguageId == languageId &&
+                    entityIds.Contains(property.EntityId))
                 .ToListAsync();
 
-            return translations.ToDictionary(x => x.EntityId, x => x.LocaleValue);
-        }
-
-        public async Task<List<LocalizedProperty>> GetTranslationsForListAsync(List<int> entityIds, string localeKeyGroup, int languageId)
-        {
-            if (entityIds == null || !entityIds.Any())
-                return new List<LocalizedProperty>();
-
-            var query = _localizedPropertyRepository.GetAll()
-                .Where(x =>
-                    x.LocaleKeyGroup == localeKeyGroup &&
-                    x.LanguageId == languageId &&
-                    entityIds.Contains(x.EntityId));
-
-            return await query.ToListAsync();
+            return properties.ToDictionary(k => k.EntityId, v => v.LocaleValue ?? string.Empty);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Reflection;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Extensions;
 using PW.Application.Interfaces.Caching;
@@ -14,7 +15,6 @@ namespace PW.Services.Configuration
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<Setting> _settingRepository;
-        private readonly IRepository<LocalizedProperty> _localizedPropertyRepository;
         private readonly ILocalizationService _localizationService;
         private readonly ICacheService _cacheService;
 
@@ -25,51 +25,56 @@ namespace PW.Services.Configuration
         {
             _unitOfWork = unitOfWork;
             _settingRepository = _unitOfWork.GetRepository<Setting>();
-            _localizedPropertyRepository = _unitOfWork.GetRepository<LocalizedProperty>();
             _localizationService = localizationService;
             _cacheService = cacheService;
         }
 
         public T LoadSettings<T>(int languageId = 0) where T : ISettings, new()
         {
-            string key = $"{CacheKeys.Settings.All}:{typeof(T).Name}:{languageId}";
+            string cacheKey = $"{CacheKeys.Settings.All}:{typeof(T).Name}:{languageId}";
 
-            return _cacheService.GetOrSetAsync(key, async () =>
+            return _cacheService.GetOrSetAsync(cacheKey, async () =>
             {
-                var settings = new T();
+                T settings = new T();
                 string prefix = typeof(T).GetSettingsKeyPrefix();
 
-                var allSettings = await _settingRepository.GetAllAsync(predicate: x => x.Name.StartsWith(prefix));
+                IList<Setting> allSettings = await _settingRepository.GetAllAsync(predicate: setting => setting.Name.StartsWith(prefix));
 
-                Dictionary<int, string> translations = null;
+                IDictionary<int, string>? translations = null;
 
                 if (languageId > 0 && allSettings.Any())
                 {
-                    var settingIds = allSettings.Select(x => x.Id).ToList();
-                    translations = await _localizationService.GetSettingsTranslationsAsync(settingIds, languageId);
+                    IList<int> settingIds = allSettings.Select(s => s.Id).ToList();
+
+                    translations = await _localizationService.GetLocalizedValuesByEntityIdAsync(
+                        settingIds,
+                        localeKeyGroup: nameof(Setting),
+                        localeKey: nameof(Setting.Value),
+                        languageId: languageId
+                    );
                 }
 
-                foreach (var prop in typeof(T).GetProperties())
+                foreach (PropertyInfo propertyInfo in typeof(T).GetProperties())
                 {
-                    if (!prop.CanWrite || !prop.CanRead) continue;
+                    if (!propertyInfo.CanWrite || !propertyInfo.CanRead) continue;
 
-                    string settingKey = typeof(T).BuildSettingKey(prop.Name);
-                    var setting = allSettings.FirstOrDefault(x => x.Name.Equals(settingKey, StringComparison.InvariantCultureIgnoreCase));
+                    string settingKey = typeof(T).BuildSettingKey(propertyInfo.Name);
 
-                    if (setting == null) continue;
+                    Setting? setting = allSettings.FirstOrDefault(x => x.Name.Equals(settingKey, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (setting is null) continue;
 
                     string valueStr = setting.Value;
 
-                    if (translations != null && translations.ContainsKey(setting.Id))
+                    if (translations is not null && translations.ContainsKey(setting.Id))
                         valueStr = translations[setting.Id];
 
-                    var value = valueStr.ToType(prop.PropertyType);
+                    object? typedValue = valueStr.ToType(propertyInfo.PropertyType);
 
-                    if (value != null)
-                    {
-                        prop.SetValue(settings, value);
-                    }
+                    if (typedValue is not null)
+                        propertyInfo.SetValue(settings, typedValue);
                 }
+
                 return settings;
 
             }, CacheDurations.Long).GetAwaiter().GetResult();
@@ -79,29 +84,35 @@ namespace PW.Services.Configuration
         {
             string prefix = typeof(T).GetSettingsKeyPrefix();
 
-            var existingSettings = await _settingRepository.GetAllAsync(
+            IList<Setting> existingSettings = await _settingRepository.GetAllAsync(
                 predicate: x => x.Name.StartsWith(prefix),
                 disableTracking: false);
 
-            foreach (var prop in typeof(T).GetProperties())
+            foreach (PropertyInfo propertyInfo in typeof(T).GetProperties())
             {
-                if (!prop.CanRead) continue;
+                if (!propertyInfo.CanRead) continue;
 
-                string key = typeof(T).BuildSettingKey(prop.Name);
-                dynamic value = prop.GetValue(settings);
+                string key = typeof(T).BuildSettingKey(propertyInfo.Name);
+                object? value = propertyInfo.GetValue(settings);
 
-                string valueStr = ((object)value).ToInvariantString();
+                string valueStr = value?.ToInvariantString() ?? string.Empty;
 
-                var setting = existingSettings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
+                Setting? setting = existingSettings.FirstOrDefault(x => x.Name.Equals(key, StringComparison.InvariantCultureIgnoreCase));
 
-                if (setting != null)
+                if (setting is not null)
                 {
                     if (setting.Value != valueStr)
                         setting.Value = valueStr;
                 }
                 else
                 {
-                    await _settingRepository.InsertAsync(new Setting { Name = key, Value = valueStr, IsPublic = true });
+                    Setting newSetting = new Setting
+                    {
+                        Name = key,
+                        Value = valueStr,
+                        IsPublic = true
+                    };
+                    await _settingRepository.InsertAsync(newSetting);
                 }
             }
 
@@ -109,29 +120,32 @@ namespace PW.Services.Configuration
 
             string cacheKey = $"{CacheKeys.Settings.All}:{typeof(T).Name}:0";
             await _cacheService.RemoveAsync(cacheKey);
+
         }
 
         public TProp GetSettingValue<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, int languageId = 0)
             where TSettings : ISettings, new()
         {
             string key = keySelector.GetSettingKey();
-            TProp defaultValue = default;
+            TProp? defaultValue = default;
 
-            var setting = _settingRepository.GetFirstOrDefault(predicate: x => x.Name == key);
+            Setting? setting = _settingRepository.GetFirstOrDefault(predicate: x => x.Name == key);
 
-            if (setting != null)
+            if (setting is not null)
             {
                 string valueStr = setting.Value;
 
                 if (languageId > 0)
                 {
-                    var localizedValue = _localizationService.GetLocalizedAsync(setting, x => x.Value, languageId).GetAwaiter().GetResult();
+                    string localizedValue = _localizationService.GetLocalizedAsync(setting, x => x.Value, languageId).GetAwaiter().GetResult();
+
                     if (!string.IsNullOrEmpty(localizedValue))
                         valueStr = localizedValue;
                 }
 
                 return valueStr.ToType<TProp>();
             }
+
             return defaultValue;
         }
 
@@ -140,16 +154,11 @@ namespace PW.Services.Configuration
         {
             string key = keySelector.GetSettingKey();
 
-            var setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key);
-            if (setting == null) return null;
+            Setting? setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key);
 
-            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
-                x.LanguageId == languageId &&
-                x.EntityId == setting.Id &&
-                x.LocaleKeyGroup == "Setting" &&
-                x.LocaleKey == "Value");
+            if (setting is null) return string.Empty;
 
-            return prop?.LocaleValue;
+            return await _localizationService.GetLocalizedAsync(setting, x => x.Value, languageId);
         }
 
         public async Task SaveLocalizedSettingValueAsync<TSettings, TProp>(Expression<Func<TSettings, TProp>> keySelector, string value, int languageId)
@@ -157,39 +166,11 @@ namespace PW.Services.Configuration
         {
             string key = keySelector.GetSettingKey();
 
-            var setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key, disableTracking: false);
+            Setting? setting = await _settingRepository.GetFirstOrDefaultAsync(predicate: x => x.Name == key);
 
-            if (setting == null) return;
+            if (setting is null) return;
 
-            var prop = await _localizedPropertyRepository.GetFirstOrDefaultAsync(predicate: x =>
-                x.LanguageId == languageId &&
-                x.EntityId == setting.Id &&
-                x.LocaleKeyGroup == "Setting" &&
-                x.LocaleKey == "Value",
-                disableTracking: false);
-
-            string valueStr = value ?? string.Empty;
-
-            if (prop != null)
-            {
-                if (string.IsNullOrWhiteSpace(valueStr))
-                    _localizedPropertyRepository.Delete(prop);
-                else
-                    prop.LocaleValue = valueStr;
-            }
-            else if (!string.IsNullOrWhiteSpace(valueStr))
-            {
-                await _localizedPropertyRepository.InsertAsync(new LocalizedProperty
-                {
-                    EntityId = setting.Id,
-                    LanguageId = languageId,
-                    LocaleKeyGroup = "Setting",
-                    LocaleKey = "Value",
-                    LocaleValue = valueStr
-                });
-            }
-
-            await _unitOfWork.CommitAsync();
+            await _localizationService.SaveLocalizedValueAsync(setting, x => x.Value, value, languageId);
 
             string cacheKey = $"{CacheKeys.Settings.All}:{typeof(TSettings).Name}:{languageId}";
             await _cacheService.RemoveAsync(cacheKey);
