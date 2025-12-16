@@ -1,12 +1,25 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
-using System.IO;
-using System.Linq;
 
 namespace PW.Application.Common.Extensions
 {
-    public static class FileValidatorExtensions
+    public static class ValidatorExtensions
     {
+        public static IRuleBuilderOptions<T, string> ValidUrl<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            return ruleBuilder
+                .Must(url =>
+                {
+                    if (string.IsNullOrEmpty(url)) return true;
+
+                    bool isUri = Uri.TryCreate(url, UriKind.Absolute, out Uri uriResult)
+                                 && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+                    return isUri;
+                })
+                .WithMessage("Please enter a valid URL (starting with http:// or https://).");
+        }
+
         public static IRuleBuilderOptions<T, IFormFile> MaxFileSize<T>(this IRuleBuilder<T, IFormFile> ruleBuilder, int maxBytes)
         {
             return ruleBuilder

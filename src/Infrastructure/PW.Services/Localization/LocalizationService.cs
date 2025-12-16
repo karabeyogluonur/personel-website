@@ -109,6 +109,26 @@ namespace PW.Services.Localization
             await _cacheService.RemoveAsync(dictCacheKey);
         }
 
+        public async Task<List<LocalizedProperty>> GetLocalizedPropertiesAsync(List<int> entityIds, string localeKeyGroup, int? languageId = null)
+        {
+            if (entityIds == null || !entityIds.Any())
+            {
+                return new List<LocalizedProperty>();
+            }
+
+            var query = _localizedPropertyRepository.GetAll()
+                .Where(x =>
+                    x.LocaleKeyGroup == localeKeyGroup &&
+                    entityIds.Contains(x.EntityId));
+
+            if (languageId.HasValue && languageId.Value > 0)
+            {
+                query = query.Where(x => x.LanguageId == languageId.Value);
+            }
+
+            return await query.ToListAsync();
+        }
+
         public async Task<Dictionary<string, string>> GetLocalizedDictionaryAsync(string keyGroup, int languageId)
         {
             string cacheKey = $"{CacheKeys.Localization.Dictionary}:{keyGroup}:{languageId}";

@@ -16,6 +16,7 @@ using System.Globalization;
 using System.Reflection;
 using PW.Redis;
 using PW.Domain.Configuration;
+using PW.Web.Areas.Admin.Features.Technology.Services;
 
 namespace PW.Web.Extensions
 {
@@ -38,7 +39,10 @@ namespace PW.Web.Extensions
 
         private static IServiceCollection AddWebInfrastructure(this IServiceCollection services)
         {
-            services.AddControllersWithViews()
+            services.AddControllersWithViews(options =>
+                {
+                    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+                })
                 .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization()
                 .AddRazorRuntimeCompilation();
@@ -85,6 +89,7 @@ namespace PW.Web.Extensions
             services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
             services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
             services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
+            services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
             return services;
         }
 

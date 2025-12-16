@@ -7,6 +7,6 @@ namespace PW.Web.Areas.Admin.Features.Language.ViewModels
         public IFormFile? FlagImage { get; set; }
         public int DisplayOrder { get; set; } = 0;
         public bool IsPublished { get; set; } = true;
-        public bool IsDefault { get; set; }
+        public bool IsDefault { get; set; } = false;
     }
 }

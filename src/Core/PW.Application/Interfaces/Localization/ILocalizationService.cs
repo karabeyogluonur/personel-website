@@ -15,6 +15,8 @@ namespace PW.Application.Interfaces.Localization
 
         Task<Dictionary<string, string>> GetLocalizedDictionaryAsync(string keyGroup, int languageId);
 
+        Task<List<LocalizedProperty>> GetLocalizedPropertiesAsync(List<int> entityIds, string localeKeyGroup, int? languageId = null);
+
         Task<Dictionary<int, string>> GetSettingsTranslationsAsync(List<int> settingIds, int languageId);
 
         Task<List<LocalizedProperty>> GetTranslationsForListAsync(List<int> entityIds, string localeKeyGroup, int languageId);

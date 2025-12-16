@@ -1,0 +1,153 @@
+@model TechnologyCreateViewModel
+
+<div class="card mb-5">
+    <div class="card-body py-4">
+        <div id="kt_app_toolbar" class="app-toolbar">
+            <div class="d-flex flex-stack w-100">
+                <div class="page-title d-flex flex-column justify-content-center gap-2">
+                    <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
+                        Technology Management
+                    </h1>
+                    <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="text-gray-600 text-hover-primary">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index", "Technology")"
+                                class="text-gray-600 text-hover-primary">Technology</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item text-gray-800 fw-semibold">
+                            Create
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <validation-alert />
+    <validation-summary />
+    @Html.AntiForgeryToken()
+
+    <div class="card card-flush">
+        <div class="card-header card-header-stretch">
+            <div class="card-toolbar w-100">
+                <ul class="nav nav-tabs nav-line-tabs nav-stretch fs-6 border-0 w-100">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tab_standard">Standard</a>
+                    </li>
+                    @foreach (var lang in Model.AvailableLanguages)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab_lang_@lang.Id">
+                                <div class="d-flex align-items-center">
+                                    <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
+                                        default-src="/uploads/system/defaults/image.png"
+                                        class="w-15px h-15px rounded-1 me-2" alt="@lang.Name" />
+                                    @lang.Name
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="card-body pt-5">
+            <div class="tab-content">
+
+                <div class="tab-pane fade show active" id="tab_standard" role="tabpanel">
+
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <label asp-for="IconImage" class="required form-label fs-7 fw-semibold">Icon</label>
+                            <input asp-for="IconImage" type="file" class="form-control form-control-sm"
+                                accept=".png, .svg, .jpg" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="IsActive" class="form-label fs-7 fw-semibold">Status</label>
+                            <div class="form-check form-switch form-check-custom form-check-solid">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                <label class="form-check-label" asp-for="IsActive">Active</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-6 fv-row">
+                            <label asp-for="Name" class="required form-label fs-7 fw-semibold"></label>
+                            <input asp-for="Name" class="form-control form-control-sm" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 fv-row">
+                            <label asp-for="DocumentationUrl" class="form-label fs-7 fw-semibold"></label>
+                            <input asp-for="DocumentationUrl" class="form-control form-control-sm"
+                                placeholder="https://..." />
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-12 fv-row">
+                            <label asp-for="Description" class="form-label fs-7 fw-semibold"></label>
+                            <textarea asp-for="Description" class="form-control form-control-sm" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @for (int i = 0; i < Model.Locales.Count; i++)
+                {
+                    <div class="tab-pane fade" id="tab_lang_@Model.Locales[i].LanguageId" role="tabpanel">
+                        <input type="hidden" asp-for="Locales[i].LanguageId" />
+                        <input type="hidden" asp-for="Locales[i].LanguageCode" />
+
+                        <div
+                            class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
+                            <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4 mb-5 mb-sm-0 flex-shrink-0">
+                                <span class="path1"></span>
+                                <span class="path2"></span>
+                                <span class="path3"></span>
+                            </i>
+                            <div class="d-flex flex-column pe-0 pe-sm-10">
+                                <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
+                                                                    Model.Locales[i].LanguageId)?.Name</h5>
+                            <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
+                                this language. Leave empty to use Standard values.</span>
+                        </div>
+                    </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-12 fv-row">
+                                <label class="form-label fs-7 fw-semibold">Name (@Model.Locales[i].LanguageCode)</label>
+                                <input asp-for="Locales[i].Name" class="form-control form-control-sm"
+                                    placeholder="Standard Name Override" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-12 fv-row">
+                                <label class="form-label fs-7 fw-semibold">Description
+                                    (@Model.Locales[i].LanguageCode)</label>
+                                <textarea asp-for="Locales[i].Description" class="form-control form-control-sm"
+                                    rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                                }
+
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end py-6 px-9">
+            <a asp-action="Index" class="btn btn-sm btn-light me-3">Discard</a>
+            <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+        </div>
+    </div>
+</form>

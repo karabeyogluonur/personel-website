@@ -1,0 +1,225 @@
+@model TechnologyListViewModel
+
+@{
+    ViewData["Title"] = "Technology Management";
+}
+
+<div class="card mb-5">
+    <div class="card-body py-4">
+        <div id="kt_app_toolbar" class="app-toolbar">
+            <div class="d-flex flex-stack w-100">
+                <div class="page-title d-flex flex-column justify-content-center gap-2">
+                    <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
+                        Technology Management
+                    </h1>
+
+                    <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="text-gray-600 text-hover-primary">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="text-gray-600">Technologies</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="d-flex align-items-center">
+                    <a href="@Url.Action("Create", "Technology")"
+                        class="btn btn-sm btn-primary d-flex align-items-center px-4">
+                        <i class="ki-outline ki-plus fs-2 me-2"></i>
+                        Add Technology
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-5">
+    <div class="card-body">
+
+        <table class="table table-row-dashed table-hover align-middle gs-0 gy-4">
+            <thead>
+                <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
+                    <th class="min-w-200px">Technology</th>
+                    <th class="min-w-200px">Description</th>
+                    <th class="min-w-100px">Docs</th>
+                    <th class="min-w-125px">Created</th>
+                    <th class="min-w-125px">Last Update</th>
+                    <th class="min-w-100px">Status</th>
+                    <th class="text-end min-w-100px">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="fw-semibold text-gray-700">
+                @if (Model.Technologies != null && Model.Technologies.Any())
+                {
+                    @foreach (var technology in Model.Technologies)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <img file-name="@technology.IconImageFileName"
+                                            folder="@StoragePaths.System_Technologies"
+                                            default-src="/uploads/system/blanks/image.svg" class="w-35px h-35px rounded"
+                                            alt="@technology.Name" />
+                                    </div>
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <span class="text-gray-800 fw-bold fs-6 mb-1">@technology.Name</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="text-muted text-truncate d-block" style="max-width: 200px;">
+                                    @technology.Description
+                                </span>
+                            </td>
+
+                            <td>
+                                @if (!string.IsNullOrEmpty(technology.DocumentationUrl))
+                                {
+                                    <a href="@technology.DocumentationUrl" target="_blank"
+                                        class="btn btn-icon btn-light-primary w-30px h-30px me-3">
+                                        <span data-bs-toggle="tooltip" title="Documentation">
+                                            <i class="ki-duotone ki-exit-right-corner fs-3">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </span>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fs-7">-</span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="text-gray-800 fw-bold fs-7">@technology.CreatedAt.ToString("dd MMM                       yyyy")</span>
+                                    <span class="text-muted fs-8">@technology.CreatedAt.ToString("HH:mm")</span>
+                                </div>
+                            </td>
+
+                            <td>
+                                @if (technology.UpdatedAt.HasValue)
+                                {
+                                    <div class="d-flex flex-column">
+                                        <span class="text-gray-800 fw-bold fs-7">@technology.UpdatedAt.Value.ToString("dd MMM              yyyy")</span>
+                                        <span class="text-muted fs-8">@technology.UpdatedAt.Value.ToString("HH:mm")</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-light fs-8 fw-bold">Never</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (technology.IsActive)
+                                {
+                                    <span class="badge badge-light-success fw-bold px-3 py-2">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-light-danger fw-bold px-3 py-2">Passive</span>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-area="Admin" asp-controller="Technology" asp-action="Edit" asp-route-id="@technology.Id"
+                                    class="btn btn-icon btn-light-primary w-30px h-30px me-3">
+                                    <span data-bs-toggle="tooltip" data-bs-trigger="hover" aria-label="Edit"
+                                        data-bs-original-title="Edit">
+                                        <i class="ki-duotone ki-pencil fs-3">
+                                            <span class="path1"></span><span class="path2"></span>
+                                        </i>
+                                    </span>
+                                </a>
+
+                                <a href="javascript:void(0);" class="btn btn-icon btn-light-danger w-30px h-30px me-3"
+                                    data-bs-toggle="modal" data-bs-target="#deleteTechModal" data-tech-id="@technology.Id"
+                                    data-tech-name="@technology.Name">
+                                    <i class="ki-duotone ki-trash fs-2">
+                                        <span class="path1"></span><span class="path2"></span>
+                                        <span class="path3"></span><span class="path4"></span>
+                                        <span class="path5"></span>
+                                    </i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-10">
+                            <div class="d-flex flex-column align-items-center">
+                                <i class="ki-outline ki-file-added fs-3x text-muted mb-3"></i>
+                                <span class="fs-6 fw-semibold">No technologies found.</span>
+                                <span class="fs-7">Start by adding a new technology to the system.</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<div class="modal fade" id="deleteTechModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Technology</h5>
+                <button type="button" class="btn btn-sm btn-icon" data-bs-dismiss="modal">
+                    <i class="ki-outline ki-cross fs-2"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <p class="fs-6 text-gray-700">
+                    Are you sure you want to delete <strong id="deleteTechNameDisplay" class="text-dark"></strong>?
+                </p>
+                <div class="alert alert-warning d-flex align-items-center p-5 mb-0">
+                    <i class="ki-outline ki-shield-cross fs-2hx text-warning me-4"></i>
+                    <div class="d-flex flex-column">
+                        <span class="fw-bold">Warning</span>
+                        <span>This action cannot be undone.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+
+                <form id="deleteTechForm" asp-area="Admin" asp-controller="Technology" asp-action="Delete"
+                    method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="deleteTechId" name="id" />
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const deleteModal = document.getElementById('deleteTechModal');
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const techId = button.getAttribute('data-tech-id');
+            const techName = button.getAttribute('data-tech-name');
+
+            document.getElementById('deleteTechId').value = techId;
+            document.getElementById('deleteTechNameDisplay').textContent = techName;
+        });
+    </script>
+}
