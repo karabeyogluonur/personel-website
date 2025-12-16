@@ -23,39 +23,56 @@ namespace PW.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            LanguageListViewModel viewModel = await _languageOrchestrator.PrepareLanguageListViewModelAsync();
-            return View(viewModel);
+            OperationResult<LanguageListViewModel> result = await _languageOrchestrator.PrepareLanguageListViewModelAsync();
+
+            if (!result.Succeeded)
+            {
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                return View(new LanguageListViewModel());
+            }
+
+            return View(result.Data);
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new LanguageCreateViewModel());
+            OperationResult<LanguageCreateViewModel> result = await _languageOrchestrator.PrepareCreateViewModelAsync();
+            return View(result.Data);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LanguageCreateViewModel model)
+        public async Task<IActionResult> Create(LanguageCreateViewModel languageCreateViewModel)
         {
             if (!ModelState.IsValid)
-                return View(model);
-
-            OperationResult result = await _languageOrchestrator.CreateLanguageAsync(model);
-
-            if (!result.Succeeded)
             {
-                ModelState.AddErrors(result);
-                return View(model);
+                OperationResult<LanguageCreateViewModel> reloadResult = await _languageOrchestrator.PrepareCreateViewModelAsync(languageCreateViewModel);
+                return View(reloadResult.Data);
             }
 
-            await _notificationService.SuccessNotificationAsync("Language added successfully. Please restart the application.");
-            return RedirectToAction(nameof(Index));
+            OperationResult result = await _languageOrchestrator.CreateLanguageAsync(languageCreateViewModel);
+
+            if (result.Succeeded)
+            {
+                await _notificationService.SuccessNotificationAsync("Language added successfully. Please restart the application.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddErrors(result);
+            await _notificationService.ErrorNotificationAsync("Could not create language.");
+
+            OperationResult<LanguageCreateViewModel> errorReloadResult = await _languageOrchestrator.PrepareCreateViewModelAsync(languageCreateViewModel);
+            return View(errorReloadResult.Data);
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            OperationResult<LanguageEditViewModel> result = await _languageOrchestrator.PrepareLanguageEditViewModelAsync(id);
+            if (id <= 0)
+                return RedirectToAction(nameof(Index));
+
+            OperationResult<LanguageEditViewModel> result = await _languageOrchestrator.PrepareEditViewModelAsync(id);
 
             if (!result.Succeeded)
             {
@@ -68,33 +85,39 @@ namespace PW.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(LanguageEditViewModel model)
+        public async Task<IActionResult> Edit(LanguageEditViewModel languageEditViewModel)
         {
             if (!ModelState.IsValid)
-                return View(model);
-
-            OperationResult result = await _languageOrchestrator.UpdateLanguageAsync(model);
-
-            if (!result.Succeeded)
             {
-                ModelState.AddErrors(result);
-                return View(model);
+                OperationResult<LanguageEditViewModel> reloadResult = await _languageOrchestrator.PrepareEditViewModelAsync(languageEditViewModel.Id, languageEditViewModel);
+                return View(reloadResult.Data);
             }
 
-            await _notificationService.SuccessNotificationAsync("Language updated successfully.");
-            return RedirectToAction(nameof(Index));
+            OperationResult result = await _languageOrchestrator.UpdateLanguageAsync(languageEditViewModel);
+
+            if (result.Succeeded)
+            {
+                await _notificationService.SuccessNotificationAsync("Language updated successfully.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddErrors(result);
+            await _notificationService.ErrorNotificationAsync("Could not update language.");
+
+            OperationResult<LanguageEditViewModel> errorReloadResult = await _languageOrchestrator.PrepareEditViewModelAsync(languageEditViewModel.Id, languageEditViewModel);
+            return View(errorReloadResult.Data);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(string code)
+        public async Task<IActionResult> Delete(int id)
         {
-            OperationResult result = await _languageOrchestrator.DeleteLanguageAsync(code);
+            OperationResult result = await _languageOrchestrator.DeleteLanguageAsync(id);
 
-            if (!result.Succeeded)
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-            else
+            if (result.Succeeded)
                 await _notificationService.SuccessNotificationAsync("Language deleted successfully.");
+            else
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault() ?? "Error deleting language.");
 
             return RedirectToAction(nameof(Index));
         }

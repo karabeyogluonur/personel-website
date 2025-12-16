@@ -5,10 +5,16 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
 {
     public interface ILanguageOrchestrator
     {
-        Task<LanguageListViewModel> PrepareLanguageListViewModelAsync();
+        Task<OperationResult<LanguageListViewModel>> PrepareLanguageListViewModelAsync();
+
+        Task<OperationResult<LanguageCreateViewModel>> PrepareCreateViewModelAsync(LanguageCreateViewModel? languageCreateViewModel = null);
+
         Task<OperationResult> CreateLanguageAsync(LanguageCreateViewModel languageCreateViewModel);
-        Task<OperationResult<LanguageEditViewModel>> PrepareLanguageEditViewModelAsync(int id);
+
+        Task<OperationResult<LanguageEditViewModel>> PrepareEditViewModelAsync(int languageId, LanguageEditViewModel? languageEditViewModel = null);
+
         Task<OperationResult> UpdateLanguageAsync(LanguageEditViewModel languageEditViewModel);
-        Task<OperationResult> DeleteLanguageAsync(string code);
+
+        Task<OperationResult> DeleteLanguageAsync(int languageId);
     }
 }
