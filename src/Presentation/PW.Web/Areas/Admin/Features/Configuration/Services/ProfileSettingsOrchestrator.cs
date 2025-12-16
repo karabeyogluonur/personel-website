@@ -100,18 +100,18 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
             if (newFile is not null)
             {
                 if (!string.IsNullOrEmpty(currentFileName))
-                    await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
+                    await _storageService.DeleteAsync(StoragePaths.System_Profiles, currentFileName);
 
                 string extension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
                 string fileName = $"{namePrefix}-{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
 
-                await _storageService.UploadAsync(newFile, StoragePaths.System_Generals, fileName);
+                await _storageService.UploadAsync(newFile, StoragePaths.System_Profiles, fileName);
                 return fileName;
             }
 
             if (isRemove && !string.IsNullOrEmpty(currentFileName))
             {
-                await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
+                await _storageService.DeleteAsync(StoragePaths.System_Profiles, currentFileName);
                 return null;
             }
 
