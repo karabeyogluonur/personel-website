@@ -36,34 +36,25 @@ namespace PW.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(ProfileSettingsViewModel model)
+        public async Task<IActionResult> Index(ProfileSettingsViewModel profileSettingsViewModel)
         {
             if (!ModelState.IsValid)
             {
-                await ReloadAuxiliaryData(model);
-                return View(model);
+                OperationResult<ProfileSettingsViewModel> reloadResult = await _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel);
+                return View(reloadResult.Data);
             }
 
-            OperationResult result = await _orchestrator.UpdateProfileSettingsAsync(model);
+            OperationResult result = await _orchestrator.UpdateProfileSettingsAsync(profileSettingsViewModel);
 
             if (!result.Succeeded)
             {
                 ModelState.AddErrors(result);
-                await ReloadAuxiliaryData(model);
-                return View(model);
+                OperationResult<ProfileSettingsViewModel> errorReloadResult = await _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel);
+                return View(errorReloadResult.Data);
             }
 
             await _notificationService.SuccessNotificationAsync("Profile settings updated successfully.");
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task ReloadAuxiliaryData(ProfileSettingsViewModel model)
-        {
-            var prepareResult = await _orchestrator.PrepareProfileSettingsViewModelAsync();
-            if (prepareResult.Succeeded)
-            {
-                model.AvailableLanguages = prepareResult.Data.AvailableLanguages;
-            }
         }
     }
 }

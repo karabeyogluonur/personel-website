@@ -4,12 +4,12 @@ namespace PW.Web.Areas.Admin.Features.Configuration.ViewModels
     public class ProfileSettingsLocalizedViewModel
     {
         public int LanguageId { get; set; }
-        public string LanguageCode { get; set; }
+        public string LanguageCode { get; set; } = string.Empty;
 
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string JobTitle { get; set; }
-        public string Biography { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string JobTitle { get; set; } = string.Empty;
+        public string Biography { get; set; } = string.Empty;
 
         public IFormFile? AvatarImage { get; set; }
         public string? AvatarPath { get; set; }
