@@ -34,5 +34,13 @@ namespace PW.Application.Common.Constants
             public static readonly string[] AllowedIconExtensions = { ".jpg", ".jpeg", ".png", ".svg" };
         }
 
+        public static class GeneralSettings
+        {
+            public const int SiteTitleMaxLength = 256;
+            public const int MaxFileSizeBytes = 2 * 1024 * 1024;
+            public static readonly string[] AllowedLogoExtensions = { ".jpg", ".jpeg", ".png" };
+            public static readonly string[] AllowedFaviconExtensions = { ".ico", ".png" };
+        }
+
     }
 }
