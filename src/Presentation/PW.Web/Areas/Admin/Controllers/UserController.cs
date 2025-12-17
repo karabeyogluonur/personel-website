@@ -20,6 +20,7 @@ namespace PW.Web.Areas.Admin.Controllers
             _notificationService = notificationService;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             OperationResult<UserListViewModel> result = await _userOrchestrator.PrepareUserListViewModelAsync();
@@ -33,8 +34,44 @@ namespace PW.Web.Areas.Admin.Controllers
             return View(result.Data);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
+            return View(result.Data);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(UserCreateViewModel userCreateViewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                OperationResult<UserCreateViewModel> reloadResult = await _userOrchestrator.PrepareUserCreateViewModelAsync(userCreateViewModel);
+                return View(reloadResult.Data);
+            }
+
+            OperationResult result = await _userOrchestrator.CreateUserAsync(userCreateViewModel);
+
+            if (result.Succeeded)
+            {
+                await _notificationService.SuccessNotificationAsync("User created successfully.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddErrors(result);
+            await _notificationService.ErrorNotificationAsync("Could not create user.");
+
+            OperationResult<UserCreateViewModel> errorReloadResult = await _userOrchestrator.PrepareUserCreateViewModelAsync(userCreateViewModel);
+            return View(errorReloadResult.Data);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (id <= 0)
+                return RedirectToAction(nameof(Index));
+
             OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(id);
 
             if (!result.Succeeded)
@@ -52,87 +89,23 @@ namespace PW.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
-
-                if (!result.Succeeded)
-                {
-                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return View(result.Data);
+                OperationResult<UserEditViewModel> reloadResult = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id, userEditViewModel);
+                return View(reloadResult.Data);
             }
 
-            OperationResult updateResult = await _userOrchestrator.UpdateUserAsync(userEditViewModel);
+            OperationResult result = await _userOrchestrator.UpdateUserAsync(userEditViewModel);
 
-            if (!updateResult.Succeeded)
+            if (result.Succeeded)
             {
-                ModelState.AddErrors(updateResult);
-
-                OperationResult<UserEditViewModel> result = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id);
-
-                if (!result.Succeeded)
-                {
-                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return View(result.Data);
-            }
-
-            await _notificationService.SuccessNotificationAsync("User updated successfully.");
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Create()
-        {
-            OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
-
-            if (!result.Succeeded)
-            {
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                await _notificationService.SuccessNotificationAsync("User updated successfully.");
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(result.Data);
-        }
+            ModelState.AddErrors(result);
+            await _notificationService.ErrorNotificationAsync("Could not update user.");
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UserCreateViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
-
-                if (!result.Succeeded)
-                {
-                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return View(result.Data);
-            }
-
-            OperationResult createResult = await _userOrchestrator.CreateUserAsync(model);
-
-            if (!createResult.Succeeded)
-            {
-                ModelState.AddErrors(createResult);
-
-                OperationResult<UserCreateViewModel> result = await _userOrchestrator.PrepareUserCreateViewModelAsync();
-
-                if (!result.Succeeded)
-                {
-                    await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-                    return RedirectToAction(nameof(Index));
-                }
-
-                return View(result.Data);
-            }
-
-            await _notificationService.SuccessNotificationAsync("User created successfully.");
-            return RedirectToAction(nameof(Index));
+            OperationResult<UserEditViewModel> errorReloadResult = await _userOrchestrator.PrepareUserEditViewModelAsync(userEditViewModel.Id, userEditViewModel);
+            return View(errorReloadResult.Data);
         }
 
         [HttpPost]
@@ -141,10 +114,10 @@ namespace PW.Web.Areas.Admin.Controllers
         {
             OperationResult result = await _userOrchestrator.DeleteUserAsync(id);
 
-            if (!result.Succeeded)
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
-            else
+            if (result.Succeeded)
                 await _notificationService.SuccessNotificationAsync("User deleted successfully.");
+            else
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault() ?? "Error deleting user.");
 
             return RedirectToAction(nameof(Index));
         }

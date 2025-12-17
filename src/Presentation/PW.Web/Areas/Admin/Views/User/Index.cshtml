@@ -5,7 +5,7 @@
         <div id="kt_app_toolbar" class="app-toolbar">
             <div class="d-flex flex-stack w-100">
                 <div class="page-title d-flex flex-column justify-content-center gap-2">
-                    <h1 class="page-heading fw-bold fs-2 text-gray-900 mb-0">
+                    <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
                         User Management
                     </h1>
 
@@ -42,7 +42,6 @@
         <table class="table table-row-dashed table-hover align-middle gs-0 gy-4">
             <thead>
                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
-                    <th class="min-w-50px">ID</th>
                     <th class="min-w-150px">Full Name</th>
                     <th class="min-w-200px">Email</th>
                     <th class="min-w-150px">Roles</th>
@@ -54,7 +53,6 @@
                 @foreach (var user in Model.Users)
                 {
                     <tr>
-                        <td>@user.Id</td>
                         <td>@user.FullName</td>
                         <td>@user.Email</td>
 

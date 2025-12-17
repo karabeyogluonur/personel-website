@@ -6,10 +6,15 @@ namespace PW.Web.Areas.Admin.Features.User.Services
     public interface IUserOrchestrator
     {
         Task<OperationResult<UserListViewModel>> PrepareUserListViewModelAsync();
-        Task<OperationResult<UserEditViewModel>> PrepareUserEditViewModelAsync(int userId);
-        Task<OperationResult> UpdateUserAsync(UserEditViewModel model);
-        Task<OperationResult<UserCreateViewModel>> PrepareUserCreateViewModelAsync();
-        Task<OperationResult> CreateUserAsync(UserCreateViewModel model);
+
+        Task<OperationResult<UserCreateViewModel>> PrepareUserCreateViewModelAsync(UserCreateViewModel? userCreateViewModel = null);
+
+        Task<OperationResult> CreateUserAsync(UserCreateViewModel userCreateViewModel);
+
+        Task<OperationResult<UserEditViewModel>> PrepareUserEditViewModelAsync(int userId, UserEditViewModel? userEditViewModel = null);
+
+        Task<OperationResult> UpdateUserAsync(UserEditViewModel userEditViewModel);
+
         Task<OperationResult> DeleteUserAsync(int userId);
     }
 }
