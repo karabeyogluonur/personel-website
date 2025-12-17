@@ -1,5 +1,6 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
+using PW.Application.Common.Enums;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Localization;
@@ -37,13 +38,14 @@ namespace PW.Web.Areas.Admin.Features.Technology.Services
             technologyFormViewModel.AvailableLanguages = _mapper.Map<List<LanguageListItemViewModel>>(languages);
         }
 
-        private async Task<string> UploadIconAsync(IFormFile file)
+        private async Task<string> UploadIconAsync(IFormFile file, string baseName)
         {
-            string fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            string fileName = $"tech-{Guid.NewGuid().ToString()[..8]}{fileExtension}";
-
-            await _storageService.UploadAsync(file, StoragePaths.System_Technologies, fileName);
-            return fileName;
+            return await _storageService.UploadAsync(
+                file: file,
+                folder: StoragePaths.System_Technologies,
+                mode: FileNamingMode.Unique,
+                customName: baseName
+            );
         }
 
         public async Task<OperationResult<TechnologyListViewModel>> PrepareTechnologyListViewModelAsync()
@@ -83,7 +85,7 @@ namespace PW.Web.Areas.Admin.Features.Technology.Services
 
         public async Task<OperationResult> CreateTechnologyAsync(TechnologyCreateViewModel technologyCreateViewModel)
         {
-            string fileName = await UploadIconAsync(technologyCreateViewModel.IconImage);
+            string fileName = await UploadIconAsync(technologyCreateViewModel.IconImage, technologyCreateViewModel.Name);
 
             Domain.Entities.Technology technology = _mapper.Map<Domain.Entities.Technology>(technologyCreateViewModel);
             technology.IconImageFileName = fileName;
@@ -151,7 +153,7 @@ namespace PW.Web.Areas.Admin.Features.Technology.Services
                 if (!string.IsNullOrEmpty(technology.IconImageFileName))
                     await _storageService.DeleteAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
 
-                technology.IconImageFileName = await UploadIconAsync(technologyEditViewModel.IconImage);
+                technology.IconImageFileName = await UploadIconAsync(technologyEditViewModel.IconImage, technologyEditViewModel.Name);
             }
 
             _mapper.Map(technologyEditViewModel, technology);

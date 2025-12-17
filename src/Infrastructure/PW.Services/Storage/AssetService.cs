@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Http;
-using System.Text.RegularExpressions;
-using System.Text;
-using PW.Application.Interfaces.Storage;
+using PW.Application.Common.Enums;
+using PW.Application.Common.Extensions;
 using PW.Application.Interfaces.Repositories;
+using PW.Application.Interfaces.Storage;
 using PW.Domain.Entities;
 
 namespace PW.Services.Storage
@@ -20,24 +20,20 @@ namespace PW.Services.Storage
             _assetRepository = _unitOfWork.GetRepository<Asset>();
         }
 
-        public async Task<Asset> UploadAsync(IFormFile file, string folder, string seoTitle, string altText = null)
+        public async Task<Asset> UploadAsync(IFormFile file, string folder, string seoTitle, string? altText = null)
         {
-            if (file == null || file.Length == 0)
-                throw new ArgumentException("Dosya boş olamaz.");
-
-            string fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            string safeTitle = GenerateSlug(seoTitle);
-            string uniqueSuffix = Guid.NewGuid().ToString().Substring(0, 8);
-
-            string fileName = $"{safeTitle}-{uniqueSuffix}{fileExtension}";
-
-            await _storageService.UploadAsync(file, folder, fileName);
+            string savedFileName = await _storageService.UploadAsync(
+                file,
+                folder,
+                FileNamingMode.Unique,
+                customName: seoTitle
+            );
 
             var asset = new Asset
             {
-                FileName = fileName,
+                FileName = savedFileName,
                 Folder = folder,
-                Extension = fileExtension,
+                Extension = file.GetExtension(),
                 ContentType = file.ContentType,
                 SizeBytes = file.Length,
                 AltText = !string.IsNullOrEmpty(altText) ? altText : seoTitle
@@ -58,24 +54,6 @@ namespace PW.Services.Storage
 
             _assetRepository.Delete(asset);
             await _unitOfWork.CommitAsync();
-        }
-
-        private string GenerateSlug(string phrase)
-        {
-            if (string.IsNullOrEmpty(phrase)) return "file";
-
-            string str = phrase.ToLowerInvariant();
-
-            str = str.Replace("ı", "i").Replace("ğ", "g").Replace("ü", "u")
-                     .Replace("ş", "s").Replace("ö", "o").Replace("ç", "c");
-
-            str = Regex.Replace(str, @"[^a-z0-9\s-]", "");
-
-            str = Regex.Replace(str, @"\s+", "-").Trim();
-
-            str = Regex.Replace(str, @"-+", "-");
-
-            return str;
         }
     }
 }

@@ -1,5 +1,6 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
+using PW.Application.Common.Enums;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Storage;
@@ -55,12 +56,12 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
 
             if (languageCreateViewModel.FlagImage != null)
             {
-                string fileExtension = Path.GetExtension(languageCreateViewModel.FlagImage.FileName).ToLowerInvariant();
-                string fileName = $"{languageCreateViewModel.Code.ToLowerInvariant()}{fileExtension}";
-
-                await _storageService.UploadAsync(languageCreateViewModel.FlagImage, StoragePaths.System_Flags, fileName);
-
-                flagFileName = fileName;
+                flagFileName = await _storageService.UploadAsync(
+                    file: languageCreateViewModel.FlagImage,
+                    folder: StoragePaths.System_Flags,
+                    mode: FileNamingMode.Specific,
+                    customName: languageCreateViewModel.Code
+                );
             }
 
             Domain.Entities.Language language = _mapper.Map<Domain.Entities.Language>(languageCreateViewModel);
@@ -108,11 +109,12 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
                 if (!string.IsNullOrEmpty(existingLanguage.FlagImageFileName))
                     await _storageService.DeleteAsync(StoragePaths.System_Flags, existingLanguage.FlagImageFileName);
 
-                string fileExtension = Path.GetExtension(languageEditViewModel.FlagImage.FileName).ToLowerInvariant();
-                string newFileName = $"{languageEditViewModel.Code.ToLowerInvariant()}{fileExtension}";
-
-                await _storageService.UploadAsync(languageEditViewModel.FlagImage, StoragePaths.System_Flags, newFileName);
-                finalFileName = newFileName;
+                finalFileName = await _storageService.UploadAsync(
+                    file: languageEditViewModel.FlagImage,
+                    folder: StoragePaths.System_Flags,
+                    mode: FileNamingMode.Specific,
+                    customName: languageEditViewModel.Code
+                );
             }
             else if (!string.Equals(existingLanguage.Code, languageEditViewModel.Code, StringComparison.OrdinalIgnoreCase)
                      && !string.IsNullOrEmpty(existingLanguage.FlagImageFileName))

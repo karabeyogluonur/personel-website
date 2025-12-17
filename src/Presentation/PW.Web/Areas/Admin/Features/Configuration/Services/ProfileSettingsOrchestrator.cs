@@ -1,5 +1,6 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
+using PW.Application.Common.Enums;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
@@ -124,11 +125,12 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
                 if (!string.IsNullOrEmpty(currentFileName))
                     await _storageService.DeleteAsync(StoragePaths.System_Profiles, currentFileName);
 
-                string fileExtension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
-                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString()[..8]}{fileExtension}";
-
-                await _storageService.UploadAsync(newFile, StoragePaths.System_Profiles, fileName);
-                return fileName;
+                return await _storageService.UploadAsync(
+                    file: newFile,
+                    folder: StoragePaths.System_Profiles,
+                    mode: FileNamingMode.Unique,
+                    customName: namePrefix
+                );
             }
 
             if (isRemove && !string.IsNullOrEmpty(currentFileName))

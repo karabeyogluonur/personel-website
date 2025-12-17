@@ -1,5 +1,6 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
+using PW.Application.Common.Enums;
 using PW.Application.Common.Models;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
@@ -7,6 +8,7 @@ using PW.Application.Interfaces.Storage;
 using PW.Domain.Configuration;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
+using System.Linq.Expressions;
 
 namespace PW.Web.Areas.Admin.Features.Configuration.Services
 {
@@ -145,11 +147,12 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
                 if (!string.IsNullOrEmpty(currentFileName))
                     await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
 
-                string fileExtension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
-                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString()[..8]}{fileExtension}";
-
-                await _storageService.UploadAsync(newFile, StoragePaths.System_Generals, fileName);
-                return fileName;
+                return await _storageService.UploadAsync(
+                    file: newFile,
+                    folder: StoragePaths.System_Generals,
+                    mode: FileNamingMode.Unique,
+                    customName: namePrefix
+                );
             }
 
             if (isRemove && !string.IsNullOrEmpty(currentFileName))
@@ -162,7 +165,7 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
         }
 
         private async Task ProcessLocalizedSettingFileAsync(
-            System.Linq.Expressions.Expression<Func<GeneralSettings, string>> keySelector,
+            Expression<Func<GeneralSettings, string>> keySelector,
             IFormFile? newFile,
             bool isRemove,
             int languageId,
