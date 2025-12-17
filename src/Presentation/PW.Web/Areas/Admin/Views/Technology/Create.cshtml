@@ -1,3 +1,5 @@
+@using PW.Application.Common.Constants
+@using PW.Web.Areas.Admin.Features.Technology.ViewModels
 @model TechnologyCreateViewModel
 
 <div class="card mb-5">
@@ -69,8 +71,14 @@
                     <div class="row mb-5">
                         <div class="col-md-6">
                             <label asp-for="IconImage" class="required form-label fs-7 fw-semibold">Icon</label>
+
                             <input asp-for="IconImage" type="file" class="form-control form-control-sm"
-                                accept=".png, .svg, .jpg" />
+                                accept="@string.Join(",", ApplicationLimits.Technology.AllowedIconExtensions)" />
+
+                            <div class="text-muted fs-8 mt-1">
+                                Allowed: @string.Join(", ", ApplicationLimits.Technology.AllowedIconExtensions).
+                                Max size: @(ApplicationLimits.Technology.MaxIconSizeBytes / 1024 / 1024) MB.
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="IsActive" class="form-label fs-7 fw-semibold">Status</label>
@@ -84,20 +92,29 @@
                     <div class="row mb-5">
                         <div class="col-md-6 fv-row">
                             <label asp-for="Name" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="Name" class="form-control form-control-sm" />
+
+                            <input asp-for="Name" class="form-control form-control-sm"
+                                maxlength="@ApplicationLimits.Technology.NameMaxLength" />
+
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 fv-row">
-                            <label asp-for="DocumentationUrl" class="form-label fs-7 fw-semibold"></label>
+                            <label asp-for="DocumentationUrl" class="required form-label fs-7 fw-semibold">Documentation
+                                Url</label>
+
                             <input asp-for="DocumentationUrl" class="form-control form-control-sm"
-                                placeholder="https://..." />
+                                placeholder="https://..." maxlength="@ApplicationLimits.Technology.UrlMaxLength" />
+
+                            <span asp-validation-for="DocumentationUrl" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row">
-                            <label asp-for="Description" class="form-label fs-7 fw-semibold"></label>
-                            <textarea asp-for="Description" class="form-control form-control-sm" rows="3"></textarea>
+                            <label asp-for="Description" class="required form-label fs-7 fw-semibold"></label>
+
+                            <textarea asp-for="Description" class="form-control form-control-sm" rows="3"
+                                maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
                         </div>
                     </div>
                 </div>
@@ -111,9 +128,7 @@
                         <div
                             class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
                             <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4 mb-5 mb-sm-0 flex-shrink-0">
-                                <span class="path1"></span>
-                                <span class="path2"></span>
-                                <span class="path3"></span>
+                                <span class="path1"></span><span class="path2"></span><span class="path3"></span>
                             </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
@@ -126,8 +141,10 @@
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
                                 <label class="form-label fs-7 fw-semibold">Name (@Model.Locales[i].LanguageCode)</label>
+
                                 <input asp-for="Locales[i].Name" class="form-control form-control-sm"
-                                    placeholder="Standard Name Override" />
+                                    placeholder="Standard Name Override"
+                                    maxlength="@ApplicationLimits.Technology.NameMaxLength" />
                             </div>
                         </div>
 
@@ -135,8 +152,9 @@
                             <div class="col-md-12 fv-row">
                                 <label class="form-label fs-7 fw-semibold">Description
                                     (@Model.Locales[i].LanguageCode)</label>
-                                <textarea asp-for="Locales[i].Description" class="form-control form-control-sm"
-                                    rows="3"></textarea>
+
+                                <textarea asp-for="Locales[i].Description" class="form-control form-control-sm" rows="3"
+                                    maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
                             </div>
                         </div>
                     </div>

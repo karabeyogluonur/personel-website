@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PW.Application.Common.Constants;
 using PW.Domain.Entities;
 
 namespace PW.Persistence.Configurations
@@ -14,7 +15,7 @@ namespace PW.Persistence.Configurations
 
             builder.Property(t => t.Name)
                 .IsRequired()
-                .HasMaxLength(100);
+                .HasMaxLength(ApplicationLimits.Technology.NameMaxLength);
 
             builder.HasIndex(t => t.Name);
 
@@ -23,12 +24,12 @@ namespace PW.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(t => t.Description)
-                .HasMaxLength(500)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(ApplicationLimits.Technology.DescriptionMaxLength);
 
             builder.Property(t => t.DocumentationUrl)
-                .HasMaxLength(250)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(ApplicationLimits.Technology.UrlMaxLength);
 
             builder.Property(t => t.IsActive)
                 .HasDefaultValue(true)

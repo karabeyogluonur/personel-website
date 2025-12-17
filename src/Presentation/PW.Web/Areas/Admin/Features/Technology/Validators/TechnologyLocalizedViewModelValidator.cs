@@ -1,4 +1,5 @@
 using FluentValidation;
+using PW.Application.Common.Constants;
 using PW.Web.Areas.Admin.Features.Technology.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Technology.Validators
@@ -8,10 +9,12 @@ namespace PW.Web.Areas.Admin.Features.Technology.Validators
         public TechnologyLocalizedViewModelValidator()
         {
             RuleFor(x => x.Name)
-                .MaximumLength(100).WithMessage("Localized Name cannot exceed 100 characters.");
+                .MaximumLength(ApplicationLimits.Technology.NameMaxLength)
+                .WithMessage($"Localized Name cannot exceed {ApplicationLimits.Technology.NameMaxLength} characters.");
 
             RuleFor(x => x.Description)
-                .MaximumLength(1000).WithMessage("Localized Description cannot exceed 1000 characters.");
+                .MaximumLength(ApplicationLimits.Technology.DescriptionMaxLength)
+                .WithMessage($"Localized Description cannot exceed {ApplicationLimits.Technology.DescriptionMaxLength} characters.");
         }
     }
 }

@@ -25,5 +25,14 @@ namespace PW.Application.Common.Constants
             public const int PasswordMinLength = 6;
         }
 
+        public static class Technology
+        {
+            public const int NameMaxLength = 100;
+            public const int DescriptionMaxLength = 500;
+            public const int UrlMaxLength = 250;
+            public const int MaxIconSizeBytes = 2 * 1024 * 1024; // 2MB
+            public static readonly string[] AllowedIconExtensions = { ".jpg", ".jpeg", ".png", ".svg" };
+        }
+
     }
 }
