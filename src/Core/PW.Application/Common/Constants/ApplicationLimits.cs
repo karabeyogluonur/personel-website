@@ -42,5 +42,15 @@ namespace PW.Application.Common.Constants
             public static readonly string[] AllowedFaviconExtensions = { ".ico", ".png" };
         }
 
+        public static class ProfileSettings
+        {
+            public const int FirstNameMaxLength = 50;
+            public const int LastNameMaxLength = 50;
+            public const int JobTitleMaxLength = 100;
+            public const int BiographyMaxLength = 1000;
+            public const int MaxImageSizeBytes = 2 * 1024 * 1024;
+            public static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png" };
+        }
+
     }
 }

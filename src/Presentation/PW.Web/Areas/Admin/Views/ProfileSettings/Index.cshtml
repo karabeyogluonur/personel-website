@@ -1,10 +1,4 @@
-@using PW.Application.Common.Constants
-@using PW.Web.Areas.Admin.Features.Configuration.ViewModels
 @model ProfileSettingsViewModel
-
-@{
-    ViewData["Title"] = "Public Profile Settings";
-}
 
 <div class="card mb-5">
     <div class="card-body py-4">
@@ -12,7 +6,7 @@
             <div class="d-flex flex-stack w-100">
                 <div class="page-title d-flex flex-column justify-content-center gap-2">
                     <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
-                        Public Profile Configuration
+                        Owner Profile Configuration
                     </h1>
                     <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
                         <li class="breadcrumb-item">
@@ -89,8 +83,14 @@
                                         </div>
                                     }
                                     <input type="file" asp-for="AvatarImage" class="form-control form-control-sm"
-                                        accept=".png, .jpg, .jpeg" />
-                                    <div class="text-muted fs-8 mt-2">Allowed types: png, jpg, jpeg.</div>
+                                        accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
+
+                                    <div class="text-muted fs-8 mt-2">
+                                        Allowed types: @string.Join(", ",
+                                                                                ApplicationLimits.ProfileSettings.AllowedImageExtensions).
+                                        Max size: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024)
+                                        MB.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -113,8 +113,14 @@
                                         </div>
                                     }
                                     <input type="file" asp-for="CoverImage" class="form-control form-control-sm"
-                                        accept=".png, .jpg, .jpeg" />
-                                    <div class="text-muted fs-8 mt-2">Allowed types: png, jpg, jpeg.</div>
+                                        accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
+
+                                    <div class="text-muted fs-8 mt-2">
+                                        Allowed types: @string.Join(", ",
+                                                                                ApplicationLimits.ProfileSettings.AllowedImageExtensions).
+                                        Max size: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024)
+                                        MB.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -125,13 +131,17 @@
                     <div class="row mb-5">
                         <div class="col-md-6 fv-row mb-7">
                             <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="FirstName" class="form-control form-control-sm" />
+                            <input asp-for="FirstName" class="form-control form-control-sm"
+                                maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
+
                             <span asp-validation-for="FirstName"
                                 class="fv-plugins-message-container invalid-feedback fs-8"></span>
                         </div>
                         <div class="col-md-6 fv-row mb-7">
                             <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="LastName" class="form-control form-control-sm" />
+                            <input asp-for="LastName" class="form-control form-control-sm"
+                                maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
+
                             <span asp-validation-for="LastName"
                                 class="fv-plugins-message-container invalid-feedback fs-8"></span>
                         </div>
@@ -140,14 +150,16 @@
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
                             <label asp-for="JobTitle" class="form-label fs-7 fw-semibold"></label>
-                            <input asp-for="JobTitle" class="form-control form-control-sm" />
+                            <input asp-for="JobTitle" class="form-control form-control-sm"
+                                maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
                         </div>
                     </div>
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
                             <label asp-for="Biography" class="form-label fs-7 fw-semibold"></label>
-                            <textarea asp-for="Biography" class="form-control form-control-sm" rows="4"></textarea>
+                            <textarea asp-for="Biography" class="form-control form-control-sm" rows="4"
+                                maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
                         </div>
                     </div>
                 </div>
@@ -161,8 +173,9 @@
 
                         <div
                             class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
-                            <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4 mb-5 mb-sm-0 flex-shrink-0"><span
-                                    class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+                            <i class="ki-duotone ki-information-5 fs-2hx text-primary me-4 mb-5 mb-sm-0 flex-shrink-0">
+                                <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+                            </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
                                                                     Model.Locales[i].LanguageId)?.Name</h5>
@@ -191,10 +204,16 @@
                                             </div>
                                         }
                                         <input type="file" asp-for="Locales[i].AvatarImage"
-                                            class="form-control form-control-sm" accept=".png, .jpg, .jpeg" />
+                                            class="form-control form-control-sm"
+                                            accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
+
+                                        <div class="text-muted fs-8 mt-2">
+                                            Allowed types: @string.Join(", ",
+                                                                                    ApplicationLimits.ProfileSettings.AllowedImageExtensions).
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fs-7 fw-semibold mb-2">Cover Image
@@ -206,7 +225,7 @@
                                             alt="Cover Local" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                        @if (!string.IsNullOrEmpty(Model.Locales[i].CoverPath))
+                                    @if (!string.IsNullOrEmpty(Model.Locales[i].CoverPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
@@ -216,22 +235,30 @@
                                             </div>
                                         }
                                         <input type="file" asp-for="Locales[i].CoverImage"
-                                            class="form-control form-control-sm" accept=".png, .jpg, .jpeg" />
+                                            class="form-control form-control-sm"
+                                            accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
+
+                                        <div class="text-muted fs-8 mt-2">
+                                            Allowed types: @string.Join(", ",
+                                                                                    ApplicationLimits.ProfileSettings.AllowedImageExtensions).
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
                         <div class="row mb-5">
                             <div class="col-md-6 fv-row mb-7">
                                 <label class="form-label fs-7 fw-semibold">First Name</label>
                                 <input asp-for="Locales[i].FirstName" class="form-control form-control-sm"
-                                    placeholder="Standard: @Model.FirstName" />
+                                    placeholder="Standard: @Model.FirstName"
+                                    maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
                             </div>
                             <div class="col-md-6 fv-row mb-7">
                                 <label class="form-label fs-7 fw-semibold">Last Name</label>
                                 <input asp-for="Locales[i].LastName" class="form-control form-control-sm"
-                                    placeholder="Standard: @Model.LastName" />
+                                    placeholder="Standard: @Model.LastName"
+                                    maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
                             </div>
                         </div>
 
@@ -239,7 +266,8 @@
                             <div class="col-md-12 fv-row mb-7">
                                 <label class="form-label fs-7 fw-semibold">Job Title</label>
                                 <input asp-for="Locales[i].JobTitle" class="form-control form-control-sm"
-                                    placeholder="Standard: @Model.JobTitle" />
+                                    placeholder="Standard: @Model.JobTitle"
+                                    maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
                             </div>
                         </div>
 
@@ -247,12 +275,13 @@
                             <div class="col-md-12 fv-row mb-7">
                                 <label class="form-label fs-7 fw-semibold">Biography</label>
                                 <textarea asp-for="Locales[i].Biography" class="form-control form-control-sm" rows="4"
-                                    placeholder="Standard: @Model.Biography"></textarea>
+                                    placeholder="Standard: @Model.Biography"
+                                    maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
                             </div>
                         </div>
 
                     </div>
-                }
+                                }
             </div>
         </div>
 

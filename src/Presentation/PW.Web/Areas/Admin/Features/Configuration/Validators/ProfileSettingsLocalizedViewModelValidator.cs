@@ -1,4 +1,5 @@
 using FluentValidation;
+using PW.Application.Common.Constants;
 using PW.Application.Common.Extensions;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 
@@ -6,23 +7,31 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Validators
 {
     public class ProfileSettingsLocalizedModelValidator : AbstractValidator<ProfileSettingsLocalizedViewModel>
     {
-        private const int MaxFileSize = 2 * 1024 * 1024; //2MB
-
         public ProfileSettingsLocalizedModelValidator()
         {
-            RuleFor(x => x.FirstName).MaximumLength(50).WithMessage("First Name cannot exceed 50 characters.");
-            RuleFor(x => x.LastName).MaximumLength(50).WithMessage("Last Name cannot exceed 50 characters.");
-            RuleFor(x => x.JobTitle).MaximumLength(100).WithMessage("Job Title cannot exceed 100 characters.");
-            RuleFor(x => x.Biography).MaximumLength(1000).WithMessage("Biography cannot exceed 1000 characters.");
+            RuleFor(x => x.FirstName)
+                .MaximumLength(ApplicationLimits.ProfileSettings.FirstNameMaxLength)
+                .WithMessage($"First Name cannot exceed {ApplicationLimits.ProfileSettings.FirstNameMaxLength} characters.");
+
+            RuleFor(x => x.LastName)
+                .MaximumLength(ApplicationLimits.ProfileSettings.LastNameMaxLength)
+                .WithMessage($"Last Name cannot exceed {ApplicationLimits.ProfileSettings.LastNameMaxLength} characters.");
+
+            RuleFor(x => x.JobTitle)
+                .MaximumLength(ApplicationLimits.ProfileSettings.JobTitleMaxLength)
+                .WithMessage($"Job Title cannot exceed {ApplicationLimits.ProfileSettings.JobTitleMaxLength} characters.");
+
+            RuleFor(x => x.Biography)
+                .MaximumLength(ApplicationLimits.ProfileSettings.BiographyMaxLength)
+                .WithMessage($"Biography cannot exceed {ApplicationLimits.ProfileSettings.BiographyMaxLength} characters.");
 
             RuleFor(x => x.AvatarImage)
-                .AllowedExtensions(".jpg", ".jpeg", ".png")
-                .MaxFileSize(MaxFileSize);
+                .AllowedExtensions(ApplicationLimits.ProfileSettings.AllowedImageExtensions)
+                .MaxFileSize(ApplicationLimits.ProfileSettings.MaxImageSizeBytes);
 
             RuleFor(x => x.CoverImage)
-                .AllowedExtensions(".jpg", ".jpeg", ".png")
-                .MaxFileSize(MaxFileSize);
+                .AllowedExtensions(ApplicationLimits.ProfileSettings.AllowedImageExtensions)
+                .MaxFileSize(ApplicationLimits.ProfileSettings.MaxImageSizeBytes);
         }
     }
-
 }
