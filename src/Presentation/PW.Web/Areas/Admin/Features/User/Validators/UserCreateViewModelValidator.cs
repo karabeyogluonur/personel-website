@@ -1,4 +1,5 @@
 using FluentValidation;
+using PW.Application.Common.Constants;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.User.Validators
@@ -9,31 +10,32 @@ namespace PW.Web.Areas.Admin.Features.User.Validators
         {
             RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name is required.")
-                .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.")
-                .Must(x => x == null || x.Trim() == x).WithMessage("First name cannot start or end with whitespace.");
+                .MaximumLength(ApplicationLimits.User.FirstNameMaxLength)
+                .WithMessage($"First name cannot exceed {ApplicationLimits.User.FirstNameMaxLength} characters.");
 
             RuleFor(x => x.LastName)
                 .NotEmpty().WithMessage("Last name is required.")
-                .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.")
-                .Must(x => x == null || x.Trim() == x).WithMessage("Last name cannot start or end with whitespace.");
+                .MaximumLength(ApplicationLimits.User.LastNameMaxLength)
+                .WithMessage($"Last name cannot exceed {ApplicationLimits.User.LastNameMaxLength} characters.");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
                 .EmailAddress().WithMessage("A valid email address is required.")
-                .MaximumLength(150).WithMessage("Email cannot exceed 150 characters.");
+                .MaximumLength(ApplicationLimits.User.EmailMaxLength)
+                .WithMessage($"Email cannot exceed {ApplicationLimits.User.EmailMaxLength} characters.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
-                .MinimumLength(6).WithMessage("Password must be at least 6 characters.");
+                .MinimumLength(ApplicationLimits.User.PasswordMinLength)
+                .WithMessage($"Password must be at least {ApplicationLimits.User.PasswordMinLength} characters.");
 
             RuleFor(x => x.ConfirmPassword)
                 .NotEmpty().WithMessage("Please confirm the password.")
-                .When(x => !string.IsNullOrEmpty(x.Password))
                 .Equal(x => x.Password).WithMessage("Passwords do not match.");
 
             RuleFor(x => x.SelectedRoles)
                 .NotNull().WithMessage("Please select at least one role.")
-                .Must(r => r != null && r.Count > 0)
+                .Must(roles => roles != null && roles.Any())
                 .WithMessage("Please select at least one role.");
         }
     }
