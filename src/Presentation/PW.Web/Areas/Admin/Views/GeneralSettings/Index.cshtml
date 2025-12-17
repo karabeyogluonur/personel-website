@@ -11,7 +11,7 @@
         <div id="kt_app_toolbar" class="app-toolbar">
             <div class="d-flex flex-stack w-100">
                 <div class="page-title d-flex flex-column justify-content-center gap-2">
-                    <h1 class="page-heading fw-bold fs-2 text-gray-900 mb-0">
+                    <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
                         General Settings Configuration
                     </h1>
                     <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
@@ -182,7 +182,7 @@
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
-                            <label asp-for="SiteTitle" class="form-label fs-7 fw-semibold"></label>
+                            <label class="form-label fs-7 fw-semibold mb-2">Site Title</label>
                             <input asp-for="SiteTitle" class="form-control form-control-sm" />
                         </div>
                     </div>
@@ -323,7 +323,7 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].SiteTitle" class="form-label fs-7 fw-semibold"></label>
+                                <label class="form-label fs-7 fw-semibold mb-2">Site Title</label>
                                 <input asp-for="@Model.Locales[i].SiteTitle" class="form-control form-control-sm" />
                             </div>
                         </div>

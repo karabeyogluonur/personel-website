@@ -28,135 +28,125 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
             _storageService = storageService;
             _mapper = mapper;
         }
-        public async Task<OperationResult<GeneralSettingsViewModel>> PrepareGeneralSettingsViewModelAsync()
-        {
-            GeneralSettings generalSettings = _settingService.LoadSettings<GeneralSettings>();
-            GeneralSettingsViewModel generalSettingsViewModel = _mapper.Map<GeneralSettingsViewModel>(generalSettings);
 
+        private async Task LoadFormReferenceDataAsync(GeneralSettingsViewModel generalSettingsViewModel)
+        {
             IList<Domain.Entities.Language> languages = await _languageService.GetAllPublishedLanguagesAsync();
             generalSettingsViewModel.AvailableLanguages = _mapper.Map<List<LanguageListItemViewModel>>(languages);
+        }
 
-            foreach (Domain.Entities.Language language in languages)
+        public async Task<OperationResult<GeneralSettingsViewModel>> PrepareGeneralSettingsViewModelAsync(GeneralSettingsViewModel? generalSettingsViewModel = null)
+        {
+            if (generalSettingsViewModel != null)
             {
-                GeneralSettingsLocalizedViewModel profileSettingsLocalizedViewModel = new GeneralSettingsLocalizedViewModel
+                await LoadFormReferenceDataAsync(generalSettingsViewModel);
+                return OperationResult<GeneralSettingsViewModel>.Success(generalSettingsViewModel);
+            }
+
+            GeneralSettings generalSettings = _settingService.LoadSettings<GeneralSettings>();
+            generalSettingsViewModel = _mapper.Map<GeneralSettingsViewModel>(generalSettings);
+
+            await LoadFormReferenceDataAsync(generalSettingsViewModel);
+
+            foreach (LanguageListItemViewModel language in generalSettingsViewModel.AvailableLanguages)
+            {
+                GeneralSettingsLocalizedViewModel localizedModel = new GeneralSettingsLocalizedViewModel
                 {
                     LanguageId = language.Id,
                     LanguageCode = language.Code,
-                    SiteTitle = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.SiteTitle, language.Id),
-                    DarkThemeFaviconPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.DarkThemeFaviconFileName, language.Id),
-                    DarkThemeLogoPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.DarkThemeLogoFileName, language.Id),
-                    LightThemeFaviconPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.LightThemeFaviconFileName, language.Id),
-                    LightThemeLogoPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.LightThemeLogoFileName, language.Id),
+                    SiteTitle = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(s => s.SiteTitle, language.Id),
+                    DarkThemeFaviconPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(s => s.DarkThemeFaviconFileName, language.Id),
+                    DarkThemeLogoPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(s => s.DarkThemeLogoFileName, language.Id),
+                    LightThemeFaviconPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(s => s.LightThemeFaviconFileName, language.Id),
+                    LightThemeLogoPath = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(s => s.LightThemeLogoFileName, language.Id),
                 };
 
-                generalSettingsViewModel.Locales.Add(profileSettingsLocalizedViewModel);
+                generalSettingsViewModel.Locales.Add(localizedModel);
             }
 
             return OperationResult<GeneralSettingsViewModel>.Success(generalSettingsViewModel);
-
-
         }
 
         public async Task<OperationResult> UpdateGeneralSettingsAsync(GeneralSettingsViewModel generalSettingsViewModel)
         {
-            GeneralSettings currentGeneralSettings = _settingService.LoadSettings<GeneralSettings>();
+            GeneralSettings currentSettings = _settingService.LoadSettings<GeneralSettings>();
 
-            currentGeneralSettings.DarkThemeFaviconFileName = await ProcessFileAsync(generalSettingsViewModel.DarkThemeFaviconImage, currentGeneralSettings.DarkThemeFaviconFileName, generalSettingsViewModel.RemoveDarkThemeFavicon, "dark-favicon");
+            currentSettings.DarkThemeFaviconFileName = await ProcessFileAsync(
+                generalSettingsViewModel.DarkThemeFaviconImage,
+                currentSettings.DarkThemeFaviconFileName,
+                generalSettingsViewModel.RemoveDarkThemeFavicon,
+                "dark-favicon");
 
-            currentGeneralSettings.LightThemeFaviconFileName = await ProcessFileAsync(generalSettingsViewModel.LightThemeFaviconImage, currentGeneralSettings.LightThemeFaviconFileName, generalSettingsViewModel.RemoveLightThemeFavicon, "light-favicon");
+            currentSettings.LightThemeFaviconFileName = await ProcessFileAsync(
+                generalSettingsViewModel.LightThemeFaviconImage,
+                currentSettings.LightThemeFaviconFileName,
+                generalSettingsViewModel.RemoveLightThemeFavicon,
+                "light-favicon");
 
-            currentGeneralSettings.DarkThemeLogoFileName = await ProcessFileAsync(generalSettingsViewModel.DarkThemeLogoImage, currentGeneralSettings.DarkThemeLogoFileName, generalSettingsViewModel.RemoveDarkThemeLogo, "dark-logo");
+            currentSettings.DarkThemeLogoFileName = await ProcessFileAsync(
+                generalSettingsViewModel.DarkThemeLogoImage,
+                currentSettings.DarkThemeLogoFileName,
+                generalSettingsViewModel.RemoveDarkThemeLogo,
+                "dark-logo");
 
-            currentGeneralSettings.LightThemeLogoFileName = await ProcessFileAsync(generalSettingsViewModel.LightThemeLogoImage, currentGeneralSettings.LightThemeLogoFileName, generalSettingsViewModel.RemoveLightThemeLogo, "light-logo");
+            currentSettings.LightThemeLogoFileName = await ProcessFileAsync(
+                generalSettingsViewModel.LightThemeLogoImage,
+                currentSettings.LightThemeLogoFileName,
+                generalSettingsViewModel.RemoveLightThemeLogo,
+                "light-logo");
 
-            currentGeneralSettings.SiteTitle = generalSettingsViewModel.SiteTitle;
+            currentSettings.SiteTitle = generalSettingsViewModel.SiteTitle;
 
-            await _settingService.SaveSettingsAsync(currentGeneralSettings);
+            await _settingService.SaveSettingsAsync(currentSettings);
 
-
-            foreach (GeneralSettingsLocalizedViewModel generalSettingsLocalizedViewModel in generalSettingsViewModel.Locales)
+            foreach (GeneralSettingsLocalizedViewModel localizedViewModel in generalSettingsViewModel.Locales)
             {
-                string currentLocalizedDarkThemeFavicon = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
-                        generalSetting => generalSetting.DarkThemeFaviconFileName,
-                        generalSettingsLocalizedViewModel.LanguageId);
+                await ProcessLocalizedSettingFileAsync(
+                    s => s.DarkThemeFaviconFileName,
+                    localizedViewModel.DarkThemeFaviconImage,
+                    localizedViewModel.RemoveDarkThemeFavicon,
+                    localizedViewModel.LanguageId,
+                    $"dark-favicon-{localizedViewModel.LanguageCode}");
 
-                string newLocalizedDarkThemeFavicon = await ProcessFileAsync(
-                        generalSettingsLocalizedViewModel.DarkThemeFaviconImage,
-                        currentLocalizedDarkThemeFavicon,
-                        generalSettingsLocalizedViewModel.RemoveDarkThemeFavicon,
-                        $"dark-favicon-{generalSettingsLocalizedViewModel.LanguageCode}");
+                await ProcessLocalizedSettingFileAsync(
+                    s => s.LightThemeFaviconFileName,
+                    localizedViewModel.LightThemeFaviconImage,
+                    localizedViewModel.RemoveLightThemeFavicon,
+                    localizedViewModel.LanguageId,
+                    $"light-favicon-{localizedViewModel.LanguageCode}");
 
+                await ProcessLocalizedSettingFileAsync(
+                    s => s.DarkThemeLogoFileName,
+                    localizedViewModel.DarkThemeLogoImage,
+                    localizedViewModel.RemoveDarkThemeLogo,
+                    localizedViewModel.LanguageId,
+                    $"dark-logo-{localizedViewModel.LanguageCode}");
 
-                string currentLocalizedLightThemeFavicon = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
-                        generalSetting => generalSetting.LightThemeFaviconFileName,
-                        generalSettingsLocalizedViewModel.LanguageId);
-
-                string newLocalizedLightThemeFavicon = await ProcessFileAsync(
-                        generalSettingsLocalizedViewModel.LightThemeFaviconImage,
-                        currentLocalizedLightThemeFavicon,
-                        generalSettingsLocalizedViewModel.RemoveLightThemeFavicon,
-                        $"light-favicon-{generalSettingsLocalizedViewModel.LanguageCode}");
-
-
-                string currentLocalizedDarkThemeLogo = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
-                        generalSetting => generalSetting.DarkThemeLogoFileName,
-                        generalSettingsLocalizedViewModel.LanguageId);
-
-                string newLocalizedDarkThemeLogo = await ProcessFileAsync(
-                        generalSettingsLocalizedViewModel.DarkThemeLogoImage,
-                        currentLocalizedDarkThemeLogo,
-                        generalSettingsLocalizedViewModel.RemoveDarkThemeLogo,
-                        $"dark-logo-{generalSettingsLocalizedViewModel.LanguageCode}");
-
-                string currentLocalizedLightThemeLogo = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
-                        generalSetting => generalSetting.LightThemeLogoFileName,
-                        generalSettingsLocalizedViewModel.LanguageId);
-
-                string newLocalizedLightThemeLogo = await ProcessFileAsync(
-                        generalSettingsLocalizedViewModel.LightThemeLogoImage,
-                        currentLocalizedLightThemeLogo,
-                        generalSettingsLocalizedViewModel.RemoveLightThemeLogo,
-                        $"light-logo-{generalSettingsLocalizedViewModel.LanguageCode}");
+                await ProcessLocalizedSettingFileAsync(
+                    s => s.LightThemeLogoFileName,
+                    localizedViewModel.LightThemeLogoImage,
+                    localizedViewModel.RemoveLightThemeLogo,
+                    localizedViewModel.LanguageId,
+                    $"light-logo-{localizedViewModel.LanguageCode}");
 
                 await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
-                    generalSetting => generalSetting.DarkThemeFaviconFileName,
-                    newLocalizedDarkThemeFavicon,
-                    generalSettingsLocalizedViewModel.LanguageId);
-
-                await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
-                    generalSetting => generalSetting.LightThemeFaviconFileName,
-                    newLocalizedLightThemeFavicon,
-                    generalSettingsLocalizedViewModel.LanguageId);
-
-                await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
-                    generalSetting => generalSetting.DarkThemeLogoFileName,
-                    newLocalizedDarkThemeLogo,
-                    generalSettingsLocalizedViewModel.LanguageId);
-
-                await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
-                    generalSetting => generalSetting.LightThemeLogoFileName,
-                    newLocalizedLightThemeLogo,
-                    generalSettingsLocalizedViewModel.LanguageId);
-
-                await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
-                    generalSetting => generalSetting.SiteTitle,
-                    generalSettingsLocalizedViewModel.SiteTitle,
-                    generalSettingsLocalizedViewModel.LanguageId);
+                    s => s.SiteTitle,
+                    localizedViewModel.SiteTitle,
+                    localizedViewModel.LanguageId);
             }
 
             return OperationResult.Success();
-
         }
 
-        private async Task<string> ProcessFileAsync(IFormFile newFile, string currentFileName, bool isRemove, string namePrefix)
+        private async Task<string?> ProcessFileAsync(IFormFile? newFile, string? currentFileName, bool isRemove, string namePrefix)
         {
-            if (newFile is not null)
+            if (newFile != null)
             {
                 if (!string.IsNullOrEmpty(currentFileName))
                     await _storageService.DeleteAsync(StoragePaths.System_Generals, currentFileName);
 
-                string extension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
-                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString().Substring(0, 8)}{extension}";
+                string fileExtension = Path.GetExtension(newFile.FileName).ToLowerInvariant();
+                string fileName = $"{namePrefix}-{Guid.NewGuid().ToString()[..8]}{fileExtension}";
 
                 await _storageService.UploadAsync(newFile, StoragePaths.System_Generals, fileName);
                 return fileName;
@@ -169,6 +159,22 @@ namespace PW.Web.Areas.Admin.Features.Configuration.Services
             }
 
             return currentFileName;
+        }
+
+        private async Task ProcessLocalizedSettingFileAsync(
+            System.Linq.Expressions.Expression<Func<GeneralSettings, string>> keySelector,
+            IFormFile? newFile,
+            bool isRemove,
+            int languageId,
+            string namePrefix)
+        {
+            string? currentLocalizedFileName = await _settingService.GetLocalizedSettingValueAsync(keySelector, languageId);
+
+            if (newFile == null && !isRemove) return;
+
+            string? newLocalizedFileName = await ProcessFileAsync(newFile, currentLocalizedFileName, isRemove, namePrefix);
+
+            await _settingService.SaveLocalizedSettingValueAsync(keySelector, newLocalizedFileName ?? string.Empty, languageId);
         }
     }
 }

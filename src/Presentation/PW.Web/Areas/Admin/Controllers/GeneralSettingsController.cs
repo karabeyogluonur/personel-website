@@ -40,8 +40,8 @@ namespace PW.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await ReloadAuxiliaryData(generalSettingsViewModel);
-                return View(generalSettingsViewModel);
+                OperationResult<GeneralSettingsViewModel> reloadResult = await _generalSettingsOrchestrator.PrepareGeneralSettingsViewModelAsync(generalSettingsViewModel);
+                return View(reloadResult.Data);
             }
 
             OperationResult operationResult = await _generalSettingsOrchestrator.UpdateGeneralSettingsAsync(generalSettingsViewModel);
@@ -49,20 +49,14 @@ namespace PW.Web.Areas.Admin.Controllers
             if (!operationResult.Succeeded)
             {
                 ModelState.AddErrors(operationResult);
-                await ReloadAuxiliaryData(generalSettingsViewModel);
-                return View(generalSettingsViewModel);
+
+                OperationResult<GeneralSettingsViewModel> errorReloadResult = await _generalSettingsOrchestrator.PrepareGeneralSettingsViewModelAsync(generalSettingsViewModel);
+                return View(errorReloadResult.Data);
             }
 
             await _notificationService.SuccessNotificationAsync("General settings updated successfully.");
+
             return RedirectToAction(nameof(Index));
-        }
-
-        private async Task ReloadAuxiliaryData(GeneralSettingsViewModel generalSettingsViewModel)
-        {
-            var prepareResult = await _generalSettingsOrchestrator.PrepareGeneralSettingsViewModelAsync();
-
-            if (prepareResult.Succeeded)
-                generalSettingsViewModel.AvailableLanguages = prepareResult.Data.AvailableLanguages;
         }
     }
 }
