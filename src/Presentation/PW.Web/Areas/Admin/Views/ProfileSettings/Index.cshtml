@@ -1,4 +1,10 @@
+@using PW.Application.Common.Constants
+@using PW.Web.Areas.Admin.Features.Configuration.ViewModels
 @model ProfileSettingsViewModel
+
+@{
+    ViewData["Title"] = "Owner Profile Configuration";
+}
 
 <div class="card mb-5">
     <div class="card-body py-4">
@@ -67,7 +73,7 @@
 
                     <div class="row mb-7">
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Avatar</label>
+                            <label asp-for="AvatarImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.AvatarPath" folder="@StoragePaths.System_Profiles"
@@ -78,25 +84,24 @@
                                     {
                                         <div class="form-check form-check-custom form-check-solid mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="RemoveAvatar" />
-                                            <label class="form-check-label text-gray-700 fs-7" asp-for="RemoveAvatar">Remove
-                                                current</label>
+                                            <label class="form-check-label text-gray-700 fs-7"
+                                                asp-for="RemoveAvatar"></label>
                                         </div>
                                     }
                                     <input type="file" asp-for="AvatarImage" class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.ProfileSettings.AllowedImageExtensions).
-                                        Max size: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Cover Image</label>
+                            <label asp-for="CoverImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.CoverPath" folder="@StoragePaths.System_Profiles"
@@ -108,18 +113,17 @@
                                     {
                                         <div class="form-check form-check-custom form-check-solid mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="RemoveCover" />
-                                            <label class="form-check-label text-gray-700 fs-7" asp-for="RemoveCover">Remove
-                                                current</label>
+                                            <label class="form-check-label text-gray-700 fs-7"
+                                                asp-for="RemoveCover"></label>
                                         </div>
                                     }
                                     <input type="file" asp-for="CoverImage" class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.ProfileSettings.AllowedImageExtensions).
-                                        Max size: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.ProfileSettings.MaxImageSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
@@ -133,7 +137,6 @@
                             <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
                             <input asp-for="FirstName" class="form-control form-control-sm"
                                 maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
-
                             <span asp-validation-for="FirstName"
                                 class="fv-plugins-message-container invalid-feedback fs-8"></span>
                         </div>
@@ -141,7 +144,6 @@
                             <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
                             <input asp-for="LastName" class="form-control form-control-sm"
                                 maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
-
                             <span asp-validation-for="LastName"
                                 class="fv-plugins-message-container invalid-feedback fs-8"></span>
                         </div>
@@ -186,8 +188,8 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Avatar
-                                    (@Model.Locales[i].LanguageCode)</label>
+                                <label asp-for="@Model.Locales[i].AvatarImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].AvatarPath" folder="@StoragePaths.System_Profiles"
@@ -200,7 +202,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="Locales[i].RemoveAvatar" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="Locales[i].RemoveAvatar">Revert to Standard</label>
+                                                    asp-for="Locales[i].RemoveAvatar"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="Locales[i].AvatarImage"
@@ -208,7 +210,7 @@
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.ProfileSettings.AllowedImageExtensions).
                                     </div>
                                 </div>
@@ -216,8 +218,8 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Cover Image
-                                    (@Model.Locales[i].LanguageCode)</label>
+                                <label asp-for="@Model.Locales[i].CoverImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].CoverPath" folder="@StoragePaths.System_Profiles"
@@ -231,7 +233,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="Locales[i].RemoveCover" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="Locales[i].RemoveCover">Revert to Standard</label>
+                                                    asp-for="Locales[i].RemoveCover"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="Locales[i].CoverImage"
@@ -239,7 +241,7 @@
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.ProfileSettings.AllowedImageExtensions).
                                     </div>
                                 </div>
@@ -249,13 +251,13 @@
 
                         <div class="row mb-5">
                             <div class="col-md-6 fv-row mb-7">
-                                <label class="form-label fs-7 fw-semibold">First Name</label>
+                                <label asp-for="@Model.Locales[i].FirstName" class="form-label fs-7 fw-semibold"></label>
                                 <input asp-for="Locales[i].FirstName" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.FirstName"
                                     maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
                             </div>
                             <div class="col-md-6 fv-row mb-7">
-                                <label class="form-label fs-7 fw-semibold">Last Name</label>
+                                <label asp-for="@Model.Locales[i].LastName" class="form-label fs-7 fw-semibold"></label>
                                 <input asp-for="Locales[i].LastName" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.LastName"
                                     maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
@@ -264,7 +266,7 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label class="form-label fs-7 fw-semibold">Job Title</label>
+                                <label asp-for="@Model.Locales[i].JobTitle" class="form-label fs-7 fw-semibold"></label>
                                 <input asp-for="Locales[i].JobTitle" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.JobTitle"
                                     maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
@@ -273,7 +275,7 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label class="form-label fs-7 fw-semibold">Biography</label>
+                                <label asp-for="@Model.Locales[i].Biography" class="form-label fs-7 fw-semibold"></label>
                                 <textarea asp-for="Locales[i].Biography" class="form-control form-control-sm" rows="4"
                                     placeholder="Standard: @Model.Biography"
                                     maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>

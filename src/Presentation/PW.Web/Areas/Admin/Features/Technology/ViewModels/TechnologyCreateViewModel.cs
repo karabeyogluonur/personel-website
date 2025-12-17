@@ -1,9 +1,10 @@
-using PW.Web.Areas.Admin.Features.Language.ViewModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace PW.Web.Areas.Admin.Features.Technology.ViewModels
 {
     public class TechnologyCreateViewModel : TechnologyFormViewModel
     {
+        [Display(Name = "Icon Image")]
         public IFormFile IconImage { get; set; } = default!;
     }
 }

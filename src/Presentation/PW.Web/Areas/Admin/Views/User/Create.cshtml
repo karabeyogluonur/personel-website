@@ -28,7 +28,7 @@
 
             <div class="row">
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="FirstName" class="required form-label fs-7 fw-semibold">First Name</label>
+                    <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="FirstName" class="form-control form-control-sm"
                         maxlength="@ApplicationLimits.User.FirstNameMaxLength" />
                     <span asp-validation-for="FirstName"
@@ -36,7 +36,7 @@
                 </div>
 
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="LastName" class="required form-label fs-7 fw-semibold">Last Name</label>
+                    <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="LastName" class="form-control form-control-sm"
                         maxlength="@ApplicationLimits.User.LastNameMaxLength" />
                     <span asp-validation-for="LastName"
@@ -46,7 +46,7 @@
 
             <div class="row">
                 <div class="col-md-12 fv-row mb-4">
-                    <label asp-for="Email" class="required form-label fs-7 fw-semibold">Email</label>
+                    <label asp-for="Email" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="Email" type="email" class="form-control form-control-sm"
                         maxlength="@ApplicationLimits.User.EmailMaxLength" />
                     <span asp-validation-for="Email" class="fv-plugins-message-container invalid-feedback fs-8"></span>
@@ -55,15 +55,14 @@
 
             <div class="row">
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="Password" class="required form-label fs-7 fw-semibold">Password</label>
+                    <label asp-for="Password" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="Password" type="password" class="form-control form-control-sm" />
                     <span asp-validation-for="Password"
                         class="fv-plugins-message-container invalid-feedback fs-8"></span>
                 </div>
 
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="ConfirmPassword" class="required form-label fs-7 fw-semibold">Confirm
-                        Password</label>
+                    <label asp-for="ConfirmPassword" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="ConfirmPassword" type="password" class="form-control form-control-sm" />
                     <span asp-validation-for="ConfirmPassword"
                         class="fv-plugins-message-container invalid-feedback fs-8"></span>
@@ -73,7 +72,7 @@
             <div class="separator separator-dashed my-6"></div>
 
             <div class="fv-row mb-7">
-                <label class="required form-label fs-7 fw-semibold">User Roles</label>
+                <label asp-for="SelectedRoles" class="required form-label fs-7 fw-semibold"></label>
                 <select asp-for="SelectedRoles" asp-items="Model.AvailableRoles" class="form-select form-select-sm"
                     multiple="multiple" data-control="select2" data-placeholder="Select user roles">
                 </select>

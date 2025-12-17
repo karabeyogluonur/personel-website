@@ -74,20 +74,16 @@
 
             <div class="row">
                 <div class="col-md-6 fv-row mb-7">
-                    <label asp-for="Name" class="required form-label fs-7 fw-semibold">Language Name</label>
-
+                    <label asp-for="Name" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="Name" class="form-control form-control-sm" placeholder="e.g. English"
                         maxlength="@ApplicationLimits.Common.NameMaxLength" />
-
                     <span asp-validation-for="Name" class="fv-plugins-message-container invalid-feedback fs-8"></span>
                 </div>
 
                 <div class="col-md-6 fv-row mb-7">
-                    <label asp-for="Code" class="required form-label fs-7 fw-semibold">ISO Code</label>
-
+                    <label asp-for="Code" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="Code" class="form-control form-control-sm" placeholder="e.g. en"
                         maxlength="@ApplicationLimits.Language.CodeMaxLength" />
-
                     <div class="text-muted fs-8 mt-1">Use format like 'en' or 'tr'. Max
                         @ApplicationLimits.Language.CodeMaxLength chars.</div>
                     <span asp-validation-for="Code" class="fv-plugins-message-container invalid-feedback fs-8"></span>
@@ -96,11 +92,9 @@
 
             <div class="row">
                 <div class="col-md-6 fv-row mb-7">
-                    <label asp-for="FlagImage" class="required form-label fs-7 fw-semibold">Flag Icon</label>
-
+                    <label asp-for="FlagImage" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="FlagImage" type="file" class="form-control form-control-sm"
                         accept="@string.Join(",", ApplicationLimits.Language.AllowedFlagExtensions)" />
-
                     <div class="text-muted fs-8 mt-1">
                         Allowed file types: @string.Join(", ", ApplicationLimits.Language.AllowedFlagExtensions).
                         Max size: @(ApplicationLimits.Language.MaxFlagSizeBytes / 1024 / 1024) MB.
@@ -110,7 +104,7 @@
                 </div>
 
                 <div class="col-md-6 fv-row mb-7">
-                    <label asp-for="DisplayOrder" class="required form-label fs-7 fw-semibold">Display Order</label>
+                    <label asp-for="DisplayOrder" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="DisplayOrder" type="number" class="form-control form-control-sm" />
                     <span asp-validation-for="DisplayOrder"
                         class="fv-plugins-message-container invalid-feedback fs-8"></span>
@@ -123,7 +117,7 @@
                 <div class="col-md-6 fv-row mb-7">
                     <div class="d-flex flex-stack">
                         <div class="me-5">
-                            <label asp-for="IsPublished" class="fs-6 fw-semibold form-label">Publish Language</label>
+                            <label asp-for="IsPublished" class="fs-6 fw-semibold form-label"></label>
                             <div class="fs-7 fw-semibold text-muted">Check this to make the language visible to users
                                 immediately.</div>
                         </div>
@@ -136,7 +130,7 @@
                 <div class="col-md-6 fv-row mb-7">
                     <div class="d-flex flex-stack">
                         <div class="me-5">
-                            <label asp-for="IsDefault" class="fs-6 fw-semibold form-label">Set as Default</label>
+                            <label asp-for="IsDefault" class="fs-6 fw-semibold form-label"></label>
                             <div class="fs-7 fw-semibold text-muted">Make this the default language for the application.
                             </div>
                         </div>
@@ -149,7 +143,6 @@
 
             <div class="d-flex justify-content-end pt-5">
                 <a asp-action="Index" class="btn btn-sm btn-light me-3">Cancel</a>
-
                 <button type="submit" class="btn btn-sm btn-primary">
                     <span class="indicator-label">Create</span>
                     <span class="indicator-progress">

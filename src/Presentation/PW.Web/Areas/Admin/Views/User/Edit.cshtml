@@ -29,7 +29,7 @@
 
             <div class="row">
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="FirstName" class="required form-label fs-7 fw-semibold">First Name</label>
+                    <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="FirstName" class="form-control form-control-sm"
                         maxlength="@ApplicationLimits.User.FirstNameMaxLength" />
                     <span asp-validation-for="FirstName"
@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="col-md-6 fv-row mb-4">
-                    <label asp-for="LastName" class="required form-label fs-7 fw-semibold">Last Name</label>
+                    <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
                     <input asp-for="LastName" class="form-control form-control-sm"
                         maxlength="@ApplicationLimits.User.LastNameMaxLength" />
                     <span asp-validation-for="LastName"
@@ -51,21 +51,21 @@
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="changePasswordToggle"
                         asp-for="ChangePassword" />
-                    <label class="form-check-label" for="changePasswordToggle">Change password</label>
+                    <label class="form-check-label" for="changePasswordToggle" asp-for="ChangePassword"></label>
                 </div>
             </div>
 
             <div id="passwordFields" style="display:none;">
                 <div class="row">
                     <div class="col-md-6 fv-row mb-4">
-                        <label asp-for="Password" class="form-label fs-7 fw-semibold">New Password</label>
+                        <label asp-for="Password" class="form-label fs-7 fw-semibold"></label>
                         <input asp-for="Password" type="password" class="form-control form-control-sm" />
                         <span asp-validation-for="Password"
                             class="fv-plugins-message-container invalid-feedback fs-8"></span>
                     </div>
 
                     <div class="col-md-6 fv-row mb-4">
-                        <label asp-for="ConfirmPassword" class="form-label fs-7 fw-semibold">Confirm Password</label>
+                        <label asp-for="ConfirmPassword" class="form-label fs-7 fw-semibold"></label>
                         <input asp-for="ConfirmPassword" type="password" class="form-control form-control-sm" />
                         <span asp-validation-for="ConfirmPassword"
                             class="fv-plugins-message-container invalid-feedback fs-8"></span>
@@ -75,7 +75,7 @@
             </div>
 
             <div class="fv-row mb-7">
-                <label class="required form-label fs-7 fw-semibold">User Roles</label>
+                <label asp-for="SelectedRoles" class="required form-label fs-7 fw-semibold"></label>
                 <select asp-for="SelectedRoles" asp-items="Model.AvailableRoles" class="form-select form-select-sm"
                     multiple="multiple" data-control="select2" data-placeholder="Select user roles">
                 </select>

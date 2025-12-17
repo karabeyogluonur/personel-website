@@ -98,12 +98,13 @@
                                         Allowed: @string.Join(", ", ApplicationLimits.Technology.AllowedIconExtensions).
                                         Max size: @(ApplicationLimits.Technology.MaxIconSizeBytes / 1024 / 1024) MB.
                                     </div>
+                                    <span asp-validation-for="IconImage" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="IsActive" class="form-label fs-7 fw-semibold">Status</label>
+                            <label asp-for="IsActive" class="form-label fs-7 fw-semibold"></label>
                             <div class="form-check form-switch form-check-custom form-check-solid">
                                 <input asp-for="IsActive" class="form-check-input" type="checkbox" />
                                 <label class="form-check-label" asp-for="IsActive">Active</label>
@@ -136,6 +137,7 @@
 
                             <textarea asp-for="Description" class="form-control form-control-sm" rows="3"
                                 maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
@@ -166,6 +168,7 @@
                                 <input asp-for="Locales[i].Name" class="form-control form-control-sm"
                                     placeholder="Overrides Standard Name"
                                     maxlength="@ApplicationLimits.Technology.NameMaxLength" />
+                                <span asp-validation-for="Locales[i].Name" class="text-danger"></span>
                             </div>
                         </div>
 
@@ -176,6 +179,7 @@
 
                                 <textarea asp-for="Locales[i].Description" class="form-control form-control-sm" rows="3"
                                     maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
+                                <span asp-validation-for="Locales[i].Description" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -186,7 +190,13 @@
 
         <div class="card-footer d-flex justify-content-end py-6 px-9">
             <a asp-action="Index" class="btn btn-sm btn-light me-3">Discard</a>
-            <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-sm btn-primary">
+                <span class="indicator-label">Save Changes</span>
+                <span class="indicator-progress">
+                    Please wait...
+                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                </span>
+            </button>
         </div>
     </div>
 </form>

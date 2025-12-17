@@ -67,7 +67,7 @@
 
                     <div class="row mb-7">
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Light Theme Logo</label>
+                            <label asp-for="LightThemeLogoImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.LightThemeLogoPath" folder="@StoragePaths.System_Generals"
@@ -80,26 +80,24 @@
                                             <input class="form-check-input" type="checkbox"
                                                 asp-for="RemoveLightThemeLogo" />
                                             <label class="form-check-label text-gray-700 fs-7"
-                                                asp-for="RemoveLightThemeLogo">Remove current</label>
+                                                asp-for="RemoveLightThemeLogo"></label>
                                         </div>
                                     }
-
                                     <input type="file" asp-for="LightThemeLogoImage"
                                         class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.GeneralSettings.AllowedLogoExtensions).
-                                        Max size: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Dark Theme Logo</label>
+                            <label asp-for="DarkThemeLogoImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.DarkThemeLogoPath" folder="@StoragePaths.System_Generals"
@@ -112,18 +110,16 @@
                                         <div class="form-check form-check-custom form-check-solid mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="RemoveDarkThemeLogo" />
                                             <label class="form-check-label text-gray-700 fs-7"
-                                                asp-for="RemoveDarkThemeLogo">Remove current</label>
+                                                asp-for="RemoveDarkThemeLogo"></label>
                                         </div>
                                     }
-
                                     <input type="file" asp-for="DarkThemeLogoImage" class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.GeneralSettings.AllowedLogoExtensions).
-                                        Max size: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
@@ -134,10 +130,10 @@
 
                     <div class="row mb-7">
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Light Theme Favicon</label>
+                            <label asp-for="LightThemeFaviconImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
-                                    <img file-name="@Model.LightThemeLogoPath" folder="@StoragePaths.System_Generals"
+                                    <img file-name="@Model.LightThemeFaviconPath" folder="@StoragePaths.System_Generals"
                                         default-src="/uploads/system/defaults/light-favicon.ico" alt="Avatar" />
                                 </div>
                                 <div class="d-flex flex-column">
@@ -147,26 +143,24 @@
                                             <input class="form-check-input" type="checkbox"
                                                 asp-for="RemoveLightThemeFavicon" />
                                             <label class="form-check-label text-gray-700 fs-7"
-                                                asp-for="RemoveLightThemeFavicon">Remove current</label>
+                                                asp-for="RemoveLightThemeFavicon"></label>
                                         </div>
                                     }
-
                                     <input type="file" asp-for="LightThemeFaviconImage"
                                         class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.GeneralSettings.AllowedFaviconExtensions).
-                                        Max size: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fs-7 fw-semibold mb-2">Dark Theme Favicon</label>
+                            <label asp-for="DarkThemeFaviconImage" class="form-label fs-7 fw-semibold mb-2"></label>
                             <div class="d-flex align-items-center gap-5 mb-3">
                                 <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.DarkThemeFaviconPath" folder="@StoragePaths.System_Generals"
@@ -180,19 +174,17 @@
                                             <input class="form-check-input" type="checkbox"
                                                 asp-for="RemoveDarkThemeFavicon" />
                                             <label class="form-check-label text-gray-700 fs-7"
-                                                asp-for="RemoveDarkThemeFavicon">Remove current</label>
+                                                asp-for="RemoveDarkThemeFavicon"></label>
                                         </div>
                                     }
-
                                     <input type="file" asp-for="DarkThemeFaviconImage"
                                         class="form-control form-control-sm"
                                         accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
-                                        Allowed types: @string.Join(", ",
+                                        Allowed: @string.Join(", ",
                                                                                 ApplicationLimits.GeneralSettings.AllowedFaviconExtensions).
-                                        Max size: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024)
-                                        MB.
+                                        Max: @(ApplicationLimits.GeneralSettings.MaxFileSizeBytes / 1024 / 1024) MB.
                                     </div>
                                 </div>
                             </div>
@@ -203,8 +195,7 @@
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
-                            <label class="form-label fs-7 fw-semibold mb-2">Site Title</label>
-
+                            <label asp-for="SiteTitle" class="required form-label fs-7 fw-semibold mb-2"></label>
                             <input asp-for="SiteTitle" class="form-control form-control-sm"
                                 maxlength="@ApplicationLimits.GeneralSettings.SiteTitleMaxLength" />
                         </div>
@@ -233,7 +224,8 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Light Theme Logo</label>
+                                <label asp-for="@Model.Locales[i].LightThemeLogoImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].LightThemeLogoPath"
@@ -247,7 +239,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="@Model.Locales[i].RemoveLightThemeLogo" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeLogo">Remove current</label>
+                                                    asp-for="@Model.Locales[i].RemoveLightThemeLogo"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="@Model.Locales[i].LightThemeLogoImage"
@@ -255,7 +247,7 @@
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.GeneralSettings.AllowedLogoExtensions).
                                     </div>
                                 </div>
@@ -263,7 +255,8 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Dark Theme Logo</label>
+                                <label asp-for="@Model.Locales[i].DarkThemeLogoImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].DarkThemeLogoPath"
@@ -278,7 +271,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="@Model.Locales[i].RemoveDarkThemeLogo" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeLogo">Remove current</label>
+                                                    asp-for="@Model.Locales[i].RemoveDarkThemeLogo"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="@Model.Locales[i].DarkThemeLogoImage"
@@ -286,7 +279,7 @@
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.GeneralSettings.AllowedLogoExtensions).
                                     </div>
                                 </div>
@@ -298,7 +291,8 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Light Theme Favicon</label>
+                                <label asp-for="@Model.Locales[i].LightThemeFaviconImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].LightThemeFaviconPath"
@@ -312,7 +306,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="@Model.Locales[i].RemoveLightThemeFavicon" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeFavicon">Remove current</label>
+                                                    asp-for="@Model.Locales[i].RemoveLightThemeFavicon"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="@Model.Locales[i].LightThemeFaviconImage"
@@ -320,7 +314,7 @@
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.GeneralSettings.AllowedFaviconExtensions).
                                     </div>
                                 </div>
@@ -328,7 +322,8 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fs-7 fw-semibold mb-2">Dark Theme Favicon</label>
+                                <label asp-for="@Model.Locales[i].DarkThemeFaviconImage"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Locales[i].DarkThemeFaviconPath"
@@ -343,7 +338,7 @@
                                                 <input class="form-check-input" type="checkbox"
                                                     asp-for="@Model.Locales[i].RemoveDarkThemeFavicon" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeFavicon">Remove current</label>
+                                                    asp-for="@Model.Locales[i].RemoveDarkThemeFavicon"></label>
                                             </div>
                                         }
                                         <input type="file" asp-for="@Model.Locales[i].DarkThemeFaviconImage"
@@ -351,7 +346,7 @@
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
-                                            Allowed types: @string.Join(", ",
+                                            Allowed: @string.Join(", ",
                                                                                     ApplicationLimits.GeneralSettings.AllowedFaviconExtensions).
                                     </div>
                                 </div>
@@ -363,8 +358,8 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label class="form-label fs-7 fw-semibold mb-2">Site Title</label>
-
+                                <label asp-for="@Model.Locales[i].SiteTitle"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
                                 <input asp-for="@Model.Locales[i].SiteTitle" class="form-control form-control-sm"
                                     maxlength="@ApplicationLimits.GeneralSettings.SiteTitleMaxLength" />
                             </div>
