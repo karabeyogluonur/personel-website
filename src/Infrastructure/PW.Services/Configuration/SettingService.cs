@@ -66,8 +66,8 @@ namespace PW.Services.Configuration
 
                     string valueStr = setting.Value;
 
-                    if (translations is not null && translations.ContainsKey(setting.Id))
-                        valueStr = translations[setting.Id];
+                    if (translations is not null && translations.TryGetValue(setting.Id, out var localizedValue) && !string.IsNullOrWhiteSpace(localizedValue))
+                        valueStr = localizedValue;
 
                     object? typedValue = valueStr.ToType(propertyInfo.PropertyType);
 
