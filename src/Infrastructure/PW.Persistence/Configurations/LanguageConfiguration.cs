@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using PW.Application.Common.Constants;
 using PW.Domain.Entities;
 
 namespace PW.Persistence.Configurations.Localization
@@ -9,14 +10,16 @@ namespace PW.Persistence.Configurations.Localization
         public void Configure(EntityTypeBuilder<Language> builder)
         {
             builder.ToTable("Languages");
+
             builder.HasKey(l => l.Id);
+
             builder.Property(l => l.Code)
                 .IsRequired()
-                .HasMaxLength(2);
+                .HasMaxLength(ApplicationLimits.Language.CodeMaxLength);
 
             builder.Property(l => l.Name)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(ApplicationLimits.Common.NameMaxLength);
 
             builder.Property(l => l.FlagImageFileName)
                 .HasMaxLength(255);

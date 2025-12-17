@@ -1,10 +1,5 @@
-@using PW.Web.Areas.Admin.Features.Language.ViewModels
-@using PW.Application.Common.Constants
 @model LanguageListViewModel
 
-@{
-    ViewData["Title"] = "Language Management";
-}
 
 <div class="card mb-5">
     <div class="card-body py-4">
@@ -67,12 +62,12 @@
                                         @if (!string.IsNullOrEmpty(lang.FlagImageFileName))
                                         {
                                             <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
-                                                default-src="/assets/media/flags/default.svg" class="w-35px h-35px rounded"
+                                                default-src="/assets/media/flags/default.svg" class="w-20px h-20px rounded"
                                                 alt="@lang.Code" />
                                         }
                                         else
                                         {
-                                            <div class="symbol symbol-35px">
+                                            <div class="symbol symbol-20px">
                                                 <span class="symbol-label bg-light-primary text-primary fw-bold">
                                                     @lang.Code.Substring(0, 2).ToUpper()
                                                 </span>
@@ -80,7 +75,7 @@
                                         }
                                     </div>
                                     <div class="d-flex flex-column justify-content-center">
-                                        <span class="text-gray-800 fw-bold fs-6 mb-1">@lang.Name</span>
+                                        <span class="text-gray-800 fw-bold fs-7 mb-1">@lang.Name</span>
                                     </div>
                                 </div>
                             </td>
@@ -122,7 +117,7 @@
                                 @if (lang.UpdatedAt.HasValue)
                                 {
                                     <div class="d-flex flex-column">
-                                        <span class="text-gray-800 fw-bold fs-7">@lang.UpdatedAt.Value.ToString("dd MMM      yyyy")</span>
+                                        <span class="text-gray-800 fw-bold fs-7">@lang.UpdatedAt.Value.ToString("dd MMM                    yyyy")</span>
                                         <span class="text-muted fs-8">@lang.UpdatedAt.Value.ToString("HH:mm")</span>
                                     </div>
                                 }
@@ -216,14 +211,12 @@
     <script>
         const deleteModal = document.getElementById('deleteLanguageModal');
         deleteModal.addEventListener('show.bs.modal', event => {
-            // Button that triggered the modal
+
             const button = event.relatedTarget;
 
-            // Extract info from data-bs-* attributes
             const langId = button.getAttribute('data-lang-id');
             const langName = button.getAttribute('data-lang-name');
 
-            // Update the modal's content.
             document.getElementById('deleteLangId').value = langId;
             document.getElementById('deleteLangNameDisplay').textContent = langName;
         });
