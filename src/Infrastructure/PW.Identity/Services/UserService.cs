@@ -1,14 +1,10 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.Extensions.Logging;
-using PW.Application.Common.Models;
+using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
+using PW.Application.Models;
 using PW.Application.Models.Dtos.Identity;
 using PW.Identity.Entities;
-using PW.Identity.Extensions;
-using System.Linq;
 
 namespace PW.Identity.Services
 {
@@ -16,46 +12,61 @@ namespace PW.Identity.Services
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserService(
-            UserManager<ApplicationUser> userManager)
+        public UserService(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
 
-
         public async Task<OperationResult<int>> CreateUserAsync(CreateUserDto createUserDto)
         {
-            ApplicationUser? existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
+            if (createUserDto is null)
+                throw new ArgumentNullException(nameof(createUserDto));
 
-            if (existingUser != null)
-                return OperationResult<int>.Failure($"Email '{createUserDto.Email}' is already registered.");
+            if (string.IsNullOrWhiteSpace(createUserDto.Email))
+                return OperationResult<int>.Failure("Email is required.", OperationErrorType.ValidationError);
 
-            ApplicationUser applicationUser = new ApplicationUser
+            var existingUser = await _userManager.FindByEmailAsync(createUserDto.Email);
+
+            if (existingUser is not null)
+                return OperationResult<int>.Failure($"Email '{createUserDto.Email}' is already registered.", OperationErrorType.Conflict);
+
+            var applicationUser = new ApplicationUser
             {
                 FirstName = createUserDto.FirstName,
                 LastName = createUserDto.LastName,
                 Email = createUserDto.Email,
                 UserName = createUserDto.Email,
+                EmailConfirmed = true
             };
 
-            IdentityResult result = await _userManager.CreateAsync(applicationUser, createUserDto.Password);
+            var identityResult = await _userManager.CreateAsync(applicationUser, createUserDto.Password);
 
-            if (!result.Succeeded)
-                return result.ToOperationResult<int>();
+            if (!identityResult.Succeeded)
+            {
+                var errorMessage = identityResult.Errors.Select(e => e.Description).FirstOrDefault() ?? "User creation failed.";
+                return OperationResult<int>.Failure(errorMessage, OperationErrorType.ValidationError);
+            }
 
-            if (createUserDto.Roles != null && createUserDto.Roles.Any())
-                await _userManager.AddToRolesAsync(applicationUser, createUserDto.Roles);
+            if (createUserDto.Roles is not null && createUserDto.Roles.Any())
+            {
+                var roleResult = await _userManager.AddToRolesAsync(applicationUser, createUserDto.Roles);
+                if (!roleResult.Succeeded)
+                    return OperationResult<int>.Failure("User created but roles could not be assigned.", OperationErrorType.Technical);
+            }
 
             return OperationResult<int>.Success(applicationUser.Id);
         }
 
         public async Task<UserDto> GetUserByIdAsync(int userId)
         {
-            ApplicationUser applicationUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (userId <= 0) return null;
 
-            if (applicationUser is null) return null;
+            var applicationUser = await _userManager.FindByIdAsync(userId.ToString());
 
-            IList<string> roles = await _userManager.GetRolesAsync(applicationUser);
+            if (applicationUser is null)
+                return null;
+
+            var roles = await _userManager.GetRolesAsync(applicationUser);
 
             return new UserDto
             {
@@ -69,10 +80,14 @@ namespace PW.Identity.Services
 
         public async Task<UserDto> GetUserByEmailAsync(string email)
         {
-            ApplicationUser applicationUser = await _userManager.FindByEmailAsync(email);
-            if (applicationUser is null) return null;
+            if (string.IsNullOrWhiteSpace(email)) return null;
 
-            IList<string> roles = await _userManager.GetRolesAsync(applicationUser);
+            var applicationUser = await _userManager.FindByEmailAsync(email);
+
+            if (applicationUser is null)
+                return null;
+
+            var roles = await _userManager.GetRolesAsync(applicationUser);
 
             return new UserDto
             {
@@ -86,15 +101,12 @@ namespace PW.Identity.Services
 
         public async Task<List<UserDto>> GetAllUsersAsync()
         {
-            //TODO: N+1 and performance issues will be resolved.
+            var applicationUsers = await _userManager.Users.AsNoTracking().ToListAsync();
+            var userDtos = new List<UserDto>();
 
-            List<ApplicationUser> applicationUsers = await _userManager.Users.AsNoTracking().ToListAsync();
-
-            List<UserDto> userDtos = new List<UserDto>();
-
-            foreach (ApplicationUser applicationUser in applicationUsers)
+            foreach (var applicationUser in applicationUsers)
             {
-                IList<string> userRoleNames = await _userManager.GetRolesAsync(applicationUser);
+                var userRoleNames = await _userManager.GetRolesAsync(applicationUser);
 
                 userDtos.Add(new UserDto
                 {
@@ -111,29 +123,67 @@ namespace PW.Identity.Services
 
         public async Task<OperationResult> UpdateUserAsync(int userId, UserDto userDto)
         {
-            ApplicationUser applicationUser = await _userManager.FindByIdAsync(userId.ToString());
-            if (applicationUser == null) return OperationResult.Failure("User not found.");
+            if (userId <= 0)
+                return OperationResult.Failure("Invalid user ID.", OperationErrorType.ValidationError);
+
+            if (userDto is null)
+                throw new ArgumentNullException(nameof(userDto));
+
+            var applicationUser = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (applicationUser is null)
+                return OperationResult.Failure("User not found.", OperationErrorType.NotFound);
+
+            if (!string.Equals(applicationUser.Email, userDto.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = await _userManager.FindByEmailAsync(userDto.Email);
+
+                if (emailCheck is not null)
+                    return OperationResult.Failure($"Email '{userDto.Email}' is already taken by another user.", OperationErrorType.Conflict);
+
+                applicationUser.Email = userDto.Email;
+                applicationUser.UserName = userDto.Email;
+            }
 
             applicationUser.FirstName = userDto.FirstName;
             applicationUser.LastName = userDto.LastName;
 
-            IdentityResult result = await _userManager.UpdateAsync(applicationUser);
-            return result.ToOperationResult();
+            var identityResult = await _userManager.UpdateAsync(applicationUser);
+
+            if (!identityResult.Succeeded)
+                return OperationResult.Failure("Failed to update user profile.", OperationErrorType.Technical);
+
+            return OperationResult.Success();
         }
 
         public async Task<OperationResult> AdminResetUserPasswordAsync(SetPasswordDto setPasswordDto)
         {
-            ApplicationUser applicationUser = await _userManager.FindByIdAsync(setPasswordDto.UserId.ToString());
-            if (applicationUser == null)
-                return OperationResult.Failure("User not found.");
+            if (setPasswordDto is null)
+                throw new ArgumentNullException(nameof(setPasswordDto));
+
+            if (setPasswordDto.UserId <= 0)
+                return OperationResult.Failure("Invalid user ID.", OperationErrorType.ValidationError);
+
+            if (string.IsNullOrWhiteSpace(setPasswordDto.NewPassword))
+                return OperationResult.Failure("New password cannot be empty.", OperationErrorType.ValidationError);
+
+            var applicationUser = await _userManager.FindByIdAsync(setPasswordDto.UserId.ToString());
+
+            if (applicationUser is null)
+                return OperationResult.Failure("User not found.", OperationErrorType.NotFound);
 
             if (await _userManager.HasPasswordAsync(applicationUser))
-                await _userManager.RemovePasswordAsync(applicationUser);
+            {
+                var removeResult = await _userManager.RemovePasswordAsync(applicationUser);
 
-            IdentityResult addResult = await _userManager.AddPasswordAsync(applicationUser, setPasswordDto.NewPassword);
+                if (!removeResult.Succeeded)
+                    return OperationResult.Failure("Failed to remove old password.", OperationErrorType.Technical);
+            }
+
+            var addResult = await _userManager.AddPasswordAsync(applicationUser, setPasswordDto.NewPassword);
 
             if (!addResult.Succeeded)
-                return addResult.ToOperationResult();
+                return OperationResult.Failure("Failed to reset password. Ensure the password meets complexity requirements.", OperationErrorType.ValidationError);
 
             await _userManager.UpdateSecurityStampAsync(applicationUser);
 
@@ -142,12 +192,20 @@ namespace PW.Identity.Services
 
         public async Task<OperationResult> DeleteUserAsync(int userId)
         {
-            ApplicationUser applicationUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (userId <= 0)
+                return OperationResult.Failure("Invalid user ID.", OperationErrorType.ValidationError);
 
-            if (applicationUser is null) return OperationResult.Failure("User not found.");
+            var applicationUser = await _userManager.FindByIdAsync(userId.ToString());
 
-            IdentityResult deleteResult = await _userManager.DeleteAsync(applicationUser);
-            return deleteResult.ToOperationResult();
+            if (applicationUser is null)
+                return OperationResult.Failure("User not found.", OperationErrorType.NotFound);
+
+            var deleteResult = await _userManager.DeleteAsync(applicationUser);
+
+            if (!deleteResult.Succeeded)
+                return OperationResult.Failure("Failed to delete user.", OperationErrorType.Technical);
+
+            return OperationResult.Success();
         }
     }
 }

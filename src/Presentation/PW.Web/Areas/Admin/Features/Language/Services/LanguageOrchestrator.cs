@@ -1,9 +1,9 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
-using PW.Application.Common.Models;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Storage;
+using PW.Application.Models;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Language.Services
@@ -26,9 +26,9 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
 
         public async Task<OperationResult<LanguageListViewModel>> PrepareLanguageListViewModelAsync()
         {
-            IList<Domain.Entities.Language> languages = await _languageService.GetAllLanguagesAsync();
+            var languages = await _languageService.GetAllLanguagesAsync();
 
-            LanguageListViewModel languageListViewModel = new LanguageListViewModel
+            var languageListViewModel = new LanguageListViewModel
             {
                 Languages = _mapper.Map<List<LanguageListItemViewModel>>(languages)
             };
@@ -47,11 +47,6 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
 
         public async Task<OperationResult> CreateLanguageAsync(LanguageCreateViewModel languageCreateViewModel)
         {
-            Domain.Entities.Language? existingLanguage = await _languageService.GetLanguageByCodeAsync(languageCreateViewModel.Code);
-
-            if (existingLanguage is not null)
-                return OperationResult.Failure("Language code already exists.");
-
             string? flagFileName = null;
 
             if (languageCreateViewModel.FlagImage != null)
@@ -64,12 +59,15 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
                 );
             }
 
-            Domain.Entities.Language language = _mapper.Map<Domain.Entities.Language>(languageCreateViewModel);
+            var language = _mapper.Map<Domain.Entities.Language>(languageCreateViewModel);
             language.FlagImageFileName = flagFileName ?? string.Empty;
 
-            await _languageService.InsertLanguageAsync(language);
+            var result = await _languageService.InsertLanguageAsync(language);
 
-            return OperationResult.Success();
+            if (result.IsFailure && !string.IsNullOrEmpty(flagFileName))
+                await _storageService.DeleteAsync(StoragePaths.System_Flags, flagFileName);
+
+            return result;
         }
 
         public async Task<OperationResult<LanguageEditViewModel>> PrepareEditViewModelAsync(int languageId, LanguageEditViewModel? languageEditViewModel = null)
@@ -77,10 +75,10 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
             if (languageEditViewModel is not null)
                 return OperationResult<LanguageEditViewModel>.Success(languageEditViewModel);
 
-            Domain.Entities.Language? language = await _languageService.GetLanguageByIdAsync(languageId);
+            var language = await _languageService.GetLanguageByIdAsync(languageId);
 
             if (language is null)
-                return OperationResult<LanguageEditViewModel>.Failure("Language not found.");
+                return OperationResult<LanguageEditViewModel>.Failure("Language not found.", OperationErrorType.NotFound);
 
             languageEditViewModel = _mapper.Map<LanguageEditViewModel>(language);
             languageEditViewModel.CurrentFlagFileName = language.FlagImageFileName;
@@ -90,17 +88,10 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
 
         public async Task<OperationResult> UpdateLanguageAsync(LanguageEditViewModel languageEditViewModel)
         {
-            Domain.Entities.Language? existingLanguage = await _languageService.GetLanguageByIdAsync(languageEditViewModel.Id);
+            var existingLanguage = await _languageService.GetLanguageByIdAsync(languageEditViewModel.Id);
 
             if (existingLanguage is null)
-                return OperationResult.Failure("Language not found.");
-
-            if (!string.Equals(existingLanguage.Code, languageEditViewModel.Code, StringComparison.OrdinalIgnoreCase))
-            {
-                Domain.Entities.Language? duplicateCheck = await _languageService.GetLanguageByCodeAsync(languageEditViewModel.Code);
-                if (duplicateCheck is not null)
-                    return OperationResult.Failure("Language code already exists.");
-            }
+                return OperationResult.Failure("Language not found.", OperationErrorType.NotFound);
 
             string? finalFileName = existingLanguage.FlagImageFileName;
 
@@ -129,27 +120,22 @@ namespace PW.Web.Areas.Admin.Features.Language.Services
             _mapper.Map(languageEditViewModel, existingLanguage);
             existingLanguage.FlagImageFileName = finalFileName ?? string.Empty;
 
-            await _languageService.UpdateLanguageAsync(existingLanguage);
-
-            return OperationResult.Success();
+            return await _languageService.UpdateLanguageAsync(existingLanguage);
         }
 
         public async Task<OperationResult> DeleteLanguageAsync(int languageId)
         {
-            Domain.Entities.Language? language = await _languageService.GetLanguageByIdAsync(languageId);
+            var language = await _languageService.GetLanguageByIdAsync(languageId);
 
             if (language is null)
-                return OperationResult.Failure("Language not found.");
+                return OperationResult.Failure("Language not found.", OperationErrorType.NotFound);
 
-            if (language.IsDefault)
-                return OperationResult.Failure("Cannot delete the default language.");
+            var result = await _languageService.DeleteLanguageAsync(language);
 
-            await _languageService.DeleteLanguageAsync(language);
-
-            if (!string.IsNullOrEmpty(language.FlagImageFileName))
+            if (result.Succeeded && !string.IsNullOrEmpty(language.FlagImageFileName))
                 await _storageService.DeleteAsync(StoragePaths.System_Flags, language.FlagImageFileName);
 
-            return OperationResult.Success();
+            return result;
         }
     }
 }

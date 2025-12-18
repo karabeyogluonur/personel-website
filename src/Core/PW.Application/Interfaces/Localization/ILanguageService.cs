@@ -1,3 +1,4 @@
+using PW.Application.Models;
 using PW.Domain.Entities;
 
 namespace PW.Application.Interfaces.Localization
@@ -6,12 +7,12 @@ namespace PW.Application.Interfaces.Localization
     {
         Task<IList<Language>> GetAllPublishedLanguagesAsync();
         Task<IList<Language>> GetAllLanguagesAsync();
-        Task<Language> GetLanguageByCodeAsync(string code);
-        Task<Language> GetLanguageByIdAsync(int id);
+        Task<Language> GetLanguageByCodeAsync(string languageCode);
+        Task<Language> GetLanguageByIdAsync(int languageId);
         Task<Language> GetDefaultLanguageAsync();
-        Task InsertLanguageAsync(Language language);
-        Task UpdateLanguageAsync(Language language);
-        Task DeleteLanguageAsync(Language language);
+        Task<OperationResult> InsertLanguageAsync(Language language);
+        Task<OperationResult> UpdateLanguageAsync(Language language);
+        Task<OperationResult> DeleteLanguageAsync(Language language);
 
     }
 }

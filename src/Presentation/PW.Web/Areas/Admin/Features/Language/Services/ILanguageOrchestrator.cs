@@ -1,4 +1,4 @@
-using PW.Application.Common.Models;
+using PW.Application.Models;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Language.Services

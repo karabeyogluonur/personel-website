@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using PW.Application.Common.Constants;
-using PW.Application.Common.Models;
-using PW.Web.Extensions;
 using PW.Web.Features.Auth.Services;
 using PW.Web.Features.Auth.ViewModels;
 
@@ -16,12 +14,13 @@ namespace PW.Web.Controllers
             _authOrchestrator = authOrchestrator;
         }
 
+        [HttpGet]
         public IActionResult Login()
         {
-            if (User.Identity!.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
 
-            LoginViewModel loginViewModel = new LoginViewModel
+            var loginViewModel = new LoginViewModel
             {
                 Email = "admin@pw.com",
                 Password = "Pass123*"
@@ -37,12 +36,14 @@ namespace PW.Web.Controllers
             if (!ModelState.IsValid)
                 return View(loginViewModel);
 
-            OperationResult result = await _authOrchestrator.LoginAsync(loginViewModel);
+            var result = await _authOrchestrator.LoginAsync(loginViewModel);
 
             if (result.Succeeded)
                 return RedirectToAction("Index", "Home", new { area = AreaNames.Admin });
 
-            ModelState.AddErrors(result);
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Message);
+
             return View(loginViewModel);
         }
 
@@ -50,10 +51,10 @@ namespace PW.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
-            if (User.Identity!.IsAuthenticated)
+            if (User.Identity?.IsAuthenticated is true)
                 await _authOrchestrator.LogoutAsync();
 
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
     }
 }

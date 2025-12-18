@@ -1,4 +1,4 @@
-using PW.Application.Common.Models;
+using PW.Application.Models;
 using PW.Application.Models.Dtos.Identity;
 
 namespace PW.Application.Interfaces.Identity

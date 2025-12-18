@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.Extensions;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Localization;
@@ -21,6 +20,7 @@ namespace PW.Web.Middlewares
             if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("/uploads", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith($"/{AreaNames.Admin}", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/auth/logout", StringComparison.OrdinalIgnoreCase) ||
                 Path.HasExtension(path))
             {
                 await _next(context);

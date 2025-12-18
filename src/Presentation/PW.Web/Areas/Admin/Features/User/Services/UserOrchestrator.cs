@@ -1,8 +1,9 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using PW.Application.Common.Models;
+using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
 using PW.Application.Interfaces.Repositories;
+using PW.Application.Models;
 using PW.Application.Models.Dtos.Identity;
 using PW.Web.Areas.Admin.Features.User.ViewModels;
 
@@ -29,7 +30,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         private async Task LoadFormReferenceDataAsync(UserFormViewModel userFormViewModel)
         {
-            List<string> allRoles = await _roleService.GetAllRolesAsync();
+            var allRoles = await _roleService.GetAllRolesAsync();
 
             userFormViewModel.AvailableRoles = allRoles
                 .Select(role => new SelectListItem
@@ -43,9 +44,9 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult<UserListViewModel>> PrepareUserListViewModelAsync()
         {
-            List<UserDto> userDtos = await _userService.GetAllUsersAsync();
+            var userDtos = await _userService.GetAllUsersAsync();
 
-            UserListViewModel userListViewModel = new UserListViewModel
+            var userListViewModel = new UserListViewModel
             {
                 Users = _mapper.Map<List<UserListItemViewModel>>(userDtos)
             };
@@ -55,7 +56,7 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult<UserCreateViewModel>> PrepareUserCreateViewModelAsync(UserCreateViewModel? userCreateViewModel = null)
         {
-            if (userCreateViewModel != null)
+            if (userCreateViewModel is not null)
             {
                 await LoadFormReferenceDataAsync(userCreateViewModel);
                 return OperationResult<UserCreateViewModel>.Success(userCreateViewModel);
@@ -69,36 +70,28 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult> CreateUserAsync(UserCreateViewModel userCreateViewModel)
         {
-            UserDto existingUser = await _userService.GetUserByEmailAsync(userCreateViewModel.Email);
+            if (userCreateViewModel is null)
+                throw new ArgumentNullException(nameof(userCreateViewModel));
 
-            if (existingUser is not null)
-                return OperationResult.Failure("Email is already taken.");
+            var createUserDto = _mapper.Map<CreateUserDto>(userCreateViewModel);
 
-            CreateUserDto createUserDto = _mapper.Map<CreateUserDto>(userCreateViewModel);
-
-            OperationResult createUserResult = await _userService.CreateUserAsync(createUserDto);
-
-            if (!createUserResult.Succeeded)
-                return OperationResult.Failure(createUserResult.Errors.ToArray());
-
-            return OperationResult.Success();
+            return await _userService.CreateUserAsync(createUserDto);
         }
 
         public async Task<OperationResult<UserEditViewModel>> PrepareUserEditViewModelAsync(int userId, UserEditViewModel? userEditViewModel = null)
         {
-            if (userEditViewModel != null)
+            if (userEditViewModel is not null)
             {
                 await LoadFormReferenceDataAsync(userEditViewModel);
                 return OperationResult<UserEditViewModel>.Success(userEditViewModel);
             }
 
-            UserDto userDto = await _userService.GetUserByIdAsync(userId);
+            var userDto = await _userService.GetUserByIdAsync(userId);
 
             if (userDto is null)
-                return OperationResult<UserEditViewModel>.Failure("User not found!");
+                return OperationResult<UserEditViewModel>.Failure("User not found.", OperationErrorType.NotFound);
 
             userEditViewModel = _mapper.Map<UserEditViewModel>(userDto);
-
             userEditViewModel.SelectedRoles = userDto.Roles ?? new List<string>();
 
             await LoadFormReferenceDataAsync(userEditViewModel);
@@ -108,12 +101,15 @@ namespace PW.Web.Areas.Admin.Features.User.Services
 
         public async Task<OperationResult> UpdateUserAsync(UserEditViewModel userEditViewModel)
         {
+            if (userEditViewModel is null)
+                throw new ArgumentNullException(nameof(userEditViewModel));
+
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                UserDto userDto = _mapper.Map<UserDto>(userEditViewModel);
-                OperationResult updateResult = await _userService.UpdateUserAsync(userEditViewModel.Id, userDto);
+                var userDto = _mapper.Map<UserDto>(userEditViewModel);
+                var updateResult = await _userService.UpdateUserAsync(userEditViewModel.Id, userDto);
 
                 if (!updateResult.Succeeded)
                 {
@@ -121,13 +117,13 @@ namespace PW.Web.Areas.Admin.Features.User.Services
                     return updateResult;
                 }
 
-                UserRoleAssignmentDto userRoleAssignmentDto = new UserRoleAssignmentDto
+                var userRoleAssignmentDto = new UserRoleAssignmentDto
                 {
                     UserId = userEditViewModel.Id,
                     RoleNames = userEditViewModel.SelectedRoles.ToList() ?? new List<string>()
                 };
 
-                OperationResult roleResult = await _roleService.UpdateUserRolesAsync(userRoleAssignmentDto);
+                var roleResult = await _roleService.UpdateUserRolesAsync(userRoleAssignmentDto);
 
                 if (!roleResult.Succeeded)
                 {
@@ -140,16 +136,16 @@ namespace PW.Web.Areas.Admin.Features.User.Services
                     if (string.IsNullOrWhiteSpace(userEditViewModel.Password))
                     {
                         await _unitOfWork.RollbackTransactionAsync();
-                        return OperationResult.Failure("Password cannot be empty when ChangePassword is enabled.");
+                        return OperationResult.Failure("Password cannot be empty when 'Change Password' is checked.", OperationErrorType.ValidationError);
                     }
 
-                    SetPasswordDto setPasswordDto = new SetPasswordDto
+                    var setPasswordDto = new SetPasswordDto
                     {
                         UserId = userEditViewModel.Id,
                         NewPassword = userEditViewModel.Password
                     };
 
-                    OperationResult passwordResult = await _userService.AdminResetUserPasswordAsync(setPasswordDto);
+                    var passwordResult = await _userService.AdminResetUserPasswordAsync(setPasswordDto);
 
                     if (!passwordResult.Succeeded)
                     {
@@ -161,24 +157,19 @@ namespace PW.Web.Areas.Admin.Features.User.Services
                 await _unitOfWork.CommitTransactionAsync();
                 return OperationResult.Success();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return OperationResult.Failure($"An unexpected error occurred: {ex.Message}");
+                return OperationResult.Failure($"An unexpected error occurred: {exception.Message}", OperationErrorType.Technical);
             }
         }
 
         public async Task<OperationResult> DeleteUserAsync(int userId)
         {
             if (userId <= 0)
-                return OperationResult.Failure("Invalid user id.");
+                return OperationResult.Failure("Invalid user id.", OperationErrorType.ValidationError);
 
-            OperationResult deleteResult = await _userService.DeleteUserAsync(userId);
-
-            if (!deleteResult.Succeeded)
-                return deleteResult;
-
-            return OperationResult.Success();
+            return await _userService.DeleteUserAsync(userId);
         }
     }
 }

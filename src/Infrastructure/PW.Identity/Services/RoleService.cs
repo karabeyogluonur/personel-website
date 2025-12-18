@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using PW.Application.Common.Models;
+using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
+using PW.Application.Models;
 using PW.Application.Models.Dtos.Identity;
 using PW.Identity.Entities;
-using PW.Identity.Extensions;
 
 namespace PW.Identity.Services
 {
@@ -23,20 +23,27 @@ namespace PW.Identity.Services
 
         public async Task<OperationResult> CreateRoleAsync(CreateRoleDto createRoleDto)
         {
-            if (await _roleManager.RoleExistsAsync(createRoleDto.Name))
-            {
-                return OperationResult.Failure($"Role '{createRoleDto.Name}' already exists.");
-            }
+            if (createRoleDto is null)
+                throw new ArgumentNullException(nameof(createRoleDto));
 
-            var role = new ApplicationRole
+            if (string.IsNullOrWhiteSpace(createRoleDto.Name))
+                return OperationResult.Failure("Role name cannot be empty.", OperationErrorType.ValidationError);
+
+            if (await _roleManager.RoleExistsAsync(createRoleDto.Name))
+                return OperationResult.Failure($"Role '{createRoleDto.Name}' already exists.", OperationErrorType.Conflict);
+
+            var applicationRole = new ApplicationRole
             {
                 Name = createRoleDto.Name,
                 Description = createRoleDto.Description
             };
 
-            var result = await _roleManager.CreateAsync(role);
+            var identityResult = await _roleManager.CreateAsync(applicationRole);
 
-            return result.ToOperationResult();
+            if (!identityResult.Succeeded)
+                return OperationResult.Failure(identityResult.Errors.Select(e => e.Description).FirstOrDefault() ?? "Error creating role.", OperationErrorType.Technical);
+
+            return OperationResult.Success();
         }
 
         public async Task<List<string>> GetAllRolesAsync()
@@ -49,47 +56,58 @@ namespace PW.Identity.Services
 
         public async Task<bool> IsInRoleAsync(int userId, string roleName)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (userId <= 0) return false;
+            if (string.IsNullOrWhiteSpace(roleName)) return false;
 
-            if (user is null)
+            var applicationUser = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (applicationUser is null)
                 return false;
 
-            return await _userManager.IsInRoleAsync(user, roleName);
+            return await _userManager.IsInRoleAsync(applicationUser, roleName);
         }
 
-        public async Task<OperationResult> UpdateUserRolesAsync(UserRoleAssignmentDto assignmentDto)
+        public async Task<OperationResult> UpdateUserRolesAsync(UserRoleAssignmentDto userRoleAssignmentDto)
         {
-            var user = await _userManager.FindByIdAsync(assignmentDto.UserId.ToString());
-            if (user is null)
-                return OperationResult.Failure("User not found.");
+            if (userRoleAssignmentDto is null)
+                throw new ArgumentNullException(nameof(userRoleAssignmentDto));
 
-            var requestedRoles = assignmentDto.RoleNames ?? new List<string>();
-            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (userRoleAssignmentDto.UserId <= 0)
+                return OperationResult.Failure("Invalid user ID.", OperationErrorType.ValidationError);
 
-            var nonExistentRoles = requestedRoles
-                .Where(r => !_roleManager.Roles.Any(existingRole => existingRole.Name == r))
-                .ToList();
+            var applicationUser = await _userManager.FindByIdAsync(userRoleAssignmentDto.UserId.ToString());
 
-            if (nonExistentRoles.Any())
-                return OperationResult.Failure($"The following roles do not exist: {string.Join(", ", nonExistentRoles)}");
+            if (applicationUser is null)
+                return OperationResult.Failure("User not found.", OperationErrorType.NotFound);
+
+            var requestedRoles = userRoleAssignmentDto.RoleNames ?? new List<string>();
+            var currentRoles = await _userManager.GetRolesAsync(applicationUser);
+
+            var allSystemRoles = await _roleManager.Roles.Select(role => role.Name).ToListAsync();
+            var invalidRoles = requestedRoles.Except(allSystemRoles).ToList();
+
+            if (invalidRoles.Any())
+                return OperationResult.Failure($"The following roles do not exist: {string.Join(", ", invalidRoles)}", OperationErrorType.NotFound);
 
             var rolesToRemove = currentRoles.Except(requestedRoles).ToList();
+
             if (rolesToRemove.Any())
             {
-                var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+                var removeResult = await _userManager.RemoveFromRolesAsync(applicationUser, rolesToRemove);
                 if (!removeResult.Succeeded)
-                    return removeResult.ToOperationResult();
+                    return OperationResult.Failure("Failed to remove old roles.", OperationErrorType.Technical);
             }
 
             var rolesToAdd = requestedRoles.Except(currentRoles).ToList();
             if (rolesToAdd.Any())
             {
-                var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
+                var addResult = await _userManager.AddToRolesAsync(applicationUser, rolesToAdd);
+
                 if (!addResult.Succeeded)
-                    return addResult.ToOperationResult();
+                    return OperationResult.Failure("Failed to add new roles.", OperationErrorType.Technical);
             }
 
-            await _userManager.UpdateSecurityStampAsync(user);
+            await _userManager.UpdateSecurityStampAsync(applicationUser);
 
             return OperationResult.Success();
         }

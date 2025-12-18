@@ -1,33 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
-using PW.Application.Common.Models;
-using PW.Application.Interfaces.Messages;
 using PW.Web.Areas.Admin.Features.Language.Services;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
-using PW.Web.Extensions;
 
 namespace PW.Web.Areas.Admin.Controllers
 {
     public class LanguageController : BaseAdminController
     {
         private readonly ILanguageOrchestrator _languageOrchestrator;
-        private readonly INotificationService _notificationService;
 
-        public LanguageController(
-            ILanguageOrchestrator languageOrchestrator,
-            INotificationService notificationService)
+        public LanguageController(ILanguageOrchestrator languageOrchestrator)
         {
             _languageOrchestrator = languageOrchestrator;
-            _notificationService = notificationService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            OperationResult<LanguageListViewModel> result = await _languageOrchestrator.PrepareLanguageListViewModelAsync();
+            var result = await _languageOrchestrator.PrepareLanguageListViewModelAsync();
 
-            if (!result.Succeeded)
+            if (result.IsFailure)
             {
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                await _notificationService.ErrorNotificationAsync("An error occurred while loading data.");
                 return View(new LanguageListViewModel());
             }
 
@@ -37,33 +30,21 @@ namespace PW.Web.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            OperationResult<LanguageCreateViewModel> result = await _languageOrchestrator.PrepareCreateViewModelAsync();
+            var result = await _languageOrchestrator.PrepareCreateViewModelAsync();
             return View(result.Data);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(LanguageCreateViewModel languageCreateViewModel)
+        public async Task<IActionResult> Create(LanguageCreateViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                OperationResult<LanguageCreateViewModel> reloadResult = await _languageOrchestrator.PrepareCreateViewModelAsync(languageCreateViewModel);
-                return View(reloadResult.Data);
-            }
-
-            OperationResult result = await _languageOrchestrator.CreateLanguageAsync(languageCreateViewModel);
-
-            if (result.Succeeded)
-            {
-                await _notificationService.SuccessNotificationAsync("Language added successfully. Please restart the application.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            ModelState.AddErrors(result);
-            await _notificationService.ErrorNotificationAsync("Could not create language.");
-
-            OperationResult<LanguageCreateViewModel> errorReloadResult = await _languageOrchestrator.PrepareCreateViewModelAsync(languageCreateViewModel);
-            return View(errorReloadResult.Data);
+            return await HandleFormAsync(
+                viewModel: model,
+                workAction: () => _languageOrchestrator.CreateLanguageAsync(model),
+                reloadAction: () => _languageOrchestrator.PrepareCreateViewModelAsync(model),
+                successMessage: "Language added successfully. Please restart the application.",
+                redirectTo: nameof(Index)
+            );
         }
 
         [HttpGet]
@@ -72,11 +53,11 @@ namespace PW.Web.Areas.Admin.Controllers
             if (id <= 0)
                 return RedirectToAction(nameof(Index));
 
-            OperationResult<LanguageEditViewModel> result = await _languageOrchestrator.PrepareEditViewModelAsync(id);
+            var result = await _languageOrchestrator.PrepareEditViewModelAsync(id);
 
-            if (!result.Succeeded)
+            if (result.IsFailure)
             {
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault()?.Message);
                 return RedirectToAction(nameof(Index));
             }
 
@@ -85,41 +66,24 @@ namespace PW.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(LanguageEditViewModel languageEditViewModel)
+        public async Task<IActionResult> Edit(LanguageEditViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                OperationResult<LanguageEditViewModel> reloadResult = await _languageOrchestrator.PrepareEditViewModelAsync(languageEditViewModel.Id, languageEditViewModel);
-                return View(reloadResult.Data);
-            }
-
-            OperationResult result = await _languageOrchestrator.UpdateLanguageAsync(languageEditViewModel);
-
-            if (result.Succeeded)
-            {
-                await _notificationService.SuccessNotificationAsync("Language updated successfully.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            ModelState.AddErrors(result);
-            await _notificationService.ErrorNotificationAsync("Could not update language.");
-
-            OperationResult<LanguageEditViewModel> errorReloadResult = await _languageOrchestrator.PrepareEditViewModelAsync(languageEditViewModel.Id, languageEditViewModel);
-            return View(errorReloadResult.Data);
+            return await HandleFormAsync(
+                viewModel: model,
+                workAction: () => _languageOrchestrator.UpdateLanguageAsync(model),
+                reloadAction: () => _languageOrchestrator.PrepareEditViewModelAsync(model.Id, model),
+                successMessage: "Language updated successfully."
+            );
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            OperationResult result = await _languageOrchestrator.DeleteLanguageAsync(id);
-
-            if (result.Succeeded)
-                await _notificationService.SuccessNotificationAsync("Language deleted successfully.");
-            else
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault() ?? "Error deleting language.");
-
-            return RedirectToAction(nameof(Index));
+            return await HandleDeleteAsync(
+                deleteAction: () => _languageOrchestrator.DeleteLanguageAsync(id),
+                successMessage: "Language deleted successfully."
+            );
         }
     }
 }

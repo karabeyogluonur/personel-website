@@ -1,5 +1,3 @@
-using PW.Application.Common.Models;
-
 namespace PW.Application.Models.Dtos.Identity
 {
     public class LoginDto

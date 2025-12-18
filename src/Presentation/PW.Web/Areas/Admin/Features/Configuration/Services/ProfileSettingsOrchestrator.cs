@@ -1,10 +1,10 @@
 using AutoMapper;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
-using PW.Application.Common.Models;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Storage;
+using PW.Application.Models;
 using PW.Domain.Configuration;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;

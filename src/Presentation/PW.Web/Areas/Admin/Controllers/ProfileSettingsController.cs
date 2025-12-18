@@ -1,33 +1,26 @@
 using Microsoft.AspNetCore.Mvc;
-using PW.Application.Common.Models;
-using PW.Application.Interfaces.Messages;
 using PW.Web.Areas.Admin.Features.Configuration.Services;
 using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
-using PW.Web.Extensions;
 
 namespace PW.Web.Areas.Admin.Controllers
 {
     public class ProfileSettingsController : BaseAdminController
     {
         private readonly IProfileSettingsOrchestrator _orchestrator;
-        private readonly INotificationService _notificationService;
 
-        public ProfileSettingsController(
-            IProfileSettingsOrchestrator orchestrator,
-            INotificationService notificationService)
+        public ProfileSettingsController(IProfileSettingsOrchestrator orchestrator)
         {
             _orchestrator = orchestrator;
-            _notificationService = notificationService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            OperationResult<ProfileSettingsViewModel> result = await _orchestrator.PrepareProfileSettingsViewModelAsync();
+            var result = await _orchestrator.PrepareProfileSettingsViewModelAsync();
 
-            if (!result.Succeeded)
+            if (result.IsFailure)
             {
-                await _notificationService.ErrorNotificationAsync(result.Errors.FirstOrDefault());
+                await _notificationService.ErrorNotificationAsync("An error occurred while loading profile settings.");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -38,23 +31,13 @@ namespace PW.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(ProfileSettingsViewModel profileSettingsViewModel)
         {
-            if (!ModelState.IsValid)
-            {
-                OperationResult<ProfileSettingsViewModel> reloadResult = await _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel);
-                return View(reloadResult.Data);
-            }
-
-            OperationResult result = await _orchestrator.UpdateProfileSettingsAsync(profileSettingsViewModel);
-
-            if (!result.Succeeded)
-            {
-                ModelState.AddErrors(result);
-                OperationResult<ProfileSettingsViewModel> errorReloadResult = await _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel);
-                return View(errorReloadResult.Data);
-            }
-
-            await _notificationService.SuccessNotificationAsync("Profile settings updated successfully.");
-            return RedirectToAction(nameof(Index));
+            return await HandleFormAsync(
+                viewModel: profileSettingsViewModel,
+                workAction: () => _orchestrator.UpdateProfileSettingsAsync(profileSettingsViewModel),
+                reloadAction: () => _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel),
+                successMessage: "Profile settings updated successfully.",
+                redirectTo: nameof(Index)
+            );
         }
     }
 }

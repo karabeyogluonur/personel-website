@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using PW.Application.Common.Models;
+using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
+using PW.Application.Models;
 using PW.Application.Models.Dtos.Identity;
 using PW.Identity.Entities;
 
@@ -25,24 +26,30 @@ namespace PW.Identity.Services
 
         public async Task<OperationResult> LoginAsync(LoginDto loginDto)
         {
-            var user = await _userManager.FindByEmailAsync(loginDto.Email);
+            if (loginDto is null)
+                throw new ArgumentNullException(nameof(loginDto));
 
-            if (user == null)
-                return OperationResult.Failure("Invalid email or password.");
+            if (string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
+                return OperationResult.Failure("Email and Password are required.", OperationErrorType.ValidationError);
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: true);
+            var applicationUser = await _userManager.FindByEmailAsync(loginDto.Email);
 
-            if (result.Succeeded)
+            if (applicationUser is null)
+                return OperationResult.Failure("Invalid email or password.", OperationErrorType.Unauthorized);
+
+            var signInResult = await _signInManager.CheckPasswordSignInAsync(applicationUser, loginDto.Password, lockoutOnFailure: true);
+
+            if (signInResult.Succeeded)
             {
-                await _signInManager.SignInAsync(user, isPersistent: loginDto.RememberMe);
-                _logger.LogInformation($"User {user.Email} logged in successfully.");
+                await _signInManager.SignInAsync(applicationUser, isPersistent: loginDto.RememberMe);
+                _logger.LogInformation("User {Email} logged in successfully.", applicationUser.Email);
                 return OperationResult.Success();
             }
 
-            if (result.IsLockedOut)
-                return OperationResult.Failure("Account is locked. Please try again later.");
+            if (signInResult.IsLockedOut)
+                return OperationResult.Failure("Account is locked due to multiple failed attempts. Please try again later.", OperationErrorType.BusinessRule);
 
-            return OperationResult.Failure("Invalid email or password.");
+            return OperationResult.Failure("Invalid email or password.", OperationErrorType.Unauthorized);
         }
 
         public async Task LogoutAsync()
