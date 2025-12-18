@@ -58,3 +58,4 @@ desktop.ini
 *.key
 *.cer
 *.pfx
+src/Presentation/appsettings.Production.json
