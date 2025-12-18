@@ -19,7 +19,6 @@ namespace PW.Persistence
 
         public async Task InitialiseAsync()
         {
-            await _context.Database.EnsureDeletedAsync();
             await _context.Database.MigrateAsync();
             await SeedAsync();
         }
