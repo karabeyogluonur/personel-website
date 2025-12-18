@@ -32,15 +32,6 @@ namespace PW.Web.Extensions
 
         public static WebApplication ConfigureRoutes(this WebApplication app)
         {
-            app.MapGet("/", async context =>
-            {
-                var workContext = context.RequestServices.GetRequiredService<IWorkContext>();
-
-                var defaultLang = await workContext.GetCurrentLanguageAsync();
-
-                var code = defaultLang?.Code ?? "en";
-                context.Response.Redirect($"/{code}", permanent: false);
-            });
 
             app.MapControllerRoute(
                 name: "areas",
