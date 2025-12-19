@@ -17,6 +17,7 @@ using System.Reflection;
 using PW.Redis;
 using PW.Domain.Configuration;
 using PW.Web.Areas.Admin.Features.Technology.Services;
+using PW.Web.Areas.Admin.Features.Category.Services;
 
 namespace PW.Web.Extensions
 {
@@ -90,6 +91,7 @@ namespace PW.Web.Extensions
             services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
             services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
             services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
+            services.AddScoped<ICategoryOrchestrator, CategoryOrchestrator>();
             return services;
         }
 

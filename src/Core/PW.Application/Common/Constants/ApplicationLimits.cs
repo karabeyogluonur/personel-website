@@ -52,5 +52,13 @@ namespace PW.Application.Common.Constants
             public static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png" };
         }
 
+        public static class Category
+        {
+            public const int NameMaxLength = 100;
+            public const int DescriptionMaxLength = 500;
+            public const int MaxCoverImageSizeBytes = 5 * 1024 * 1024; // 5MB
+            public static readonly string[] AllowedCoverImageExtensions = { ".jpg", ".jpeg", ".png", ".svg" };
+        }
+
     }
 }

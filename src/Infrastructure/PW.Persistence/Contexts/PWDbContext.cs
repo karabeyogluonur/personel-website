@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Interfaces;
 using PW.Domain.Common;
@@ -14,6 +13,7 @@ namespace PW.Persistence.Contexts
         public DbSet<LocalizedProperty> LocalizedProperties { get; set; }
         public DbSet<Asset> Assets { get; set; }
         public DbSet<Technology> Technologies { get; set; }
+        public DbSet<Technology> Category { get; set; }
 
         public PWDbContext(DbContextOptions<PWDbContext> options) : base(options)
         {

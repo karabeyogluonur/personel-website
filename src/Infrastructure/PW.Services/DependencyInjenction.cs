@@ -28,6 +28,7 @@ namespace PW.Services
             builder.Services.AddScoped<IAssetService, AssetService>();
             builder.Services.AddSingleton<ILocalCacheService, MemoryCacheManager>();
             builder.Services.AddScoped<ITechnologyService, TechnologyService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
 
             #region  Setting Registration
 

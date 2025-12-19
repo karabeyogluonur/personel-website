@@ -21,6 +21,7 @@ namespace PW.Web.Middlewares
                 path.StartsWith("/uploads", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith($"/{AreaNames.Admin}", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("/auth/logout", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/error", StringComparison.OrdinalIgnoreCase) ||
                 Path.HasExtension(path))
             {
                 await _next(context);

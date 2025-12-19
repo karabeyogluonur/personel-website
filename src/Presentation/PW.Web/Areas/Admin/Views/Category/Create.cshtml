@@ -1,4 +1,10 @@
-@model TechnologyCreateViewModel
+@using PW.Application.Common.Constants
+@using PW.Web.Areas.Admin.Features.Category.ViewModels
+@model CategoryCreateViewModel
+
+@{
+    ViewData["Title"] = "Create Category";
+}
 
 <div class="card mb-5">
     <div class="card-body py-4">
@@ -6,7 +12,7 @@
             <div class="d-flex flex-stack w-100">
                 <div class="page-title d-flex flex-column justify-content-center gap-2">
                     <h1 class="page-heading fw-bold fs-4 text-gray-900 mb-0">
-                        Technology Management
+                        Category Management
                     </h1>
                     <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
                         <li class="breadcrumb-item">
@@ -16,8 +22,8 @@
                             <span class="bullet bg-gray-400 w-5px h-2px"></span>
                         </li>
                         <li class="breadcrumb-item">
-                            <a href="@Url.Action("Index", "Technology")"
-                                class="text-gray-600 text-hover-primary">Technology</a>
+                            <a href="@Url.Action("Index", "Category")"
+                                class="text-gray-600 text-hover-primary">Category</a>
                         </li>
                         <li class="breadcrumb-item">
                             <span class="bullet bg-gray-400 w-5px h-2px"></span>
@@ -34,6 +40,7 @@
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
     <validation-alert />
+    <validation-summary />
     @Html.AntiForgeryToken()
 
     <div class="card card-flush">
@@ -67,42 +74,34 @@
 
                     <div class="row mb-5">
                         <div class="col-md-6">
-                            <label asp-for="IconImage" class="required form-label fs-7 fw-semibold"></label>
+                            <label asp-for="CoverImage" class="required form-label fs-7 fw-semibold"></label>
 
-                            <input asp-for="IconImage" type="file" class="form-control form-control-sm"
-                                accept="@string.Join(",", ApplicationLimits.Technology.AllowedIconExtensions)" />
+                            <input asp-for="CoverImage" type="file" class="form-control form-control-sm"
+                                accept="@string.Join(",", ApplicationLimits.Category.AllowedCoverImageExtensions)" />
 
                             <div class="text-muted fs-8 mt-1">
-                                Allowed: @string.Join(", ", ApplicationLimits.Technology.AllowedIconExtensions).
-                                Max size: @(ApplicationLimits.Technology.MaxIconSizeBytes / 1024 / 1024) MB.
+                                Allowed: @string.Join(", ", ApplicationLimits.Category.AllowedCoverImageExtensions).
+                                Max size: @(ApplicationLimits.Category.MaxCoverImageSizeBytes / 1024 / 1024) MB.
                             </div>
-                            <span asp-validation-for="IconImage" class="text-danger"></span>
+                            <span asp-validation-for="CoverImage" class="text-danger"></span>
                         </div>
                         <div class="col-md-6">
                             <label asp-for="IsActive" class="form-label fs-7 fw-semibold"></label>
                             <div class="form-check form-switch form-check-custom form-check-solid">
                                 <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                <label class="form-check-label" asp-for="IsActive">Active</label>
+                                <label class="form-check-label" asp-for="IsActive"></label>
                             </div>
                         </div>
                     </div>
 
                     <div class="row mb-5">
-                        <div class="col-md-6 fv-row">
+                        <div class="col-md-12 fv-row">
                             <label asp-for="Name" class="required form-label fs-7 fw-semibold"></label>
 
                             <input asp-for="Name" class="form-control form-control-sm"
-                                maxlength="@ApplicationLimits.Technology.NameMaxLength" />
+                                maxlength="@ApplicationLimits.Category.NameMaxLength" />
 
                             <span asp-validation-for="Name" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-6 fv-row">
-                            <label asp-for="DocumentationUrl" class="form-label fs-7 fw-semibold"></label>
-
-                            <input asp-for="DocumentationUrl" class="form-control form-control-sm"
-                                placeholder="https://..." maxlength="@ApplicationLimits.Technology.UrlMaxLength" />
-
-                            <span asp-validation-for="DocumentationUrl" class="text-danger"></span>
                         </div>
                     </div>
 
@@ -111,7 +110,7 @@
                             <label asp-for="Description" class="form-label fs-7 fw-semibold"></label>
 
                             <textarea asp-for="Description" class="form-control form-control-sm" rows="3"
-                                maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
+                                maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                     </div>
@@ -129,34 +128,52 @@
                                 <span class="path1"></span><span class="path2"></span><span class="path3"></span>
                             </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
-                                <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
-                                                                    Model.Locales[i].LanguageId)?.Name</h5>
-                            <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
-                                this language. Leave empty to use Standard values.</span>
+                                <h5 class="mb-1 fs-6">
+                                    Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
+                                                                    Model.Locales[i].LanguageId)?.Name
+                            </h5>
+                            <span class="fs-7 text-gray-600">
+                                Values entered here will override the Standard values for this language. Leave empty to
+                                use Standard values.
+                            </span>
                         </div>
                     </div>
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
-                                <label class="form-label fs-7 fw-semibold">Name (@Model.Locales[i].LanguageCode)</label>
+                                <label asp-for="Locales[i].Name" class="form-label fs-7 fw-semibold"></label>
 
                                 <input asp-for="Locales[i].Name" class="form-control form-control-sm"
                                     placeholder="Standard Name Override"
-                                    maxlength="@ApplicationLimits.Technology.NameMaxLength" />
+                                    maxlength="@ApplicationLimits.Category.NameMaxLength" />
                                 <span asp-validation-for="Locales[i].Name" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
-                                <label class="form-label fs-7 fw-semibold">Description
-                                    (@Model.Locales[i].LanguageCode)</label>
+                                <label asp-for="Locales[i].Description" class="form-label fs-7 fw-semibold"></label>
 
                                 <textarea asp-for="Locales[i].Description" class="form-control form-control-sm" rows="3"
-                                    maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
+                                    maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
                                 <span asp-validation-for="Locales[i].Description" class="text-danger"></span>
                             </div>
                         </div>
+
+                        <div class="row mb-5">
+                            <div class="col-md-12 fv-row">
+                                <label asp-for="Locales[i].CoverImage" class="form-label fs-7 fw-semibold"></label>
+
+                                <input asp-for="Locales[i].CoverImage" type="file" class="form-control form-control-sm"
+                                    accept="@string.Join(",", ApplicationLimits.Category.AllowedCoverImageExtensions)" />
+
+                                <div class="text-muted fs-8 mt-1">
+                                    Upload only if you want a different image for this language.
+                                </div>
+                                <span asp-validation-for="Locales[i].CoverImage" class="text-danger"></span>
+                            </div>
+                        </div>
+
                     </div>
                                 }
 
