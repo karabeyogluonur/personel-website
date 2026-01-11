@@ -59,5 +59,11 @@ desktop.ini
 *.cer
 *.pfx
 
-# Production
-src/Presentation/PW.Web/appsettings.Production.json
+# Others
+.env
+**/.vscode/
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.local.json
+docker-compose.override.yml
+docker-compose.prod.yml
