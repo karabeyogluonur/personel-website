@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
 
 namespace PW.Web.Areas.Admin.Features.Configuration.ViewModels
 {

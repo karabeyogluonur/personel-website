@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using PW.Web.Areas.Admin.Features.Language.ViewModels;
-using PW.Web.Areas.Admin.Features.Technology.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Category.ViewModels
 {

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using PW.Application.Common.Enums;
 
 namespace PW.Application.Models

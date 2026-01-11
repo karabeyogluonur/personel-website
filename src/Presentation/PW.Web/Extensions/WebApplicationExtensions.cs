@@ -1,5 +1,3 @@
-using PW.Application.Common.Interfaces;
-using PW.Application.Interfaces.Localization;
 using PW.Web.Middlewares;
 
 namespace PW.Web.Extensions

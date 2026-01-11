@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using PW.Persistence.Contexts;
-using System.IO;
 
 namespace PW.Persistence
 {

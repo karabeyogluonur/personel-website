@@ -6,12 +6,8 @@ using PW.Application.Interfaces.Repositories;
 using PW.Domain.Common;
 using PW.Domain.Entities;
 using PW.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace PW.Services.Localization
 {

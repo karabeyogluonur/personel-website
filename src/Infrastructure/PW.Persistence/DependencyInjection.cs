@@ -8,7 +8,6 @@ using PW.Persistence.Interceptors;
 using TM.Infrastructure.Persistence.Interceptors;
 using PW.Persistence.Repositories;
 using PW.Application.Interfaces.Repositories;
-using PW.Identity.Entities;
 using PW.Application.Common.Interfaces;
 
 namespace PW.Persistence

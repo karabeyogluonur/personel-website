@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Localization;
