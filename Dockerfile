@@ -1,27 +1,30 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+USER app
+WORKDIR /app
+EXPOSE 8080
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY . .
+COPY ["PersonelWebsite.sln", "."]
+COPY ["src/", "src/"]
+
 RUN dotnet restore "PersonelWebsite.sln"
 
-WORKDIR /src/src/Presentation/PW.Web
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+COPY . .
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR "/src/src/Presentation/PW.Web"
+RUN dotnet build "PW.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-USER root
-RUN apt-get update \
-    && apt-get install -y curl \
-    && rm -rf /var/lib/apt/lists/*
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "PW.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-USER app
-
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=publish /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:8080
-
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["dotnet", "PW.Web.dll"]

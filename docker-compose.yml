@@ -1,63 +1,63 @@
 services:
   pw.web:
-    container_name: personelwebsite_web_app
+    image: personelwebsite-app:local
+    container_name: pw_web_local
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "8080:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Host=pw.db;Port=5432;Database=PersonelWebsiteDB;Username=pw_user;Password=your_strong_password"
-      ConnectionStrings__Redis: "pw.redis:6379,password=StrongRedisPass123!,abortConnect=false"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=pw.db;Port=5432;Database=${DB_NAME:-PersonelWebsiteDB};Username=${DB_USER:-pw_user};Password=${DB_PASSWORD:-your_strong_password}
+      - ConnectionStrings__Redis=pw.redis:6379,password=${REDIS_PASSWORD:-StrongRedisPass123!},abortConnect=false
     depends_on:
       pw.db:
         condition: service_healthy
       pw.redis:
         condition: service_healthy
-    restart: always
+    networks:
+      - app-net
 
   pw.db:
-    container_name: personelwebsite_db
     image: postgres:16-alpine
+    container_name: pw_db_local
     environment:
-      POSTGRES_USER: pw_user
-      POSTGRES_PASSWORD: your_strong_password
-      POSTGRES_DB: PersonelWebsiteDB
+      POSTGRES_USER: ${DB_USER:-pw_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-your_strong_password}
+      POSTGRES_DB: ${DB_NAME:-PersonelWebsiteDB}
     ports:
       - "5433:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data_local:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pw_user -d PersonelWebsiteDB -h localhost"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-pw_user} -d ${DB_NAME:-PersonelWebsiteDB}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
-    restart: always
-
+    networks:
+      - app-net
   pw.redis:
-    container_name: personelwebsite_redis
     image: redis:alpine
+    container_name: pw_redis_local
     ports:
       - "6379:6379"
+    command: redis-server --requirepass "${REDIS_PASSWORD:-StrongRedisPass123!}" --save 60 1 --loglevel warning
     volumes:
-      - redis_data:/data
-    command: >
-      redis-server
-      --requirepass "StrongRedisPass123!"
-      --maxmemory 256mb
-      --maxmemory-policy allkeys-lru
-      --save 60 1
-      --loglevel warning
+      - redis_data_local:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "StrongRedisPass123!", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-StrongRedisPass123!}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 5s
-    restart: always
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
 
 volumes:
-  db_data:
-  redis_data:
+  db_data_local:
+  redis_data_local:
