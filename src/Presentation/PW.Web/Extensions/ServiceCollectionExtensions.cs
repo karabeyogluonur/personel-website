@@ -15,7 +15,6 @@ using PW.Web.Features.Auth.Services;
 using System.Globalization;
 using System.Reflection;
 using PW.Redis;
-using PW.Domain.Configuration;
 using PW.Web.Areas.Admin.Features.Technology.Services;
 using PW.Web.Areas.Admin.Features.Category.Services;
 
@@ -25,6 +24,7 @@ namespace PW.Web.Extensions
     {
         public static IServiceCollection AddProjectServices(this IServiceCollection services, WebApplicationBuilder builder)
         {
+            builder.AddProjectConfiguration();
             builder.AddPersistenceServices();
             builder.AddIdentityServices();
             builder.AddApplicationServices();
@@ -34,7 +34,6 @@ namespace PW.Web.Extensions
             services.AddOrchestrators();
             services.ConfigureCustomCookie();
             services.AddDatabaseLocalizationServices();
-
             return services;
         }
 
@@ -93,6 +92,17 @@ namespace PW.Web.Extensions
             services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
             services.AddScoped<ICategoryOrchestrator, CategoryOrchestrator>();
             return services;
+        }
+
+        public static WebApplicationBuilder AddProjectConfiguration(this WebApplicationBuilder builder)
+        {
+            builder.Configuration
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+
+            return builder;
         }
 
         private static void AddCacheServices(this WebApplicationBuilder builder)
