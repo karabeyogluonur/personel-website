@@ -1,9 +1,8 @@
-namespace PW.Application.Common.Interfaces
+namespace PW.Application.Common.Interfaces;
+
+public interface IPWDbContext
 {
-    public interface IPWDbContext
-    {
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
-    }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
 
 

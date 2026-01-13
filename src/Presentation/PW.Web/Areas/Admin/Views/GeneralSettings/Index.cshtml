@@ -202,12 +202,12 @@
                     </div>
                 </div>
 
-                @for (int i = 0; i < Model.Locales.Count; i++)
+                @for (int i = 0; i < Model.Translations.Count; i++)
                 {
-                    <div class="tab-pane fade" id="tab_lang_@Model.Locales[i].LanguageId" role="tabpanel">
+                    <div class="tab-pane fade" id="tab_lang_@Model.Translations[i].LanguageId" role="tabpanel">
 
-                        <input type="hidden" asp-for="Locales[i].LanguageId" />
-                        <input type="hidden" asp-for="Locales[i].LanguageCode" />
+                        <input type="hidden" asp-for="Translations[i].LanguageId" />
+                        <input type="hidden" asp-for="Translations[i].LanguageCode" />
 
                         <div
                             class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
@@ -216,7 +216,7 @@
                             </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
-                                                                    Model.Locales[i].LanguageId)?.Name</h5>
+                                                                    Model.Translations[i].LanguageId)?.Name</h5>
                             <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
                                 this language. Leave empty to use Standard values.</span>
                         </div>
@@ -224,25 +224,25 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].LightThemeLogoImage"
+                                <label asp-for="@Model.Translations[i].LightThemeLogoImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].LightThemeLogoPath"
+                                        <img file-name="@Model.Translations[i].LightThemeLogoPath"
                                             folder="@StoragePaths.System_Generals"
                                             default-src="/uploads/system/defaults/light-logo.png" alt="Avatar" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(Model.Locales[i].LightThemeLogoPath))
+                                    @if (!string.IsNullOrEmpty(Model.Translations[i].LightThemeLogoPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeLogo" />
+                                                    asp-for="@Model.Translations[i].RemoveLightThemeLogo" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeLogo"></label>
+                                                    asp-for="@Model.Translations[i].RemoveLightThemeLogo"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="@Model.Locales[i].LightThemeLogoImage"
+                                        <input type="file" asp-for="@Model.Translations[i].LightThemeLogoImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
@@ -255,26 +255,26 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].DarkThemeLogoImage"
+                                <label asp-for="@Model.Translations[i].DarkThemeLogoImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].DarkThemeLogoPath"
+                                        <img file-name="@Model.Translations[i].DarkThemeLogoPath"
                                             folder="@StoragePaths.System_Generals"
                                             default-src="/uploads/system/defaults/dark-logo.png" style="object-fit:cover"
                                             alt="Cover" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(Model.Locales[i].DarkThemeLogoPath))
+                                    @if (!string.IsNullOrEmpty(Model.Translations[i].DarkThemeLogoPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeLogo" />
+                                                    asp-for="@Model.Translations[i].RemoveDarkThemeLogo" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeLogo"></label>
+                                                    asp-for="@Model.Translations[i].RemoveDarkThemeLogo"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="@Model.Locales[i].DarkThemeLogoImage"
+                                        <input type="file" asp-for="@Model.Translations[i].DarkThemeLogoImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedLogoExtensions)" />
 
@@ -291,25 +291,25 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].LightThemeFaviconImage"
+                                <label asp-for="@Model.Translations[i].LightThemeFaviconImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].LightThemeFaviconPath"
+                                        <img file-name="@Model.Translations[i].LightThemeFaviconPath"
                                             folder="@StoragePaths.System_Generals"
                                             default-src="/uploads/system/defaults/light-favicon.ico" alt="Avatar" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(@Model.Locales[i].LightThemeFaviconPath))
+                                    @if (!string.IsNullOrEmpty(@Model.Translations[i].LightThemeFaviconPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeFavicon" />
+                                                    asp-for="@Model.Translations[i].RemoveLightThemeFavicon" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveLightThemeFavicon"></label>
+                                                    asp-for="@Model.Translations[i].RemoveLightThemeFavicon"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="@Model.Locales[i].LightThemeFaviconImage"
+                                        <input type="file" asp-for="@Model.Translations[i].LightThemeFaviconImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
@@ -322,26 +322,26 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].DarkThemeFaviconImage"
+                                <label asp-for="@Model.Translations[i].DarkThemeFaviconImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].DarkThemeFaviconPath"
+                                        <img file-name="@Model.Translations[i].DarkThemeFaviconPath"
                                             folder="@StoragePaths.System_Generals"
                                             default-src="/uploads/system/defaults/dark-favicon.ico" style="object-fit:cover"
                                             alt="Cover" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(Model.Locales[i].DarkThemeFaviconPath))
+                                    @if (!string.IsNullOrEmpty(Model.Translations[i].DarkThemeFaviconPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeFavicon" />
+                                                    asp-for="@Model.Translations[i].RemoveDarkThemeFavicon" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="@Model.Locales[i].RemoveDarkThemeFavicon"></label>
+                                                    asp-for="@Model.Translations[i].RemoveDarkThemeFavicon"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="@Model.Locales[i].DarkThemeFaviconImage"
+                                        <input type="file" asp-for="@Model.Translations[i].DarkThemeFaviconImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.GeneralSettings.AllowedFaviconExtensions)" />
 
@@ -358,9 +358,9 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].SiteTitle"
+                                <label asp-for="@Model.Translations[i].SiteTitle"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
-                                <input asp-for="@Model.Locales[i].SiteTitle" class="form-control form-control-sm"
+                                <input asp-for="@Model.Translations[i].SiteTitle" class="form-control form-control-sm"
                                     maxlength="@ApplicationLimits.GeneralSettings.SiteTitleMaxLength" />
                             </div>
                         </div>

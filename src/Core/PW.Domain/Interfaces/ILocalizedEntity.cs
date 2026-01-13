@@ -1,6 +1,6 @@
-namespace PW.Domain.Interfaces
+namespace PW.Domain.Interfaces;
+
+public interface ILocalizedEntity<TTranslation> where TTranslation : class
 {
-    public interface ILocalizedEntity
-    {
-    }
+    ICollection<TTranslation> Translations { get; set; }
 }

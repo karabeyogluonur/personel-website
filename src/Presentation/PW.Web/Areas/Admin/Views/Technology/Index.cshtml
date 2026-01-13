@@ -45,9 +45,7 @@
                 <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
                     <th class="min-w-200px">Technology</th>
                     <th class="min-w-200px">Description</th>
-                    <th class="min-w-100px">Docs</th>
                     <th class="min-w-125px">Created</th>
-                    <th class="min-w-125px">Last Update</th>
                     <th class="min-w-100px">Status</th>
                     <th class="text-end min-w-100px">Actions</th>
                 </tr>
@@ -80,42 +78,10 @@
                             </td>
 
                             <td>
-                                @if (!string.IsNullOrEmpty(technology.DocumentationUrl))
-                                {
-                                    <a href="@technology.DocumentationUrl" target="_blank"
-                                        class="btn btn-icon btn-light-primary w-30px h-30px me-3">
-                                        <span data-bs-toggle="tooltip" title="Documentation">
-                                            <i class="ki-duotone ki-exit-right-corner fs-3">
-                                                <span class="path1"></span><span class="path2"></span>
-                                            </i>
-                                        </span>
-                                    </a>
-                                }
-                                else
-                                {
-                                    <span class="text-muted fs-7">-</span>
-                                }
-                            </td>
-
-                            <td>
                                 <div class="d-flex flex-column">
-                                    <span class="text-gray-800 fw-bold fs-7">@technology.CreatedAt.ToString("dd MMM                       yyyy")</span>
+                                    <span class="text-gray-800 fw-bold fs-7">@technology.CreatedAt.ToString("dd MMM                            yyyy")</span>
                                     <span class="text-muted fs-8">@technology.CreatedAt.ToString("HH:mm")</span>
                                 </div>
-                            </td>
-
-                            <td>
-                                @if (technology.UpdatedAt.HasValue)
-                                {
-                                    <div class="d-flex flex-column">
-                                        <span class="text-gray-800 fw-bold fs-7">@technology.UpdatedAt.Value.ToString("dd MMM              yyyy")</span>
-                                        <span class="text-muted fs-8">@technology.UpdatedAt.Value.ToString("HH:mm")</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-light fs-8 fw-bold">Never</span>
-                                }
                             </td>
 
                             <td>

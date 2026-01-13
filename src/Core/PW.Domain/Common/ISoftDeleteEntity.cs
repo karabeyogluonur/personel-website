@@ -1,8 +1,7 @@
-namespace PW.Domain.Common
+namespace PW.Domain.Common;
+
+public interface ISoftDeleteEntity
 {
-    public interface ISoftDeleteEntity
-    {
-        public bool IsDeleted { get; set; }
-        public DateTime? DeletedAt { get; set; }
-    }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }

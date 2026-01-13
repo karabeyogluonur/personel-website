@@ -2,81 +2,80 @@ using Microsoft.EntityFrameworkCore.Storage;
 using PW.Application.Interfaces.Repositories;
 using PW.Persistence.Contexts;
 
-namespace PW.Persistence.Repositories
+namespace PW.Persistence.Repositories;
+
+public class UnitOfWork : IUnitOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    private readonly PWDbContext _context;
+    private readonly Dictionary<Type, object> _repositories;
+    private IDbContextTransaction _currentTransaction;
+
+    public UnitOfWork(PWDbContext context)
     {
-        private readonly PWDbContext _context;
-        private readonly Dictionary<Type, object> _repositories;
-        private IDbContextTransaction _currentTransaction;
+        _context = context;
+        _repositories = new Dictionary<Type, object>();
+    }
 
-        public UnitOfWork(PWDbContext context)
+    public async Task<int> CommitAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
+
+    public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
+    {
+        return new Repository<TEntity>(_context);
+    }
+
+    public async Task BeginTransactionAsync()
+    {
+        if (_currentTransaction != null)
         {
-            _context = context;
-            _repositories = new Dictionary<Type, object>();
+            throw new InvalidOperationException("A transaction is already in progress. Please complete (Commit) or discard (Rollback) the current transaction.");
         }
+        _currentTransaction = await _context.Database.BeginTransactionAsync();
+    }
 
-        public async Task<int> CommitAsync()
+    public async Task CommitTransactionAsync()
+    {
+        if (_currentTransaction == null)
         {
-            return await _context.SaveChangesAsync();
+            throw new InvalidOperationException("No active transaction found. You must invoke BeginTransactionAsync() before attempting to commit.");
         }
-
-        public IRepository<TEntity> GetRepository<TEntity>() where TEntity : class
+        try
         {
-            return new Repository<TEntity>(_context);
+            await _context.SaveChangesAsync();
+            await _currentTransaction.CommitAsync();
         }
-
-        public async Task BeginTransactionAsync()
+        catch
         {
-            if (_currentTransaction != null)
-            {
-                throw new InvalidOperationException("A transaction is already in progress. Please complete (Commit) or discard (Rollback) the current transaction.");
-            }
-            _currentTransaction = await _context.Database.BeginTransactionAsync();
+            await RollbackTransactionAsync();
+            throw;
         }
-
-        public async Task CommitTransactionAsync()
+        finally
         {
-            if (_currentTransaction == null)
-            {
-                throw new InvalidOperationException("No active transaction found. You must invoke BeginTransactionAsync() before attempting to commit.");
-            }
-            try
-            {
-                await _context.SaveChangesAsync();
-                await _currentTransaction.CommitAsync();
-            }
-            catch
-            {
-                await RollbackTransactionAsync();
-                throw;
-            }
-            finally
-            {
-                await _currentTransaction.DisposeAsync();
-                _currentTransaction = null;
-            }
-        }
-
-        public async Task RollbackTransactionAsync()
-        {
-            if (_currentTransaction == null) return;
-
-            await _currentTransaction.RollbackAsync();
-
             await _currentTransaction.DisposeAsync();
             _currentTransaction = null;
         }
+    }
 
-        public void Dispose()
+    public async Task RollbackTransactionAsync()
+    {
+        if (_currentTransaction == null) return;
+
+        await _currentTransaction.RollbackAsync();
+
+        await _currentTransaction.DisposeAsync();
+        _currentTransaction = null;
+    }
+
+    public void Dispose()
+    {
+        if (_currentTransaction != null)
         {
-            if (_currentTransaction != null)
-            {
-                _currentTransaction.Rollback();
-                _currentTransaction.Dispose();
-            }
-            _context.Dispose();
-            GC.SuppressFinalize(this);
+            _currentTransaction.Rollback();
+            _currentTransaction.Dispose();
         }
+        _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

@@ -1,5 +1,8 @@
+using System.Reflection;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 using PW.Application.Common.Interfaces;
 using PW.Application.Interfaces.Caching;
 using PW.Application.Interfaces.Configuration;
@@ -7,6 +10,7 @@ using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Messages;
 using PW.Application.Interfaces.Storage;
+using PW.Application.Models.Dtos.Localization;
 using PW.Domain.Interfaces;
 using PW.Services.Caching;
 using PW.Services.Configuration;
@@ -14,53 +18,54 @@ using PW.Services.Content;
 using PW.Services.Localization;
 using PW.Services.Storage;
 
-namespace PW.Services
+namespace PW.Services;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
-    {
-        public static void AddServiceServices(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddScoped<ILanguageService, LanguageService>();
-            builder.Services.AddScoped<INotificationService, NotificationService>();
-            builder.Services.AddScoped<ISettingService, SettingService>();
-            builder.Services.AddScoped<ILocalizationService, LocalizationService>();
-            builder.Services.AddScoped<IStorageService, LocalStorageService>();
-            builder.Services.AddScoped<IAssetService, AssetService>();
-            builder.Services.AddSingleton<ILocalCacheService, MemoryCacheManager>();
-            builder.Services.AddScoped<ITechnologyService, TechnologyService>();
-            builder.Services.AddScoped<ICategoryService, CategoryService>();
+   public static void AddServiceServices(this IHostApplicationBuilder builder)
+   {
+      builder.Services.AddScoped<ILanguageService, LanguageService>();
+      builder.Services.AddScoped<INotificationService, NotificationService>();
+      builder.Services.AddScoped<IStorageService, LocalStorageService>();
+      builder.Services.AddScoped<IAssetService, AssetService>();
+      builder.Services.AddSingleton<ILocalCacheService, MemoryCacheManager>();
 
-            #region  Setting Registration
+      builder.Services.AddScoped<ISettingService, SettingService>();
+      builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 
-            var assembly = typeof(ISettings).Assembly;
+      builder.Services.AddScoped<ITechnologyService, TechnologyService>();
+      builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-            var settingTypes = assembly.GetTypes()
-                .Where(t => typeof(ISettings).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+      #region Setting Registration (Automated)
 
-            foreach (var type in settingTypes)
-            {
-                builder.Services.AddScoped(type, provider =>
-                {
-                    var settingService = provider.GetRequiredService<ISettingService>();
-                    var workContext = provider.GetRequiredService<IWorkContext>();
-                    var currentLanguage = workContext.GetCurrentLanguageAsync().GetAwaiter().GetResult();
-                    int currentLanguageId = currentLanguage?.Id ?? 0;
+      Assembly assembly = typeof(ISettings).Assembly;
 
-                    var method = settingService.GetType().GetMethod(nameof(ISettingService.LoadSettings));
-                    var genericMethod = method?.MakeGenericMethod(type);
+      IEnumerable<Type> settingTypes = assembly.GetTypes()
+          .Where(type => typeof(ISettings).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
 
-                    return genericMethod?.Invoke(settingService, new object[] { currentLanguageId });
-                });
-            }
+      foreach (Type type in settingTypes)
+      {
+         builder.Services.AddScoped(type, (IServiceProvider provider) =>
+         {
+            ISettingService settingService = provider.GetRequiredService<ISettingService>();
+            IWorkContext workContext = provider.GetRequiredService<IWorkContext>();
 
-            #endregion
+            LanguageDetailDto? currentLanguage = workContext.GetCurrentLanguageAsync().GetAwaiter().GetResult();
+            int currentLanguageId = currentLanguage?.Id ?? 0;
 
-        }
+            MethodInfo? method = settingService.GetType().GetMethod(nameof(ISettingService.LoadSettings));
+            MethodInfo? genericMethod = method?.MakeGenericMethod(type);
 
-        public static void AddMemoryCacheService(this IHostApplicationBuilder builder)
-        {
-            builder.Services.AddSingleton<ICacheService>(provider =>
-                    provider.GetRequiredService<ILocalCacheService>());
-        }
-    }
+            return genericMethod?.Invoke(settingService, new object[] { currentLanguageId })!;
+         });
+      }
+
+      #endregion
+   }
+
+   public static void AddMemoryCacheService(this IHostApplicationBuilder builder)
+   {
+      builder.Services.AddSingleton<ICacheService>((IServiceProvider provider) =>
+              provider.GetRequiredService<ILocalCacheService>());
+   }
 }

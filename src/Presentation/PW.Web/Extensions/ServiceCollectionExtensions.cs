@@ -8,126 +8,125 @@ using PW.Application.Common.Interfaces;
 using PW.Identity;
 using PW.Persistence;
 using PW.Services;
-using PW.Web.Areas.Admin.Features.Configuration.Services;
-using PW.Web.Areas.Admin.Features.Language.Services;
+using PW.Web.Areas.Admin.Features.Configurations.Services;
+using PW.Web.Areas.Admin.Features.Languages.Services;
 using PW.Web.Areas.Admin.Features.User.Services;
 using PW.Web.Features.Auth.Services;
 using System.Globalization;
 using System.Reflection;
 using PW.Redis;
-using PW.Web.Areas.Admin.Features.Technology.Services;
-using PW.Web.Areas.Admin.Features.Category.Services;
+using PW.Web.Areas.Admin.Features.Technologies.Services;
+using PW.Web.Areas.Admin.Features.Categories.Services;
 
-namespace PW.Web.Extensions
+namespace PW.Web.Extensions;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddProjectServices(this IServiceCollection services, WebApplicationBuilder builder)
     {
-        public static IServiceCollection AddProjectServices(this IServiceCollection services, WebApplicationBuilder builder)
-        {
-            builder.AddProjectConfiguration();
-            builder.AddPersistenceServices();
-            builder.AddIdentityServices();
-            builder.AddApplicationServices();
-            builder.AddServiceServices();
-            builder.AddCacheServices();
-            services.AddWebInfrastructure();
-            services.AddOrchestrators();
-            services.ConfigureCustomCookie();
-            services.AddDatabaseLocalizationServices();
-            return services;
-        }
+        builder.AddProjectConfiguration();
+        builder.AddPersistenceServices();
+        builder.AddIdentityServices();
+        builder.AddApplicationServices();
+        builder.AddServiceServices();
+        builder.AddCacheServices();
+        services.AddWebInfrastructure();
+        services.AddOrchestrators();
+        services.ConfigureCustomCookie();
+        services.AddDatabaseLocalizationServices();
+        return services;
+    }
 
-        private static IServiceCollection AddWebInfrastructure(this IServiceCollection services)
-        {
-            services.AddControllersWithViews(options =>
-                {
-                    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-                })
-                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-                .AddDataAnnotationsLocalization()
-                .AddRazorRuntimeCompilation();
-
-            services.AddHttpContextAccessor();
-            services.AddMemoryCache();
-            services.AddScoped<IWorkContext, WorkContext>();
-            services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
-            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
-
-            return services;
-        }
-
-        public static IServiceCollection AddDatabaseLocalizationServices(this IServiceCollection services)
-        {
-            services.AddLocalization();
-
-            services.Configure<RequestLocalizationOptions>(options =>
+    private static IServiceCollection AddWebInfrastructure(this IServiceCollection services)
+    {
+        services.AddControllersWithViews(options =>
             {
-                var supportedCultures = new List<CultureInfo>
-                {
-                    new CultureInfo("en"),
-                    new CultureInfo("tr")
-                };
-                options.SupportedCultures = supportedCultures;
-                options.SupportedUICultures = supportedCultures;
-                options.DefaultRequestCulture = new RequestCulture("en");
-                options.RequestCultureProviders.Clear();
-                options.RequestCultureProviders.Add(new RouteDataRequestCultureProvider() { Options = options });
-                options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
-                options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
-                options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            })
+            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+            .AddDataAnnotationsLocalization()
+            .AddRazorRuntimeCompilation();
 
-            });
+        services.AddHttpContextAccessor();
+        services.AddMemoryCache();
+        services.AddScoped<IWorkContext, WorkContext>();
+        services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            return services;
-        }
+        return services;
+    }
 
-        private static IServiceCollection AddOrchestrators(this IServiceCollection services)
+    public static IServiceCollection AddDatabaseLocalizationServices(this IServiceCollection services)
+    {
+        services.AddLocalization();
+
+        services.Configure<RequestLocalizationOptions>(options =>
         {
-            services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
-            services.AddScoped<IUserOrchestrator, UserOrchestrator>();
-            services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
-            services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
-            services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
-            services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
-            services.AddScoped<ICategoryOrchestrator, CategoryOrchestrator>();
-            return services;
-        }
-
-        public static WebApplicationBuilder AddProjectConfiguration(this WebApplicationBuilder builder)
-        {
-            builder.Configuration
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-
-            return builder;
-        }
-
-        private static void AddCacheServices(this WebApplicationBuilder builder)
-        {
-            string? redisConnectionString = builder.Configuration.GetConnectionString("Redis");
-
-            if (!string.IsNullOrEmpty(redisConnectionString))
-                builder.AddRedisServices();
-
-            else
-                builder.AddMemoryCacheService();
-        }
-
-        private static IServiceCollection ConfigureCustomCookie(this IServiceCollection services)
-        {
-            services.ConfigureApplicationCookie(options =>
+            var supportedCultures = new List<CultureInfo>
             {
-                options.AccessDeniedPath = "/Error/403";
-                options.LoginPath = "/auth/login";
-                options.LogoutPath = "/auth/logout";
-                options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
-                options.SlidingExpiration = true;
-            });
-            return services;
-        }
+                new CultureInfo("en"),
+                new CultureInfo("tr")
+            };
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
+            options.DefaultRequestCulture = new RequestCulture("en");
+            options.RequestCultureProviders.Clear();
+            options.RequestCultureProviders.Add(new RouteDataRequestCultureProvider() { Options = options });
+            options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
+            options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
+            options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddOrchestrators(this IServiceCollection services)
+    {
+        services.AddScoped<IAuthOrchestrator, AuthOrchestrator>();
+        services.AddScoped<IUserOrchestrator, UserOrchestrator>();
+        services.AddScoped<ILanguageOrchestrator, LanguageOrchestrator>();
+        services.AddScoped<IProfileSettingsOrchestrator, ProfileSettingsOrchestrator>();
+        services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
+        services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
+        services.AddScoped<ICategoryOrchestrator, CategoryOrchestrator>();
+        return services;
+    }
+
+    public static WebApplicationBuilder AddProjectConfiguration(this WebApplicationBuilder builder)
+    {
+        builder.Configuration
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+            .AddEnvironmentVariables();
+
+        return builder;
+    }
+
+    private static void AddCacheServices(this WebApplicationBuilder builder)
+    {
+        string? redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+
+        if (!string.IsNullOrEmpty(redisConnectionString))
+            builder.AddRedisServices();
+
+        else
+            builder.AddMemoryCacheService();
+    }
+
+    private static IServiceCollection ConfigureCustomCookie(this IServiceCollection services)
+    {
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.AccessDeniedPath = "/Error/403";
+            options.LoginPath = "/auth/login";
+            options.LogoutPath = "/auth/logout";
+            options.Cookie.HttpOnly = true;
+            options.ExpireTimeSpan = TimeSpan.FromDays(30);
+            options.SlidingExpiration = true;
+        });
+        return services;
     }
 }

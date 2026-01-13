@@ -1,14 +1,13 @@
 using PW.Application.Models;
-using PW.Domain.Entities;
+using PW.Application.Models.Dtos.Content;
 
-namespace PW.Application.Interfaces.Content
+namespace PW.Application.Interfaces.Content;
+
+public interface ICategoryService
 {
-    public interface ICategoryService
-    {
-        Task<Category> GetCategoryByIdAsync(int categoryId);
-        Task<IList<Category>> GetAllCategoriesAsync();
-        Task<OperationResult> InsertCategoryAsync(Category category);
-        Task<OperationResult> UpdateCategoryAsync(Category category);
-        Task<OperationResult> DeleteCategoryAsync(Category category);
-    }
+   Task<CategoryDetailDto?> GetCategoryByIdAsync(int categoryId);
+   Task<IList<CategorySummaryDto>> GetAllCategoriesAsync();
+   Task<OperationResult> CreateCategoryAsync(CategoryCreateDto categoryCreateDto);
+   Task<OperationResult> UpdateCategoryAsync(CategoryUpdateDto categoryUpdateDto);
+   Task<OperationResult> DeleteCategoryAsync(int categoryId);
 }

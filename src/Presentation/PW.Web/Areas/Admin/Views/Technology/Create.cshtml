@@ -96,14 +96,6 @@
 
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
-                        <div class="col-md-6 fv-row">
-                            <label asp-for="DocumentationUrl" class="form-label fs-7 fw-semibold"></label>
-
-                            <input asp-for="DocumentationUrl" class="form-control form-control-sm"
-                                placeholder="https://..." maxlength="@ApplicationLimits.Technology.UrlMaxLength" />
-
-                            <span asp-validation-for="DocumentationUrl" class="text-danger"></span>
-                        </div>
                     </div>
 
                     <div class="row mb-5">
@@ -117,11 +109,11 @@
                     </div>
                 </div>
 
-                @for (int i = 0; i < Model.Locales.Count; i++)
+                @for (int i = 0; i < Model.Translations.Count; i++)
                 {
-                    <div class="tab-pane fade" id="tab_lang_@Model.Locales[i].LanguageId" role="tabpanel">
-                        <input type="hidden" asp-for="Locales[i].LanguageId" />
-                        <input type="hidden" asp-for="Locales[i].LanguageCode" />
+                    <div class="tab-pane fade" id="tab_lang_@Model.Translations[i].LanguageId" role="tabpanel">
+                        <input type="hidden" asp-for="Translations[i].LanguageId" />
+                        <input type="hidden" asp-for="Translations[i].LanguageCode" />
 
                         <div
                             class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
@@ -130,7 +122,7 @@
                             </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
-                                                                    Model.Locales[i].LanguageId)?.Name</h5>
+                                                                    Model.Translations[i].LanguageId)?.Name</h5>
                             <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
                                 this language. Leave empty to use Standard values.</span>
                         </div>
@@ -138,23 +130,24 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
-                                <label class="form-label fs-7 fw-semibold">Name (@Model.Locales[i].LanguageCode)</label>
+                                <label class="form-label fs-7 fw-semibold">Name
+                                    (@Model.Translations[i].LanguageCode)</label>
 
-                                <input asp-for="Locales[i].Name" class="form-control form-control-sm"
+                                <input asp-for="Translations[i].Name" class="form-control form-control-sm"
                                     placeholder="Standard Name Override"
                                     maxlength="@ApplicationLimits.Technology.NameMaxLength" />
-                                <span asp-validation-for="Locales[i].Name" class="text-danger"></span>
+                                <span asp-validation-for="Translations[i].Name" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
                                 <label class="form-label fs-7 fw-semibold">Description
-                                    (@Model.Locales[i].LanguageCode)</label>
+                                    (@Model.Translations[i].LanguageCode)</label>
 
-                                <textarea asp-for="Locales[i].Description" class="form-control form-control-sm" rows="3"
-                                    maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
-                                <span asp-validation-for="Locales[i].Description" class="text-danger"></span>
+                                <textarea asp-for="Translations[i].Description" class="form-control form-control-sm"
+                                    rows="3" maxlength="@ApplicationLimits.Technology.DescriptionMaxLength"></textarea>
+                                <span asp-validation-for="Translations[i].Description" class="text-danger"></span>
                             </div>
                         </div>
                     </div>

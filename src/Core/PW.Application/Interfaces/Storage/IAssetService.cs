@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Http;
+using PW.Application.Models;
+using PW.Application.Models.Dtos.Storages;
 using PW.Domain.Entities;
 
-namespace PW.Application.Interfaces.Storage
-{
-    public interface IAssetService
-    {
-        Task<Asset> UploadAsync(IFormFile file, string folder, string seoTitle, string altText = null);
+namespace PW.Application.Interfaces.Storage;
 
-        Task DeleteAsync(int assetId);
-    }
+public interface IAssetService
+{
+    Task<OperationResult<Asset>> UploadAsync(AssetUploadDto assetUploadDto);
+
+    Task<OperationResult> DeleteAsync(int assetId);
 }

@@ -1,42 +1,58 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using PW.Application.Common.Constants;
 using PW.Domain.Entities;
 
-namespace PW.Persistence.Configurations.Localization
+namespace PW.Persistence.Configurations.Localization;
+
+public class LanguageConfiguration : IEntityTypeConfiguration<Language>
 {
-    public class LanguageConfiguration : IEntityTypeConfiguration<Language>
+    public void Configure(EntityTypeBuilder<Language> builder)
     {
-        public void Configure(EntityTypeBuilder<Language> builder)
-        {
-            builder.ToTable("Languages");
+        builder.ToTable("Languages");
 
-            builder.HasKey(l => l.Id);
+        builder.HasKey(language => language.Id);
 
-            builder.Property(l => l.Code)
-                .IsRequired()
-                .HasMaxLength(ApplicationLimits.Language.CodeMaxLength);
+        builder.Property(language => language.Code)
+            .IsRequired()
+            .HasMaxLength(ApplicationLimits.Language.CodeMaxLength);
 
-            builder.Property(l => l.Name)
-                .IsRequired()
-                .HasMaxLength(ApplicationLimits.Common.NameMaxLength);
+        builder.Property(language => language.Name)
+            .IsRequired()
+            .HasMaxLength(ApplicationLimits.Common.NameMaxLength);
 
-            builder.Property(l => l.FlagImageFileName)
-                .HasMaxLength(255);
+        builder.Property(language => language.FlagImageFileName)
+            .HasMaxLength(255);
 
-            builder.Property(l => l.IsPublished).IsRequired();
-            builder.Property(l => l.IsDefault).IsRequired();
-            builder.Property(l => l.DisplayOrder).IsRequired();
+        builder.Property(language => language.IsPublished)
+            .IsRequired()
+            .HasDefaultValue(true);
 
-            builder.HasIndex(l => l.Code)
-                .IsUnique()
-                .HasFilter("\"IsDeleted\" = false")
-                .HasDatabaseName("IX_Language_Code_Unique_Active");
+        builder.Property(language => language.IsDefault)
+            .IsRequired()
+            .HasDefaultValue(false);
 
-            builder.Property(l => l.IsDeleted).IsRequired();
-            builder.Property(l => l.DeletedAt).IsRequired(false);
-            builder.Property(l => l.CreatedAt).IsRequired();
-            builder.Property(l => l.UpdatedAt).IsRequired(false);
-        }
+        builder.Property(language => language.DisplayOrder)
+            .IsRequired()
+            .HasDefaultValue(0);
+
+        builder.Property(language => language.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(language => language.DeletedAt)
+            .IsRequired(false);
+
+        builder.Property(language => language.CreatedAt)
+            .IsRequired();
+
+        builder.Property(language => language.UpdatedAt)
+            .IsRequired(false);
+
+        builder.HasIndex(language => language.Code)
+            .IsUnique()
+            .HasFilter("\"IsDeleted\" = false")
+            .HasDatabaseName("IX_Language_Code_Unique_Active");
     }
 }

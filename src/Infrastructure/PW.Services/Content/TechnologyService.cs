@@ -1,98 +1,251 @@
+using Microsoft.EntityFrameworkCore;
+using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Repositories;
+using PW.Application.Interfaces.Storage;
 using PW.Application.Models;
+using PW.Application.Models.Dtos.Content;
 using PW.Domain.Entities;
 
-namespace PW.Services.Content
+namespace PW.Services.Content;
+
+public class TechnologyService : ITechnologyService
 {
-    public class TechnologyService : ITechnologyService
-    {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IRepository<Technology> _technologyRepository;
+   private readonly IUnitOfWork _unitOfWork;
+   private readonly IRepository<Technology> _technologyRepository;
+   private readonly IStorageService _storageService;
 
-        public TechnologyService(IUnitOfWork unitOfWork)
-        {
-            _unitOfWork = unitOfWork;
-            _technologyRepository = _unitOfWork.GetRepository<Technology>();
-        }
+   public TechnologyService(IUnitOfWork unitOfWork, IStorageService storageService)
+   {
+      _unitOfWork = unitOfWork;
+      _technologyRepository = _unitOfWork.GetRepository<Technology>();
+      _storageService = storageService;
+   }
 
-        public async Task<Technology> GetTechnologyByIdAsync(int technologyId)
-        {
-            if (technologyId <= 0) return null;
-            return await _technologyRepository.FindAsync(technologyId);
-        }
+   public async Task<IList<TechnologySummaryDto>> GetAllTechnologiesAsync()
+   {
+      IList<Technology> technologies = await _technologyRepository.GetAllAsync(
+          orderBy: query => query.OrderByDescending(technology => technology.CreatedAt)
+      );
 
-        public async Task<IList<Technology>> GetAllTechnologiesAsync()
-        {
-            return await _technologyRepository.GetAllAsync();
-        }
+      IList<TechnologySummaryDto> result = technologies.Select(technology => new TechnologySummaryDto
+      {
+         Id = technology.Id,
+         Name = technology.Name,
+         Description = technology.Description,
+         IconImageFileName = technology.IconImageFileName,
+         IsActive = technology.IsActive,
+         CreatedAt = technology.CreatedAt
+      }).ToList();
 
-        public async Task<OperationResult> InsertTechnologyAsync(Technology technology)
-        {
-            if (technology is null)
-                throw new ArgumentNullException(nameof(technology));
+      return result;
+   }
 
-            bool technologyExists = await _technologyRepository.ExistsAsync(t => t.Name == technology.Name);
+   public async Task<TechnologyDetailDto?> GetTechnologyByIdAsync(int technologyId)
+   {
+      if (technologyId <= 0) return null;
 
-            if (technologyExists)
-                return OperationResult.Failure("Technology name exists.", OperationErrorType.Conflict);
+      Technology technology = await _technologyRepository.GetFirstOrDefaultAsync(
+          predicate: technology => technology.Id == technologyId,
+          include: source => source.Include(technology => technology.Translations)
+      );
 
-            try
+      if (technology == null) return null;
+
+      return new TechnologyDetailDto
+      {
+         Id = technology.Id,
+         Name = technology.Name,
+         Description = technology.Description ?? string.Empty,
+         IsActive = technology.IsActive,
+         IconImageFileName = technology.IconImageFileName,
+         Translations = technology.Translations.Select(translation => new TechnologyTranslationDto
+         {
+            LanguageId = translation.LanguageId,
+            Name = translation.Name,
+            Description = translation.Description
+         })
+            .ToList()
+      };
+   }
+
+   public async Task<OperationResult> CreateTechnologyAsync(TechnologyCreateDto technologyCreateDto)
+   {
+      if (technologyCreateDto == null)
+         throw new ArgumentNullException(nameof(technologyCreateDto));
+
+      bool nameExists = await _technologyRepository.ExistsAsync(technology => technology.Name == technologyCreateDto.Name);
+
+      if (nameExists)
+         return OperationResult.Failure("Technology name already exists.", OperationErrorType.Conflict);
+
+      string? uploadedIconName = null;
+
+      try
+      {
+         uploadedIconName = await ProcessIconImageAsync(
+             fileStream: technologyCreateDto.IconImageStream,
+             fileName: technologyCreateDto.IconImageFileName,
+             isRemoveRequested: false,
+             currentDbFileName: null,
+             slugName: technologyCreateDto.Name
+         );
+
+         Technology technology = new Technology
+         {
+            Name = technologyCreateDto.Name,
+            Description = technologyCreateDto.Description,
+            IsActive = technologyCreateDto.IsActive,
+            IconImageFileName = uploadedIconName ?? string.Empty,
+            CreatedAt = DateTime.UtcNow,
+            Translations = technologyCreateDto.Translations.Select(dto => new TechnologyTranslation
             {
-                await _technologyRepository.InsertAsync(technology);
-                await _unitOfWork.CommitAsync();
+               LanguageId = dto.LanguageId,
+               Name = dto.Name,
+               Description = dto.Description
+            }).ToList()
+         };
 
-                return OperationResult.Success();
-            }
-            catch (Exception)
+         await _technologyRepository.InsertAsync(technology);
+         await _unitOfWork.CommitAsync();
+
+         return OperationResult.Success();
+      }
+      catch (Exception)
+      {
+         if (!string.IsNullOrEmpty(uploadedIconName))
+            await _storageService.DeleteAsync(StoragePaths.System_Technologies, uploadedIconName);
+
+         return OperationResult.Failure("Failed to create technology.", OperationErrorType.Technical);
+      }
+   }
+
+   public async Task<OperationResult> UpdateTechnologyAsync(TechnologyUpdateDto technologyUpdateDto)
+   {
+      if (technologyUpdateDto == null)
+         throw new ArgumentNullException(nameof(technologyUpdateDto));
+
+      Technology technology = await _technologyRepository.GetFirstOrDefaultAsync(
+          predicate: technology => technology.Id == technologyUpdateDto.Id,
+          include: source => source.Include(technology => technology.Translations),
+          disableTracking: false
+      );
+
+      if (technology == null)
+         return OperationResult.Failure("Technology not found.", OperationErrorType.NotFound);
+
+      if (technology.Name != technologyUpdateDto.Name)
+      {
+         bool nameExists = await _technologyRepository.ExistsAsync(technology => technology.Name == technologyUpdateDto.Name);
+         if (nameExists)
+            return OperationResult.Failure("Technology name already exists.", OperationErrorType.Conflict);
+      }
+
+      try
+      {
+         technology.IconImageFileName = await ProcessIconImageAsync(
+             fileStream: technologyUpdateDto.IconImageStream,
+             fileName: technologyUpdateDto.IconImageFileName,
+             isRemoveRequested: technologyUpdateDto.RemoveIconImage,
+             currentDbFileName: technology.IconImageFileName,
+             slugName: technologyUpdateDto.Name
+         ) ?? string.Empty;
+
+         technology.Name = technologyUpdateDto.Name;
+         technology.Description = technologyUpdateDto.Description;
+         technology.IsActive = technologyUpdateDto.IsActive;
+         technology.UpdatedAt = DateTime.UtcNow;
+         ApplyTranslations(technology, technologyUpdateDto.Translations);
+
+         await _unitOfWork.CommitAsync();
+
+         return OperationResult.Success();
+      }
+      catch (Exception)
+      {
+         return OperationResult.Failure("Failed to update technology.", OperationErrorType.Technical);
+      }
+   }
+
+   public async Task<OperationResult> DeleteTechnologyAsync(int technologyId)
+   {
+      Technology technology = await _technologyRepository.GetFirstOrDefaultAsync(predicate: technology => technology.Id == technologyId);
+
+      if (technology == null)
+         return OperationResult.Failure("Technology not found.", OperationErrorType.NotFound);
+
+      try
+      {
+         if (!string.IsNullOrEmpty(technology.IconImageFileName))
+            await _storageService.DeleteAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
+
+         _technologyRepository.Delete(technology);
+         await _unitOfWork.CommitAsync();
+
+         return OperationResult.Success();
+      }
+      catch (Exception)
+      {
+         return OperationResult.Failure("Failed to delete technology.", OperationErrorType.Technical);
+      }
+   }
+
+   private async Task<string?> ProcessIconImageAsync(Stream? fileStream, string? fileName, bool isRemoveRequested, string? currentDbFileName, string slugName)
+   {
+      if (fileStream != null && !string.IsNullOrEmpty(fileName))
+      {
+         if (!string.IsNullOrEmpty(currentDbFileName))
+            await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
+
+         return await _storageService.UploadAsync(
+             fileStream: fileStream,
+             fileName: fileName,
+             folder: StoragePaths.System_Technologies,
+             mode: FileNamingMode.Unique,
+             customName: slugName
+         );
+      }
+
+      if (isRemoveRequested && !string.IsNullOrEmpty(currentDbFileName))
+      {
+         await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
+         return null;
+      }
+
+      return currentDbFileName;
+   }
+
+   private void ApplyTranslations(Technology technology, List<TechnologyTranslationDto> translationDtos)
+   {
+      foreach (var translationDto in translationDtos)
+      {
+         bool allFieldsEmpty = string.IsNullOrWhiteSpace(translationDto.Name) && string.IsNullOrWhiteSpace(translationDto.Description);
+
+         TechnologyTranslation? existingTranslation = technology.Translations.FirstOrDefault(translation => translation.LanguageId == translationDto.LanguageId);
+
+         if (allFieldsEmpty)
+         {
+            if (existingTranslation != null)
+               technology.Translations.Remove(existingTranslation);
+            continue;
+         }
+
+         if (existingTranslation != null)
+         {
+            existingTranslation.Name = translationDto.Name;
+            existingTranslation.Description = translationDto.Description;
+         }
+         else
+         {
+            technology.Translations.Add(new TechnologyTranslation
             {
-                return OperationResult.Failure("Failed to create technology.", OperationErrorType.Technical);
-            }
-        }
+               LanguageId = translationDto.LanguageId,
+               Name = translationDto.Name,
+               Description = translationDto.Description
+            });
+         }
+      }
+   }
 
-        public async Task<OperationResult> UpdateTechnologyAsync(Technology technology)
-        {
-            if (technology is null)
-                throw new ArgumentNullException(nameof(technology));
-
-            Technology existingTechnology = await _technologyRepository.FindAsync(technology.Id);
-
-            if (existingTechnology is null)
-                return OperationResult.Failure("Technology not found.", OperationErrorType.NotFound);
-
-            try
-            {
-                _technologyRepository.Update(technology);
-                await _unitOfWork.CommitAsync();
-
-                return OperationResult.Success();
-            }
-            catch (Exception)
-            {
-                return OperationResult.Failure("Failed to update technology.", OperationErrorType.Technical);
-            }
-        }
-
-        public async Task<OperationResult> DeleteTechnologyAsync(Technology technology)
-        {
-            if (technology is null)
-                throw new ArgumentNullException(nameof(technology));
-
-            // Business Rule: Check if used in any Project?
-            // if (technology.Projects.Any()) return OperationResult.Failure("Cannot delete used technology.", OperationErrorType.BusinessRule);
-
-            try
-            {
-                _technologyRepository.Delete(technology);
-                await _unitOfWork.CommitAsync();
-
-                return OperationResult.Success();
-            }
-            catch (Exception)
-            {
-                return OperationResult.Failure("Failed to delete technology.", OperationErrorType.Technical);
-            }
-        }
-    }
 }

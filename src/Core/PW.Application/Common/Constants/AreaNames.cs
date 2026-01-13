@@ -1,7 +1,6 @@
-namespace PW.Application.Common.Constants
+namespace PW.Application.Common.Constants;
+
+public static class AreaNames
 {
-    public static class AreaNames
-    {
-        public const string Admin = "Admin";
-    }
+    public const string Admin = "Admin";
 }

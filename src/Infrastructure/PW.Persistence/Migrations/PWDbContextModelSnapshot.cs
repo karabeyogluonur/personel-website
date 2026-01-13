@@ -31,7 +31,6 @@ namespace PW.Persistence.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AltText")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
@@ -55,14 +54,39 @@ namespace PW.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<long>("SizeBytes")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
                     b.HasIndex("FileName");
 
                     b.ToTable("Assets", (string)null);
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.AssetTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AltText")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("EntityId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("AssetTranslations", (string)null);
                 });
 
             modelBuilder.Entity("PW.Domain.Entities.Category", b =>
@@ -72,10 +96,6 @@ namespace PW.Persistence.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CoverImageFileName")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -112,6 +132,38 @@ namespace PW.Persistence.Migrations
                     b.ToTable("Categories", (string)null);
                 });
 
+            modelBuilder.Entity("PW.Domain.Entities.CategoryTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("EntityId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("CategoryTranslations", (string)null);
+                });
+
             modelBuilder.Entity("PW.Domain.Entities.Language", b =>
                 {
                     b.Property<int>("Id")
@@ -132,7 +184,9 @@ namespace PW.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("DisplayOrder")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("FlagImageFileName")
                         .IsRequired()
@@ -140,13 +194,19 @@ namespace PW.Persistence.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsPublished")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -166,7 +226,33 @@ namespace PW.Persistence.Migrations
                     b.ToTable("Languages", (string)null);
                 });
 
-            modelBuilder.Entity("PW.Domain.Entities.LocalizedProperty", b =>
+            modelBuilder.Entity("PW.Domain.Entities.Setting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Settings", (string)null);
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.SettingTranslation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -180,57 +266,19 @@ namespace PW.Persistence.Migrations
                     b.Property<int>("LanguageId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("LocaleKey")
+                    b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("character varying(400)");
-
-                    b.Property<string>("LocaleKeyGroup")
-                        .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("character varying(400)");
-
-                    b.Property<string>("LocaleValue")
-                        .IsRequired()
-                        .HasMaxLength(2147483647)
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LanguageId");
 
-                    b.HasIndex("EntityId", "LocaleKeyGroup");
-
-                    b.ToTable("LocalizedProperties", (string)null);
-                });
-
-            modelBuilder.Entity("PW.Domain.Entities.Setting", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(2147483647)
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
+                    b.HasIndex("EntityId", "LanguageId")
                         .IsUnique();
 
-                    b.ToTable("Settings", (string)null);
+                    b.ToTable("SettingTranslations", (string)null);
                 });
 
             modelBuilder.Entity("PW.Domain.Entities.Technology", b =>
@@ -248,11 +296,6 @@ namespace PW.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
-
-                    b.Property<string>("DocumentationUrl")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("character varying(250)");
 
                     b.Property<string>("IconImageFileName")
                         .IsRequired()
@@ -279,13 +322,132 @@ namespace PW.Persistence.Migrations
                     b.ToTable("Technologies", (string)null);
                 });
 
-            modelBuilder.Entity("PW.Domain.Entities.LocalizedProperty", b =>
+            modelBuilder.Entity("PW.Domain.Entities.TechnologyTranslation", b =>
                 {
-                    b.HasOne("PW.Domain.Entities.Language", null)
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("EntityId", "LanguageId")
+                        .IsUnique();
+
+                    b.ToTable("TechnologyTranslations", (string)null);
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.AssetTranslation", b =>
+                {
+                    b.HasOne("PW.Domain.Entities.Asset", "Entity")
+                        .WithMany("Translations")
+                        .HasForeignKey("EntityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("PW.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.CategoryTranslation", b =>
+                {
+                    b.HasOne("PW.Domain.Entities.Category", "Entity")
+                        .WithMany("Translations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PW.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.SettingTranslation", b =>
+                {
+                    b.HasOne("PW.Domain.Entities.Setting", "Entity")
+                        .WithMany("Translations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PW.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.TechnologyTranslation", b =>
+                {
+                    b.HasOne("PW.Domain.Entities.Technology", "Entity")
+                        .WithMany("Translations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PW.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.Asset", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.Setting", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.Technology", b =>
+                {
+                    b.Navigation("Translations");
                 });
 #pragma warning restore 612, 618
         }

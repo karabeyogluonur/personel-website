@@ -2,70 +2,69 @@ using Microsoft.Extensions.Caching.Memory;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Interfaces;
 
-namespace PW.Services.Caching
+namespace PW.Services.Caching;
+
+public class MemoryCacheManager : ILocalCacheService
 {
-    public class MemoryCacheManager : ILocalCacheService
+    private readonly IMemoryCache _memoryCache;
+    private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+    public MemoryCacheManager(IMemoryCache memoryCache)
     {
-        private readonly IMemoryCache _memoryCache;
-        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        _memoryCache = memoryCache;
+    }
 
-        public MemoryCacheManager(IMemoryCache memoryCache)
+    public Task<T> GetAsync<T>(string cacheKey)
+    {
+        _memoryCache.TryGetValue(cacheKey, out T value);
+        return Task.FromResult(value);
+    }
+
+    public Task SetAsync<T>(string cacheKey, T value, TimeSpan? expiration = null)
+    {
+        var options = new MemoryCacheEntryOptions
         {
-            _memoryCache = memoryCache;
+            AbsoluteExpirationRelativeToNow = expiration ?? CacheDurations.Long
+        };
+
+        _memoryCache.Set(cacheKey, value, options);
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAsync(string cacheKey)
+    {
+        _memoryCache.Remove(cacheKey);
+        return Task.CompletedTask;
+    }
+
+    public async Task<T> GetOrSetAsync<T>(string cacheKey, Func<Task<T>> factory, TimeSpan? expiration = null)
+    {
+        if (_memoryCache.TryGetValue(cacheKey, out T cachedValue))
+        {
+            return cachedValue;
         }
 
-        public Task<T> GetAsync<T>(string cacheKey)
-        {
-            _memoryCache.TryGetValue(cacheKey, out T value);
-            return Task.FromResult(value);
-        }
+        await _semaphore.WaitAsync();
 
-        public Task SetAsync<T>(string cacheKey, T value, TimeSpan? expiration = null)
+        try
         {
-            var options = new MemoryCacheEntryOptions
+            if (_memoryCache.TryGetValue(cacheKey, out T doubleCheckValue))
             {
-                AbsoluteExpirationRelativeToNow = expiration ?? CacheDurations.Long
-            };
-
-            _memoryCache.Set(cacheKey, value, options);
-            return Task.CompletedTask;
-        }
-
-        public Task RemoveAsync(string cacheKey)
-        {
-            _memoryCache.Remove(cacheKey);
-            return Task.CompletedTask;
-        }
-
-        public async Task<T> GetOrSetAsync<T>(string cacheKey, Func<Task<T>> factory, TimeSpan? expiration = null)
-        {
-            if (_memoryCache.TryGetValue(cacheKey, out T cachedValue))
-            {
-                return cachedValue;
+                return doubleCheckValue;
             }
 
-            await _semaphore.WaitAsync();
+            var dbValue = await factory();
 
-            try
+            if (dbValue != null)
             {
-                if (_memoryCache.TryGetValue(cacheKey, out T doubleCheckValue))
-                {
-                    return doubleCheckValue;
-                }
-
-                var dbValue = await factory();
-
-                if (dbValue != null)
-                {
-                    await SetAsync(cacheKey, dbValue, expiration);
-                }
-
-                return dbValue;
+                await SetAsync(cacheKey, dbValue, expiration);
             }
-            finally
-            {
-                _semaphore.Release();
-            }
+
+            return dbValue;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 }

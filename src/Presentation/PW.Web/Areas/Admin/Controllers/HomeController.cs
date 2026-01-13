@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace PW.Web.Areas.Admin.Controllers
+namespace PW.Web.Areas.Admin.Controllers;
+
+public class HomeController : BaseAdminController
 {
-    public class HomeController : BaseAdminController
+    public async Task<IActionResult> Index()
     {
-        public async Task<IActionResult> Index()
-        {
-            return View();
-        }
+        return View();
     }
 }

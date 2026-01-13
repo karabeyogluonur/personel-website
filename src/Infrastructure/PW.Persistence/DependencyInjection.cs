@@ -10,31 +10,30 @@ using PW.Persistence.Repositories;
 using PW.Application.Interfaces.Repositories;
 using PW.Application.Common.Interfaces;
 
-namespace PW.Persistence
+namespace PW.Persistence;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static void AddPersistenceServices(this IHostApplicationBuilder builder)
     {
-        public static void AddPersistenceServices(this IHostApplicationBuilder builder)
+        builder.Services.AddSingleton(TimeProvider.System);
+
+        #region Contexts
+        builder.Services.AddScoped<IPWDbContext>(provider => provider.GetRequiredService<PWDbContext>());
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
+        builder.Services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
+
+        builder.Services.AddDbContext<PWDbContext>((sp, options) =>
         {
-            builder.Services.AddSingleton(TimeProvider.System);
+            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+            options.EnableSensitiveDataLogging();
+        });
 
-            #region Contexts
-            builder.Services.AddScoped<IPWDbContext>(provider => provider.GetRequiredService<PWDbContext>());
-            builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
-            builder.Services.AddScoped<ISaveChangesInterceptor, SoftDeleteInterceptor>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<DatabaseInitialiser>();
 
-            builder.Services.AddDbContext<PWDbContext>((sp, options) =>
-            {
-                options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-                options.EnableSensitiveDataLogging();
-            });
+        #endregion
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<DatabaseInitialiser>();
-
-            #endregion
-
-        }
     }
 }

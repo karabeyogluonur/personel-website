@@ -1,18 +1,16 @@
 using PW.Application.Models;
-using PW.Domain.Entities;
+using PW.Application.Models.Dtos.Localization;
 
-namespace PW.Application.Interfaces.Localization
+namespace PW.Application.Interfaces.Localization;
+
+public interface ILanguageService
 {
-    public interface ILanguageService
-    {
-        Task<IList<Language>> GetAllPublishedLanguagesAsync();
-        Task<IList<Language>> GetAllLanguagesAsync();
-        Task<Language> GetLanguageByCodeAsync(string languageCode);
-        Task<Language> GetLanguageByIdAsync(int languageId);
-        Task<Language> GetDefaultLanguageAsync();
-        Task<OperationResult> InsertLanguageAsync(Language language);
-        Task<OperationResult> UpdateLanguageAsync(Language language);
-        Task<OperationResult> DeleteLanguageAsync(Language language);
-
-    }
+   Task<IList<LanguageSummaryDto>> GetAllLanguagesAsync();
+   Task<IList<LanguageLookupDto>> GetLanguagesLookupAsync();
+   Task<LanguageDetailDto?> GetLanguageByCodeAsync(string languageCode);
+   Task<LanguageDetailDto?> GetLanguageByIdAsync(int languageId);
+   Task<LanguageDetailDto?> GetDefaultLanguageAsync();
+   Task<OperationResult> CreateLanguageAsync(LanguageCreateDto languageCreateDto);
+   Task<OperationResult> UpdateLanguageAsync(LanguageUpdateDto languageUpdateDto);
+   Task<OperationResult> DeleteLanguageAsync(int languageId);
 }

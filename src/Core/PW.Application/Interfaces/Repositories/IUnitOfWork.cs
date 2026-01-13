@@ -1,16 +1,15 @@
-namespace PW.Application.Interfaces.Repositories
+namespace PW.Application.Interfaces.Repositories;
+
+public interface IUnitOfWork : IDisposable
 {
-    public interface IUnitOfWork : IDisposable
-    {
 
-        Task<int> CommitAsync();
+    Task<int> CommitAsync();
 
-        IRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
+    IRepository<TEntity> GetRepository<TEntity>() where TEntity : class;
 
-        Task BeginTransactionAsync();
+    Task BeginTransactionAsync();
 
-        Task CommitTransactionAsync();
+    Task CommitTransactionAsync();
 
-        Task RollbackTransactionAsync();
-    }
+    Task RollbackTransactionAsync();
 }

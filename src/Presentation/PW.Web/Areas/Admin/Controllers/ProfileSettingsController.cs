@@ -1,43 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
-using PW.Web.Areas.Admin.Features.Configuration.Services;
-using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 
-namespace PW.Web.Areas.Admin.Controllers
+using PW.Web.Areas.Admin.Features.Configurations.Services;
+using PW.Web.Areas.Admin.Features.Configurations.ViewModels;
+
+namespace PW.Web.Areas.Admin.Controllers;
+
+public class ProfileSettingsController : BaseAdminController
 {
-    public class ProfileSettingsController : BaseAdminController
+    private readonly IProfileSettingsOrchestrator _orchestrator;
+
+    public ProfileSettingsController(IProfileSettingsOrchestrator orchestrator)
     {
-        private readonly IProfileSettingsOrchestrator _orchestrator;
+        _orchestrator = orchestrator;
+    }
 
-        public ProfileSettingsController(IProfileSettingsOrchestrator orchestrator)
+    [HttpGet]
+    public async Task<IActionResult> Index()
+    {
+        var result = await _orchestrator.PrepareProfileSettingsViewModelAsync();
+
+        if (result.IsFailure)
         {
-            _orchestrator = orchestrator;
+            await _notificationService.ErrorNotificationAsync("An error occurred while loading profile settings.");
+            return RedirectToAction("Index", "Home");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            var result = await _orchestrator.PrepareProfileSettingsViewModelAsync();
+        return View(result.Data);
+    }
 
-            if (result.IsFailure)
-            {
-                await _notificationService.ErrorNotificationAsync("An error occurred while loading profile settings.");
-                return RedirectToAction("Index", "Home");
-            }
-
-            return View(result.Data);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(ProfileSettingsViewModel profileSettingsViewModel)
-        {
-            return await HandleFormAsync(
-                viewModel: profileSettingsViewModel,
-                workAction: () => _orchestrator.UpdateProfileSettingsAsync(profileSettingsViewModel),
-                reloadAction: () => _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel),
-                successMessage: "Profile settings updated successfully.",
-                redirectTo: nameof(Index)
-            );
-        }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Index(ProfileSettingsViewModel profileSettingsViewModel)
+    {
+        return await HandleFormAsync(
+            viewModel: profileSettingsViewModel,
+            workAction: () => _orchestrator.UpdateProfileSettingsAsync(profileSettingsViewModel),
+            reloadAction: () => _orchestrator.PrepareProfileSettingsViewModelAsync(profileSettingsViewModel),
+            successMessage: "Profile settings updated successfully.",
+            redirectTo: nameof(Index)
+        );
     }
 }

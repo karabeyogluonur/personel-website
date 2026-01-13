@@ -1,44 +1,43 @@
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using PW.Application.Interfaces.Storage;
 
-namespace PW.Web.TagHelpers
+namespace PW.Web.TagHelpers;
+
+[HtmlTargetElement("img", Attributes = "file-name, folder")]
+public class StorageImageTagHelper : TagHelper
 {
-    [HtmlTargetElement("img", Attributes = "file-name, folder")]
-    public class StorageImageTagHelper : TagHelper
+    private readonly IStorageService _storageService;
+
+    public StorageImageTagHelper(IStorageService storageService)
     {
-        private readonly IStorageService _storageService;
+        _storageService = storageService;
+    }
 
-        public StorageImageTagHelper(IStorageService storageService)
+    [HtmlAttributeName("file-name")]
+    public string? FileName { get; set; }
+
+    [HtmlAttributeName("folder")]
+    public string? Folder { get; set; }
+
+    [HtmlAttributeName("default-src")]
+    public string? DefaultSrc { get; set; }
+
+    public override void Process(TagHelperContext context, TagHelperOutput output)
+    {
+        if (string.IsNullOrEmpty(FileName))
         {
-            _storageService = storageService;
+            if (!string.IsNullOrEmpty(DefaultSrc))
+                output.Attributes.SetAttribute("src", DefaultSrc);
+            else
+                output.SuppressOutput();
+            return;
         }
 
-        [HtmlAttributeName("file-name")]
-        public string? FileName { get; set; }
+        if (string.IsNullOrEmpty(Folder))
+            return;
 
-        [HtmlAttributeName("folder")]
-        public string? Folder { get; set; }
+        string url = _storageService.GetUrl(Folder, FileName);
 
-        [HtmlAttributeName("default-src")]
-        public string? DefaultSrc { get; set; }
-
-        public override void Process(TagHelperContext context, TagHelperOutput output)
-        {
-            if (string.IsNullOrEmpty(FileName))
-            {
-                if (!string.IsNullOrEmpty(DefaultSrc))
-                    output.Attributes.SetAttribute("src", DefaultSrc);
-                else
-                    output.SuppressOutput();
-                return;
-            }
-
-            if (string.IsNullOrEmpty(Folder))
-                return;
-
-            string url = _storageService.GetUrl(Folder, FileName);
-
-            output.Attributes.SetAttribute("src", url);
-        }
+        output.Attributes.SetAttribute("src", url);
     }
 }

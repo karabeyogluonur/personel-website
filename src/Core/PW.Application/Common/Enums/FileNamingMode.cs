@@ -1,8 +1,7 @@
-namespace PW.Application.Common.Enums
+namespace PW.Application.Common.Enums;
+
+public enum FileNamingMode
 {
-    public enum FileNamingMode
-    {
-        Unique = 0,
-        Specific = 1
-    }
+    Unique = 0,
+    Specific = 1
 }

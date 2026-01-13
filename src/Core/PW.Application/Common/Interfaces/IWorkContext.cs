@@ -1,10 +1,9 @@
-using PW.Domain.Entities;
+using PW.Application.Models.Dtos.Localization;
 
-namespace PW.Application.Common.Interfaces
+namespace PW.Application.Common.Interfaces;
+
+public interface IWorkContext
 {
-    public interface IWorkContext
-    {
-        Task<Language> GetCurrentLanguageAsync();
-        Task SetCurrentLanguageAsync(Language language);
-    }
+   Task<LanguageDetailDto> GetCurrentLanguageAsync();
+   Task SetCurrentLanguageAsync(LanguageDetailDto languageDetailDto);
 }

@@ -1,14 +1,13 @@
 using PW.Application.Models;
-using PW.Domain.Entities;
+using PW.Application.Models.Dtos.Content;
 
-namespace PW.Application.Interfaces.Content
+namespace PW.Application.Interfaces.Content;
+
+public interface ITechnologyService
 {
-    public interface ITechnologyService
-    {
-        Task<Technology> GetTechnologyByIdAsync(int technologyId);
-        Task<IList<Technology>> GetAllTechnologiesAsync();
-        Task<OperationResult> InsertTechnologyAsync(Technology technology);
-        Task<OperationResult> UpdateTechnologyAsync(Technology technology);
-        Task<OperationResult> DeleteTechnologyAsync(Technology technology);
-    }
+   Task<IList<TechnologySummaryDto>> GetAllTechnologiesAsync();
+   Task<TechnologyDetailDto?> GetTechnologyByIdAsync(int technologyId);
+   Task<OperationResult> CreateTechnologyAsync(TechnologyCreateDto technologyCreateDto);
+   Task<OperationResult> UpdateTechnologyAsync(TechnologyUpdateDto technologyUpdateDto);
+   Task<OperationResult> DeleteTechnologyAsync(int technologyId);
 }

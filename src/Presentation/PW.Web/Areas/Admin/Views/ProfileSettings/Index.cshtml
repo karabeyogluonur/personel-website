@@ -1,5 +1,3 @@
-@using PW.Application.Common.Constants
-@using PW.Web.Areas.Admin.Features.Configuration.ViewModels
 @model ProfileSettingsViewModel
 
 @{
@@ -166,12 +164,12 @@
                     </div>
                 </div>
 
-                @for (int i = 0; i < Model.Locales.Count; i++)
+                @for (int i = 0; i < Model.Translations.Count; i++)
                 {
-                    <div class="tab-pane fade" id="tab_lang_@Model.Locales[i].LanguageId" role="tabpanel">
+                    <div class="tab-pane fade" id="tab_lang_@Model.Translations[i].LanguageId" role="tabpanel">
 
-                        <input type="hidden" asp-for="Locales[i].LanguageId" />
-                        <input type="hidden" asp-for="Locales[i].LanguageCode" />
+                        <input type="hidden" asp-for="Translations[i].LanguageId" />
+                        <input type="hidden" asp-for="Translations[i].LanguageCode" />
 
                         <div
                             class="alert alert-dismissible bg-light-primary border border-primary border-dashed d-flex flex-column flex-sm-row p-5 mb-10">
@@ -180,7 +178,7 @@
                             </i>
                             <div class="d-flex flex-column pe-0 pe-sm-10">
                                 <h5 class="mb-1 fs-6">Localization: @Model.AvailableLanguages.FirstOrDefault(x => x.Id ==
-                                                                    Model.Locales[i].LanguageId)?.Name</h5>
+                                                                    Model.Translations[i].LanguageId)?.Name</h5>
                             <span class="fs-7 text-gray-600">Values entered here will override the Standard values for
                                 this language. Leave empty to use Standard values.</span>
                         </div>
@@ -188,24 +186,25 @@
 
                         <div class="row mb-7">
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].AvatarImage"
+                                <label asp-for="@Model.Translations[i].AvatarImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].AvatarPath" folder="@StoragePaths.System_Profiles"
+                                        <img file-name="@Model.Translations[i].AvatarPath"
+                                            folder="@StoragePaths.System_Profiles"
                                             default-src="/uploads/system/blanks/avatar.png" alt="Avatar Local" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(Model.Locales[i].AvatarPath))
+                                    @if (!string.IsNullOrEmpty(Model.Translations[i].AvatarPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="Locales[i].RemoveAvatar" />
+                                                    asp-for="Translations[i].RemoveAvatar" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="Locales[i].RemoveAvatar"></label>
+                                                    asp-for="Translations[i].RemoveAvatar"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="Locales[i].AvatarImage"
+                                        <input type="file" asp-for="Translations[i].AvatarImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
@@ -218,25 +217,26 @@
                         </div>
 
                             <div class="col-md-6">
-                                <label asp-for="@Model.Locales[i].CoverImage"
+                                <label asp-for="@Model.Translations[i].CoverImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
                                 <div class="d-flex align-items-center gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
-                                        <img file-name="@Model.Locales[i].CoverPath" folder="@StoragePaths.System_Profiles"
+                                        <img file-name="@Model.Translations[i].CoverPath"
+                                            folder="@StoragePaths.System_Profiles"
                                             default-src="/uploads/system/blanks/image.svg" style="object-fit:cover"
                                             alt="Cover Local" />
                                     </div>
                                     <div class="d-flex flex-column">
-                                    @if (!string.IsNullOrEmpty(Model.Locales[i].CoverPath))
+                                    @if (!string.IsNullOrEmpty(Model.Translations[i].CoverPath))
                                         {
                                             <div class="form-check form-check-custom form-check-solid mb-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                    asp-for="Locales[i].RemoveCover" />
+                                                    asp-for="Translations[i].RemoveCover" />
                                                 <label class="form-check-label text-gray-700 fs-7"
-                                                    asp-for="Locales[i].RemoveCover"></label>
+                                                    asp-for="Translations[i].RemoveCover"></label>
                                             </div>
                                         }
-                                        <input type="file" asp-for="Locales[i].CoverImage"
+                                        <input type="file" asp-for="Translations[i].CoverImage"
                                             class="form-control form-control-sm"
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
@@ -251,14 +251,16 @@
 
                         <div class="row mb-5">
                             <div class="col-md-6 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].FirstName" class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Locales[i].FirstName" class="form-control form-control-sm"
+                                <label asp-for="@Model.Translations[i].FirstName"
+                                    class="form-label fs-7 fw-semibold"></label>
+                                <input asp-for="Translations[i].FirstName" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.FirstName"
                                     maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
                             </div>
                             <div class="col-md-6 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].LastName" class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Locales[i].LastName" class="form-control form-control-sm"
+                                <label asp-for="@Model.Translations[i].LastName"
+                                    class="form-label fs-7 fw-semibold"></label>
+                                <input asp-for="Translations[i].LastName" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.LastName"
                                     maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
                             </div>
@@ -266,8 +268,9 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].JobTitle" class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Locales[i].JobTitle" class="form-control form-control-sm"
+                                <label asp-for="@Model.Translations[i].JobTitle"
+                                    class="form-label fs-7 fw-semibold"></label>
+                                <input asp-for="Translations[i].JobTitle" class="form-control form-control-sm"
                                     placeholder="Standard: @Model.JobTitle"
                                     maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
                             </div>
@@ -275,8 +278,9 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row mb-7">
-                                <label asp-for="@Model.Locales[i].Biography" class="form-label fs-7 fw-semibold"></label>
-                                <textarea asp-for="Locales[i].Biography" class="form-control form-control-sm" rows="4"
+                                <label asp-for="@Model.Translations[i].Biography"
+                                    class="form-label fs-7 fw-semibold"></label>
+                                <textarea asp-for="Translations[i].Biography" class="form-control form-control-sm" rows="4"
                                     placeholder="Standard: @Model.Biography"
                                     maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
                             </div>

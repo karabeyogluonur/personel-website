@@ -9,45 +9,44 @@ using PW.Identity.Services;
 using PW.Identity.Factories;
 using Microsoft.AspNetCore.Identity;
 
-namespace PW.Identity
+namespace PW.Identity;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static void AddIdentityServices(this IHostApplicationBuilder builder)
     {
-        public static void AddIdentityServices(this IHostApplicationBuilder builder)
+
+        #region Identity
+
+        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+        .AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>()
+        .AddEntityFrameworkStores<AuthDbContext>();
+
+        builder.Services.Configure<SecurityStampValidatorOptions>(options =>
         {
+            options.ValidationInterval = TimeSpan.Zero;
+        });
 
-            #region Identity
+        #endregion
 
-            builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-            .AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>()
-            .AddEntityFrameworkStores<AuthDbContext>();
+        #region Contexts
 
-            builder.Services.Configure<SecurityStampValidatorOptions>(options =>
-            {
-                options.ValidationInterval = TimeSpan.Zero;
-            });
+        builder.Services.AddDbContext<AuthDbContext>((sp, options) =>
+        {
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+            options.EnableSensitiveDataLogging();
+        });
 
-            #endregion
+        builder.Services.AddScoped<IdentityInitialiser>();
 
-            #region Contexts
+        #endregion
 
-            builder.Services.AddDbContext<AuthDbContext>((sp, options) =>
-            {
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-                options.EnableSensitiveDataLogging();
-            });
+        #region Services
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IRoleService, RoleService>();
+        builder.Services.AddScoped<IUserService, UserService>();
 
-            builder.Services.AddScoped<IdentityInitialiser>();
+        #endregion
 
-            #endregion
-
-            #region Services
-            builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IRoleService, RoleService>();
-            builder.Services.AddScoped<IUserService, UserService>();
-
-            #endregion
-
-        }
     }
 }

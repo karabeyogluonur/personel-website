@@ -1,10 +1,9 @@
-namespace PW.Application.Common.Enums
+namespace PW.Application.Common.Enums;
+
+public enum NotificationType
 {
-    public enum NotificationType
-    {
-        Success,
-        Error,
-        Warning,
-        Info
-    }
+    Success,
+    Error,
+    Warning,
+    Info
 }

@@ -1,4 +1,3 @@
-namespace PW.Web.Resources
-{
-    public class SharedResources { }
-}
+namespace PW.Web.Resources;
+
+public class SharedResources { }

@@ -1,7 +1,6 @@
-namespace PW.Application.Common.Constants
+namespace PW.Application.Common.Constants;
+
+public static class CustomClaims
 {
-    public static class CustomClaims
-    {
-        public const string FullName = "FullName";
-    }
+    public const string FullName = "FullName";
 }
