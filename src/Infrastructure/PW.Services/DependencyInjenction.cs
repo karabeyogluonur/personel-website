@@ -28,6 +28,7 @@ public static class DependencyInjection
       builder.Services.AddScoped<INotificationService, NotificationService>();
       builder.Services.AddScoped<IStorageService, LocalStorageService>();
       builder.Services.AddScoped<IAssetService, AssetService>();
+      builder.Services.AddScoped<IFileProcessorService, FileProcessorService>();
       builder.Services.AddSingleton<ILocalCacheService, MemoryCacheManager>();
 
       builder.Services.AddScoped<ISettingService, SettingService>();

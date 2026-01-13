@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Configuration;
@@ -8,21 +7,23 @@ using PW.Application.Models;
 using PW.Application.Models.Dtos.Configurations;
 using PW.Application.Models.Dtos.Localization;
 using PW.Domain.Configuration;
-using PW.Domain.Interfaces;
 
 namespace PW.Services.Configuration;
 
 public class ConfigurationService : IConfigurationService
 {
    private readonly ISettingService _settingService;
-   private readonly IStorageService _storageService;
    private readonly ILanguageService _languageService;
+   private readonly IFileProcessorService _fileProcessorService;
 
-   public ConfigurationService(ISettingService settingService, IStorageService storageService, ILanguageService languageService)
+   public ConfigurationService(
+       ISettingService settingService,
+       ILanguageService languageService,
+       IFileProcessorService fileProcessorService)
    {
       _settingService = settingService;
-      _storageService = storageService;
       _languageService = languageService;
+      _fileProcessorService = fileProcessorService;
    }
 
    public async Task<GeneralSettingsDto> GetGeneralSettingsAsync()
@@ -46,7 +47,6 @@ public class ConfigurationService : IConfigurationService
          {
             LanguageId = language.Id,
             SiteTitle = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.SiteTitle, language.Id),
-
             LightThemeLogoFileName = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.LightThemeLogoFileName, language.Id),
             DarkThemeLogoFileName = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.DarkThemeLogoFileName, language.Id),
             LightThemeFaviconFileName = await _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(setting => setting.LightThemeFaviconFileName, language.Id),
@@ -63,37 +63,33 @@ public class ConfigurationService : IConfigurationService
    {
       GeneralSettings currentSettings = _settingService.LoadSettings<GeneralSettings>();
 
-      currentSettings.LightThemeLogoFileName = await ProcessFileAsync(
-          updateDto.LightThemeLogoStream,
-          StoragePaths.System_Generals,
-          updateDto.LightThemeLogoFileName,
+      currentSettings.LightThemeLogoFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.LightThemeLogo,
           currentSettings.LightThemeLogoFileName,
-          updateDto.RemoveLightThemeLogo,
-          "light-logo");
-
-      currentSettings.DarkThemeLogoFileName = await ProcessFileAsync(
-          updateDto.DarkThemeLogoStream,
           StoragePaths.System_Generals,
-          updateDto.DarkThemeLogoFileName,
+          "light-logo",
+          FileNamingMode.Specific);
+
+      currentSettings.DarkThemeLogoFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.DarkThemeLogo,
           currentSettings.DarkThemeLogoFileName,
-          updateDto.RemoveDarkThemeLogo,
-          "dark-logo");
-
-      currentSettings.LightThemeFaviconFileName = await ProcessFileAsync(
-          updateDto.LightThemeFaviconStream,
           StoragePaths.System_Generals,
-          updateDto.LightThemeFaviconFileName,
+          "dark-logo",
+          FileNamingMode.Specific);
+
+      currentSettings.LightThemeFaviconFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.LightThemeFavicon,
           currentSettings.LightThemeFaviconFileName,
-          updateDto.RemoveLightThemeFavicon,
-          "light-favicon");
-
-      currentSettings.DarkThemeFaviconFileName = await ProcessFileAsync(
-          updateDto.DarkThemeFaviconStream,
           StoragePaths.System_Generals,
-          updateDto.DarkThemeFaviconFileName,
+          "light-favicon",
+          FileNamingMode.Specific);
+
+      currentSettings.DarkThemeFaviconFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.DarkThemeFavicon,
           currentSettings.DarkThemeFaviconFileName,
-          updateDto.RemoveDarkThemeFavicon,
-          "dark-favicon");
+          StoragePaths.System_Generals,
+          "dark-favicon",
+          FileNamingMode.Specific);
 
       currentSettings.SiteTitle = updateDto.SiteTitle;
 
@@ -106,41 +102,49 @@ public class ConfigurationService : IConfigurationService
          LanguageLookupDto? language = languages.FirstOrDefault(language => language.Id == translationUpdate.LanguageId);
          string langCode = language?.Code.ToLowerInvariant() ?? "unknown";
 
-         await ProcessLocalizedFileAsync<GeneralSettings>(
-             setting => setting.LightThemeLogoFileName,
-             translationUpdate.LightThemeLogoStream,
-             StoragePaths.System_Generals,
-             translationUpdate.LightThemeLogoFileName,
-             translationUpdate.RemoveLightThemeLogo,
-             translationUpdate.LanguageId,
-             $"light-logo-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.LightThemeLogo,
+             folderPath: StoragePaths.System_Generals,
+             mode: FileNamingMode.Specific,
+             slugName: $"light-logo-{langCode}",
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.LightThemeLogoFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.LightThemeLogoFileName, newFileName, translationUpdate.LanguageId)
+         );
 
-         await ProcessLocalizedFileAsync<GeneralSettings>(
-             setting => setting.DarkThemeLogoFileName,
-             translationUpdate.DarkThemeLogoStream,
-             StoragePaths.System_Generals,
-             translationUpdate.DarkThemeLogoFileName,
-             translationUpdate.RemoveDarkThemeLogo,
-             translationUpdate.LanguageId,
-             $"dark-logo-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.DarkThemeLogo,
+             folderPath: StoragePaths.System_Generals,
+             mode: FileNamingMode.Specific,
+             slugName: $"dark-logo-{langCode}",
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.DarkThemeLogoFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.DarkThemeLogoFileName, newFileName, translationUpdate.LanguageId)
+         );
 
-         await ProcessLocalizedFileAsync<GeneralSettings>(
-             setting => setting.LightThemeFaviconFileName,
-             translationUpdate.LightThemeFaviconStream,
-             StoragePaths.System_Generals,
-             translationUpdate.LightThemeFaviconFileName,
-             translationUpdate.RemoveLightThemeFavicon,
-             translationUpdate.LanguageId,
-             $"light-favicon-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.LightThemeFavicon,
+             folderPath: StoragePaths.System_Generals,
+             mode: FileNamingMode.Specific,
+             slugName: $"light-favicon-{langCode}",
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.LightThemeFaviconFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.LightThemeFaviconFileName, newFileName, translationUpdate.LanguageId)
+         );
 
-         await ProcessLocalizedFileAsync<GeneralSettings>(
-             setting => setting.DarkThemeFaviconFileName,
-             translationUpdate.DarkThemeFaviconStream,
-             StoragePaths.System_Generals,
-             translationUpdate.DarkThemeFaviconFileName,
-             translationUpdate.RemoveDarkThemeFavicon,
-             translationUpdate.LanguageId,
-             $"dark-favicon-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.DarkThemeFavicon,
+             folderPath: StoragePaths.System_Generals,
+             mode: FileNamingMode.Specific,
+             slugName: $"dark-favicon-{langCode}",
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.DarkThemeFaviconFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
+                 setting => setting.DarkThemeFaviconFileName, newFileName, translationUpdate.LanguageId)
+         );
 
          await _settingService.SaveLocalizedSettingValueAsync<GeneralSettings, string>(
              setting => setting.SiteTitle,
@@ -190,21 +194,19 @@ public class ConfigurationService : IConfigurationService
    {
       ProfileSettings currentSettings = _settingService.LoadSettings<ProfileSettings>();
 
-      currentSettings.AvatarFileName = await ProcessFileAsync(
-          updateDto.AvatarStream,
-          StoragePaths.System_Profiles,
-          updateDto.AvatarFileName,
+      currentSettings.AvatarFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.Avatar,
           currentSettings.AvatarFileName,
-          updateDto.RemoveAvatar,
-          "avatar");
-
-      currentSettings.CoverFileName = await ProcessFileAsync(
-          updateDto.CoverStream,
           StoragePaths.System_Profiles,
-          updateDto.CoverFileName,
+          "avatar",
+          FileNamingMode.Specific);
+
+      currentSettings.CoverFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          updateDto.Cover,
           currentSettings.CoverFileName,
-          updateDto.RemoveCover,
-          "cover");
+          StoragePaths.System_Profiles,
+          "cover",
+          FileNamingMode.Specific);
 
       currentSettings.FirstName = updateDto.FirstName;
       currentSettings.LastName = updateDto.LastName;
@@ -220,23 +222,27 @@ public class ConfigurationService : IConfigurationService
          LanguageLookupDto? language = languages.FirstOrDefault(language => language.Id == translationUpdate.LanguageId);
          string langCode = language?.Code.ToLowerInvariant() ?? "unknown";
 
-         await ProcessLocalizedFileAsync<ProfileSettings>(
-             setting => setting.AvatarFileName,
-             translationUpdate.AvatarStream,
-             StoragePaths.System_Profiles,
-             translationUpdate.AvatarFileName,
-             translationUpdate.RemoveAvatar,
-             translationUpdate.LanguageId,
-             $"avatar-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.Avatar,
+             folderPath: StoragePaths.System_Profiles,
+             slugName: $"avatar-{langCode}",
+             mode: FileNamingMode.Specific,
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(
+                 setting => setting.AvatarFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(
+                 setting => setting.AvatarFileName, newFileName, translationUpdate.LanguageId)
+         );
 
-         await ProcessLocalizedFileAsync<ProfileSettings>(
-             setting => setting.CoverFileName,
-             translationUpdate.CoverStream,
-             StoragePaths.System_Profiles,
-             translationUpdate.CoverFileName,
-             translationUpdate.RemoveCover,
-             translationUpdate.LanguageId,
-             $"cover-{langCode}");
+         await _fileProcessorService.ProcessFileActionAsync(
+             fileInput: translationUpdate.Cover,
+             folderPath: StoragePaths.System_Profiles,
+             mode: FileNamingMode.Specific,
+             slugName: $"cover-{langCode}",
+             getCurrentFileNameAction: () => _settingService.GetLocalizedSettingValueAsync<ProfileSettings, string>(
+                 setting => setting.CoverFileName, translationUpdate.LanguageId),
+             saveNewFileNameAction: (newFileName) => _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(
+                 setting => setting.CoverFileName, newFileName, translationUpdate.LanguageId)
+         );
 
          await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(setting => setting.FirstName, translationUpdate.FirstName, translationUpdate.LanguageId);
          await _settingService.SaveLocalizedSettingValueAsync<ProfileSettings, string>(setting => setting.LastName, translationUpdate.LastName, translationUpdate.LanguageId);
@@ -246,44 +252,4 @@ public class ConfigurationService : IConfigurationService
 
       return OperationResult.Success();
    }
-
-   #region Helper Methods
-
-   private async Task<string> ProcessFileAsync(Stream? fileStream, string storagePaths, string? fileName, string? currentDbFileName, bool isRemove, string slugName)
-   {
-      if (fileStream != null && !string.IsNullOrEmpty(fileName))
-      {
-         if (!string.IsNullOrEmpty(currentDbFileName))
-            await _storageService.DeleteAsync(storagePaths.ToString(), currentDbFileName);
-
-         return await _storageService.UploadAsync(
-             fileStream: fileStream,
-             fileName: fileName,
-             folder: storagePaths,
-             mode: FileNamingMode.Unique,
-             customName: slugName
-         );
-      }
-
-      if (isRemove && !string.IsNullOrEmpty(currentDbFileName))
-      {
-         await _storageService.DeleteAsync(storagePaths.ToString(), currentDbFileName);
-         return string.Empty;
-      }
-
-      return currentDbFileName ?? string.Empty;
-   }
-
-   private async Task ProcessLocalizedFileAsync<TSettings>(Expression<Func<TSettings, string>> keySelector, Stream? fileStream, string storagePaths, string? fileName, bool isRemove, int languageId, string slugName) where TSettings : ISettings, new()
-   {
-      if (fileStream == null && !isRemove) return;
-
-      string currentLocalizedFileName = await _settingService.GetLocalizedSettingValueAsync(keySelector, languageId);
-
-      string newFileName = await ProcessFileAsync(fileStream, storagePaths, fileName, currentLocalizedFileName, isRemove, slugName);
-
-      await _settingService.SaveLocalizedSettingValueAsync(keySelector, newFileName, languageId);
-   }
-
-   #endregion
 }

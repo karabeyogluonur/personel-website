@@ -13,15 +13,14 @@ public class LanguageService : ILanguageService
 {
    private readonly IUnitOfWork _unitOfWork;
    private readonly IRepository<Language> _languageRepository;
-   private readonly IStorageService _storageService;
+   private readonly IFileProcessorService _fileProcessorService;
 
-   public LanguageService(IUnitOfWork unitOfWork, IStorageService storageService)
+   public LanguageService(IUnitOfWork unitOfWork, IFileProcessorService fileProcessorService)
    {
       _unitOfWork = unitOfWork;
       _languageRepository = _unitOfWork.GetRepository<Language>();
-      _storageService = storageService;
+      _fileProcessorService = fileProcessorService;
    }
-
    public async Task<IList<LanguageSummaryDto>> GetAllLanguagesAsync()
    {
       IList<Language> languages = await _languageRepository.GetAllAsync(
@@ -131,13 +130,13 @@ public class LanguageService : ILanguageService
          throw new ArgumentNullException(nameof(languageCreateDto));
 
       bool isCodeExists = await _languageRepository.ExistsAsync(
-           existingLanguage => existingLanguage.Code == languageCreateDto.Code
+            existingLanguage => existingLanguage.Code == languageCreateDto.Code
       );
 
       if (isCodeExists)
          return OperationResult.Failure($"Language code '{languageCreateDto.Code}' already exists.", OperationErrorType.Conflict);
 
-      string? uploadedFlagFileName = null;
+      string uploadedFlagFileName = string.Empty;
 
       await _unitOfWork.BeginTransactionAsync();
 
@@ -146,11 +145,11 @@ public class LanguageService : ILanguageService
          if (languageCreateDto.IsDefault)
             await UnsetDefaultLanguagesAsync(excludeLanguageId: null);
 
-         uploadedFlagFileName = await ProcessFlagImageAsync(
-             fileStream: languageCreateDto.FlagImageStream,
-             fileName: languageCreateDto.FlagImageFileName,
-             isRemoveRequested: false,
+         uploadedFlagFileName = await _fileProcessorService.HandleFileUpdateAsync(
+             fileInput: languageCreateDto.FlagImage,
              currentDbFileName: null,
+             mode: FileNamingMode.Specific,
+             folderPath: StoragePaths.System_Flags,
              slugName: languageCreateDto.Code
          );
 
@@ -161,7 +160,7 @@ public class LanguageService : ILanguageService
             IsPublished = languageCreateDto.IsPublished,
             IsDefault = languageCreateDto.IsDefault,
             DisplayOrder = languageCreateDto.DisplayOrder,
-            FlagImageFileName = uploadedFlagFileName ?? string.Empty,
+            FlagImageFileName = uploadedFlagFileName,
             CreatedAt = DateTime.UtcNow,
             IsDeleted = false
          };
@@ -176,7 +175,7 @@ public class LanguageService : ILanguageService
          await _unitOfWork.RollbackTransactionAsync();
 
          if (!string.IsNullOrEmpty(uploadedFlagFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Flags, uploadedFlagFileName);
+            await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Flags, uploadedFlagFileName);
 
          return OperationResult.Failure("The language could not be added due to a system error.", OperationErrorType.Technical);
       }
@@ -209,13 +208,13 @@ public class LanguageService : ILanguageService
          if (languageUpdateDto.IsDefault && !originalLanguage.IsDefault)
             await UnsetDefaultLanguagesAsync(excludeLanguageId: originalLanguage.Id);
 
-         originalLanguage.FlagImageFileName = await ProcessFlagImageAsync(
-             fileStream: languageUpdateDto.FlagImageStream,
-             fileName: languageUpdateDto.FlagImageFileName,
-             isRemoveRequested: languageUpdateDto.RemoveFlagImage,
+         originalLanguage.FlagImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
+             fileInput: languageUpdateDto.FlagImage,
              currentDbFileName: originalLanguage.FlagImageFileName,
+             mode: FileNamingMode.Specific,
+             folderPath: StoragePaths.System_Flags,
              slugName: languageUpdateDto.Code
-         ) ?? string.Empty;
+         );
 
          originalLanguage.Name = languageUpdateDto.Name;
          originalLanguage.Code = languageUpdateDto.Code;
@@ -248,7 +247,7 @@ public class LanguageService : ILanguageService
       try
       {
          if (!string.IsNullOrEmpty(language.FlagImageFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Flags, language.FlagImageFileName);
+            await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Flags, language.FlagImageFileName);
 
          _languageRepository.Delete(language);
          await _unitOfWork.CommitAsync();
@@ -280,29 +279,5 @@ public class LanguageService : ILanguageService
 
       if (anyLanguageChanged)
          _languageRepository.Update(defaultLanguages);
-   }
-   private async Task<string?> ProcessFlagImageAsync(Stream? fileStream, string? fileName, bool isRemoveRequested, string? currentDbFileName, string slugName)
-   {
-      if (fileStream != null && !string.IsNullOrEmpty(fileName))
-      {
-         if (!string.IsNullOrEmpty(currentDbFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Flags, currentDbFileName);
-
-         return await _storageService.UploadAsync(
-             fileStream: fileStream,
-             fileName: fileName,
-             folder: StoragePaths.System_Flags,
-             mode: FileNamingMode.Specific,
-             customName: slugName
-         );
-      }
-
-      if (isRemoveRequested && !string.IsNullOrEmpty(currentDbFileName))
-      {
-         await _storageService.DeleteAsync(StoragePaths.System_Flags, currentDbFileName);
-         return null;
-      }
-
-      return currentDbFileName;
    }
 }

@@ -1,8 +1,8 @@
 using AutoMapper;
-
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Models;
+using PW.Application.Models.Dtos.Common;
 using PW.Application.Models.Dtos.Localization;
 using PW.Web.Areas.Admin.Features.Languages.ViewModels;
 
@@ -69,8 +69,7 @@ public class LanguageOrchestrator : ILanguageOrchestrator
          DisplayOrder = languageCreateViewModel.DisplayOrder,
          IsPublished = languageCreateViewModel.IsPublished,
          IsDefault = languageCreateViewModel.IsDefault,
-         FlagImageStream = languageCreateViewModel.FlagImage?.OpenReadStream(),
-         FlagImageFileName = languageCreateViewModel.FlagImage?.FileName
+         FlagImage = new FileUploadDto(languageCreateViewModel.FlagImage?.OpenReadStream(), languageCreateViewModel.FlagImage?.FileName, false),
       };
 
       return await _languageService.CreateLanguageAsync(languageCreateDto);
@@ -89,9 +88,8 @@ public class LanguageOrchestrator : ILanguageOrchestrator
          DisplayOrder = languageEditViewModel.DisplayOrder,
          IsPublished = languageEditViewModel.IsPublished,
          IsDefault = languageEditViewModel.IsDefault,
-         RemoveFlagImage = languageEditViewModel.RemoveFlagImage,
-         FlagImageStream = languageEditViewModel.FlagImage?.OpenReadStream(),
-         FlagImageFileName = languageEditViewModel.FlagImage?.FileName
+         FlagImage = new FileUploadDto(languageEditViewModel.FlagImage?.OpenReadStream(), languageEditViewModel.FlagImage?.FileName, languageEditViewModel.RemoveFlagImage),
+
       };
 
       return await _languageService.UpdateLanguageAsync(languageSummaryDto);

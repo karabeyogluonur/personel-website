@@ -14,13 +14,12 @@ public class TechnologyService : ITechnologyService
 {
    private readonly IUnitOfWork _unitOfWork;
    private readonly IRepository<Technology> _technologyRepository;
-   private readonly IStorageService _storageService;
-
-   public TechnologyService(IUnitOfWork unitOfWork, IStorageService storageService)
+   private readonly IFileProcessorService _fileProcessorService;
+   public TechnologyService(IUnitOfWork unitOfWork, IFileProcessorService fileProcessorService)
    {
       _unitOfWork = unitOfWork;
       _technologyRepository = _unitOfWork.GetRepository<Technology>();
-      _storageService = storageService;
+      _fileProcessorService = fileProcessorService;
    }
 
    public async Task<IList<TechnologySummaryDto>> GetAllTechnologiesAsync()
@@ -66,7 +65,7 @@ public class TechnologyService : ITechnologyService
             Name = translation.Name,
             Description = translation.Description
          })
-            .ToList()
+          .ToList()
       };
    }
 
@@ -80,15 +79,14 @@ public class TechnologyService : ITechnologyService
       if (nameExists)
          return OperationResult.Failure("Technology name already exists.", OperationErrorType.Conflict);
 
-      string? uploadedIconName = null;
+      string uploadedIconName = string.Empty;
 
       try
       {
-         uploadedIconName = await ProcessIconImageAsync(
-             fileStream: technologyCreateDto.IconImageStream,
-             fileName: technologyCreateDto.IconImageFileName,
-             isRemoveRequested: false,
+         uploadedIconName = await _fileProcessorService.HandleFileUpdateAsync(
+             fileInput: technologyCreateDto.Icon,
              currentDbFileName: null,
+             folderPath: StoragePaths.System_Technologies,
              slugName: technologyCreateDto.Name
          );
 
@@ -97,7 +95,7 @@ public class TechnologyService : ITechnologyService
             Name = technologyCreateDto.Name,
             Description = technologyCreateDto.Description,
             IsActive = technologyCreateDto.IsActive,
-            IconImageFileName = uploadedIconName ?? string.Empty,
+            IconImageFileName = uploadedIconName,
             CreatedAt = DateTime.UtcNow,
             Translations = technologyCreateDto.Translations.Select(dto => new TechnologyTranslation
             {
@@ -115,7 +113,7 @@ public class TechnologyService : ITechnologyService
       catch (Exception)
       {
          if (!string.IsNullOrEmpty(uploadedIconName))
-            await _storageService.DeleteAsync(StoragePaths.System_Technologies, uploadedIconName);
+            await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Technologies, uploadedIconName);
 
          return OperationResult.Failure("Failed to create technology.", OperationErrorType.Technical);
       }
@@ -138,19 +136,19 @@ public class TechnologyService : ITechnologyService
       if (technology.Name != technologyUpdateDto.Name)
       {
          bool nameExists = await _technologyRepository.ExistsAsync(technology => technology.Name == technologyUpdateDto.Name);
+
          if (nameExists)
             return OperationResult.Failure("Technology name already exists.", OperationErrorType.Conflict);
       }
 
       try
       {
-         technology.IconImageFileName = await ProcessIconImageAsync(
-             fileStream: technologyUpdateDto.IconImageStream,
-             fileName: technologyUpdateDto.IconImageFileName,
-             isRemoveRequested: technologyUpdateDto.RemoveIconImage,
+         technology.IconImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
+             fileInput: technologyUpdateDto.Icon,
              currentDbFileName: technology.IconImageFileName,
+             folderPath: StoragePaths.System_Technologies,
              slugName: technologyUpdateDto.Name
-         ) ?? string.Empty;
+         );
 
          technology.Name = technologyUpdateDto.Name;
          technology.Description = technologyUpdateDto.Description;
@@ -177,8 +175,7 @@ public class TechnologyService : ITechnologyService
 
       try
       {
-         if (!string.IsNullOrEmpty(technology.IconImageFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
+         await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
 
          _technologyRepository.Delete(technology);
          await _unitOfWork.CommitAsync();
@@ -189,31 +186,6 @@ public class TechnologyService : ITechnologyService
       {
          return OperationResult.Failure("Failed to delete technology.", OperationErrorType.Technical);
       }
-   }
-
-   private async Task<string?> ProcessIconImageAsync(Stream? fileStream, string? fileName, bool isRemoveRequested, string? currentDbFileName, string slugName)
-   {
-      if (fileStream != null && !string.IsNullOrEmpty(fileName))
-      {
-         if (!string.IsNullOrEmpty(currentDbFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
-
-         return await _storageService.UploadAsync(
-             fileStream: fileStream,
-             fileName: fileName,
-             folder: StoragePaths.System_Technologies,
-             mode: FileNamingMode.Unique,
-             customName: slugName
-         );
-      }
-
-      if (isRemoveRequested && !string.IsNullOrEmpty(currentDbFileName))
-      {
-         await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
-         return null;
-      }
-
-      return currentDbFileName;
    }
 
    private void ApplyTranslations(Technology technology, List<TechnologyTranslationDto> translationDtos)
@@ -247,5 +219,4 @@ public class TechnologyService : ITechnologyService
          }
       }
    }
-
 }

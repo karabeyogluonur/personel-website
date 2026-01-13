@@ -1,3 +1,5 @@
+using PW.Application.Models.Dtos.Common;
+
 namespace PW.Application.Models.Dtos.Localization;
 
 public class LanguageCreateDto
@@ -7,8 +9,7 @@ public class LanguageCreateDto
    public bool IsPublished { get; set; }
    public bool IsDefault { get; set; }
    public int DisplayOrder { get; set; }
-   public Stream? FlagImageStream { get; set; }
-   public string? FlagImageFileName { get; set; }
+   public FileUploadDto FlagImage { get; set; } = new();
 }
 public class LanguageUpdateDto
 {
@@ -18,9 +19,7 @@ public class LanguageUpdateDto
    public bool IsPublished { get; set; }
    public bool IsDefault { get; set; }
    public int DisplayOrder { get; set; }
-   public Stream? FlagImageStream { get; set; }
-   public string? FlagImageFileName { get; set; }
-   public bool RemoveFlagImage { get; set; }
+   public FileUploadDto FlagImage { get; set; } = new();
 }
 public class LanguageSummaryDto
 {

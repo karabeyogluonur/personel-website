@@ -1,11 +1,10 @@
 using AutoMapper;
-
-using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Interfaces.Storage;
 using PW.Application.Models;
+using PW.Application.Models.Dtos.Common;
 using PW.Application.Models.Dtos.Content;
 using PW.Application.Models.Dtos.Localization;
 using PW.Web.Areas.Admin.Features.Common.Models;
@@ -75,9 +74,7 @@ public class TechnologyOrchestrator : ITechnologyOrchestrator
          Name = technologyCreateViewModel.Name,
          Description = technologyCreateViewModel.Description,
          IsActive = technologyCreateViewModel.IsActive,
-         IconImageStream = technologyCreateViewModel.IconImage?.OpenReadStream(),
-         IconImageFileName = technologyCreateViewModel.IconImage?.FileName,
-
+         Icon = new FileUploadDto(technologyCreateViewModel.IconImage?.OpenReadStream(), technologyCreateViewModel.IconImage?.FileName, false),
          Translations = technologyCreateViewModel.Translations.Select(translationVm => new TechnologyTranslationDto
          {
             LanguageId = translationVm.LanguageId,
@@ -135,10 +132,7 @@ public class TechnologyOrchestrator : ITechnologyOrchestrator
          Name = technologyEditViewModel.Name,
          Description = technologyEditViewModel.Description,
          IsActive = technologyEditViewModel.IsActive,
-         RemoveIconImage = technologyEditViewModel.RemoveIconImage,
-         IconImageStream = technologyEditViewModel.IconImage?.OpenReadStream(),
-         IconImageFileName = technologyEditViewModel.IconImage?.FileName,
-
+         Icon = new FileUploadDto(technologyEditViewModel.IconImage?.OpenReadStream(), technologyEditViewModel.IconImage?.FileName, technologyEditViewModel.RemoveIconImage),
          Translations = technologyEditViewModel.Translations.Select(translationVm => new TechnologyTranslationDto
          {
             LanguageId = translationVm.LanguageId,
@@ -161,28 +155,4 @@ public class TechnologyOrchestrator : ITechnologyOrchestrator
       technologyFormViewModel.AvailableLanguages = _mapper.Map<List<LanguageLookupViewModel>>(publishedLanguages);
    }
 
-   private async Task<string?> ProcessIconImageAsync(Stream? fileStream, string? fileName, bool isRemoveRequested, string? currentDbFileName, string slugName)
-   {
-      if (fileStream != null && !string.IsNullOrEmpty(fileName))
-      {
-         if (!string.IsNullOrEmpty(currentDbFileName))
-            await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
-
-         return await _storageService.UploadAsync(
-             fileStream: fileStream,
-             fileName: fileName,
-             folder: StoragePaths.System_Technologies,
-             mode: FileNamingMode.Unique,
-             customName: slugName
-         );
-      }
-
-      if (isRemoveRequested && !string.IsNullOrEmpty(currentDbFileName))
-      {
-         await _storageService.DeleteAsync(StoragePaths.System_Technologies, currentDbFileName);
-         return null;
-      }
-
-      return currentDbFileName;
-   }
 }
