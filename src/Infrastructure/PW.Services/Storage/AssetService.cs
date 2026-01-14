@@ -84,18 +84,11 @@ public class AssetService : IAssetService
       if (asset == null)
          return OperationResult.Failure("Asset not found.", OperationErrorType.NotFound);
 
-      try
-      {
-         await _fileProcessorService.DeleteFileAsync(asset.Folder, asset.FileName);
+      await _fileProcessorService.DeleteFileAsync(asset.Folder, asset.FileName);
 
-         _assetRepository.Delete(asset);
-         await _unitOfWork.CommitAsync();
+      _assetRepository.Delete(asset);
+      await _unitOfWork.CommitAsync();
 
-         return OperationResult.Success();
-      }
-      catch (Exception)
-      {
-         return OperationResult.Failure("Failed to delete asset.", OperationErrorType.Technical);
-      }
+      return OperationResult.Success();
    }
 }

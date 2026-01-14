@@ -5,57 +5,51 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using PW.Identity.Contexts;
 using PW.Application.Models.Dtos.Identity;
+using PW.Application.Models;
 
 namespace PW.Identity;
 
 public class IdentityInitialiser
 {
-    private readonly AuthDbContext _context;
-    private readonly IUserService _userService;
-    private readonly IRoleService _roleService;
+   private readonly AuthDbContext _context;
+   private readonly IUserService _userService;
+   private readonly IRoleService _roleService;
 
-    public IdentityInitialiser(AuthDbContext context, IUserService userService, IRoleService roleService)
-    {
-        _context = context;
-        _userService = userService;
-        _roleService = roleService;
-    }
+   public IdentityInitialiser(AuthDbContext context, IUserService userService, IRoleService roleService)
+   {
+      _context = context;
+      _userService = userService;
+      _roleService = roleService;
+   }
 
-    public async Task InitialiseAsync()
-    {
-        await _context.Database.MigrateAsync();
-        await SeedAsync();
-    }
+   public async Task InitialiseAsync()
+   {
+      await _context.Database.MigrateAsync();
+      await SeedAsync();
+   }
 
-    public async Task SeedAsync()
-    {
-        await SeedRolesAsync();
-        await SeedUsersAsync();
-    }
+   public async Task SeedAsync()
+   {
+      await SeedRolesAsync();
+      await SeedUsersAsync();
+   }
 
-    private async Task SeedRolesAsync()
-    {
-        var predefinedRoles = new[]
+   private async Task SeedRolesAsync()
+   {
+      List<CreateRoleDto> predefinedRoles = new List<CreateRoleDto>
         {
-            new { Name = ApplicationRoles.Admin, Description = "System administrator role" },
-            new { Name = ApplicationRoles.Editor, Description = "Content editor role" }
+            new CreateRoleDto { Name = ApplicationRoles.Admin, Description = "System administrator role" },
+            new CreateRoleDto { Name = ApplicationRoles.Editor, Description = "Content editor role" }
         };
 
-        foreach (var roleDefinition in predefinedRoles)
-        {
-            var createRoleDto = new CreateRoleDto
-            {
-                Name = roleDefinition.Name,
-                Description = roleDefinition.Description
-            };
-            await _roleService.CreateRoleAsync(createRoleDto);
-        }
-    }
+      foreach (CreateRoleDto roleDefinition in predefinedRoles)
+         await _roleService.CreateRoleAsync(roleDefinition);
+   }
 
-    private async Task SeedUsersAsync()
-    {
-        var predefinedUsers = new[]
-        {
+   private async Task SeedUsersAsync()
+   {
+      var predefinedUsers = new[]
+      {
             new
             {
                 RoleName = ApplicationRoles.Admin,
@@ -74,60 +68,52 @@ public class IdentityInitialiser
             }
         };
 
-        foreach (var userInfo in predefinedUsers)
-        {
-            var existingUser = await _userService.GetUserByEmailAsync(userInfo.Email);
+      foreach (var userInfo in predefinedUsers)
+      {
+         UserDto? existingUser = await _userService.GetUserByEmailAsync(userInfo.Email);
 
-            if (existingUser is null)
+         if (existingUser is null)
+         {
+            CreateUserDto createUserDto = new CreateUserDto
             {
-                var createDto = new CreateUserDto
-                {
-                    FirstName = userInfo.FirstName,
-                    LastName = userInfo.LastName,
-                    Email = userInfo.Email,
-                    Password = userInfo.Password,
-                    Roles = new List<string> { userInfo.RoleName }
-                };
+               FirstName = userInfo.FirstName,
+               LastName = userInfo.LastName,
+               Email = userInfo.Email,
+               Password = userInfo.Password,
+               Roles = new List<string> { userInfo.RoleName }
+            };
 
-                var createResult = await _userService.CreateUserAsync(createDto);
+            OperationResult createResult = await _userService.CreateUserAsync(createUserDto);
 
-                if (!createResult.Succeeded)
-                    continue;
-            }
+            if (!createResult.Succeeded)
+               continue;
+         }
+         else
+         {
+            bool isInRole = await _roleService.IsInRoleAsync(existingUser.Id, userInfo.RoleName);
 
-            if (existingUser is not null)
+            if (!isInRole)
             {
-                var isInRole = await _roleService.IsInRoleAsync(existingUser.Id, userInfo.RoleName);
-
-                if (!isInRole)
-                {
-                    var assignmentDto = new UserRoleAssignmentDto
-                    {
-                        UserId = existingUser.Id,
-                        RoleNames = new List<string> { userInfo.RoleName }
-                    };
-                    await _roleService.UpdateUserRolesAsync(assignmentDto);
-                }
+               UserRoleAssignmentDto userRoleAssignmentDto = new UserRoleAssignmentDto
+               {
+                  UserId = existingUser.Id,
+                  RoleNames = new List<string> { userInfo.RoleName }
+               };
+               await _roleService.UpdateUserRolesAsync(userRoleAssignmentDto);
             }
-        }
-    }
-
+         }
+      }
+   }
 }
 
 public static class IdentityInitialiserExtensions
 {
-    public static async Task InitialiseIdentityAsync(this WebApplication app)
-    {
-        using var scope = app.Services.CreateScope();
-        IdentityInitialiser initialiser;
-        try
-        {
-            initialiser = scope.ServiceProvider.GetRequiredService<IdentityInitialiser>();
-        }
-        catch (Exception ex)
-        {
-            throw ex;
-        }
-        await initialiser.InitialiseAsync();
-    }
+   public static async Task InitialiseIdentityAsync(this WebApplication app)
+   {
+      using IServiceScope scope = app.Services.CreateScope();
+
+      IdentityInitialiser initialiser = scope.ServiceProvider.GetRequiredService<IdentityInitialiser>();
+
+      await initialiser.InitialiseAsync();
+   }
 }

@@ -1,9 +1,7 @@
 using System.Reflection;
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
 using PW.Application.Common.Extensions;
 using PW.Domain.Configuration;
 using PW.Domain.Entities;
@@ -139,14 +137,8 @@ public static class DatabaseInitialiserExtensions
    public static async Task InitialiseDatabaseAsync(this WebApplication app)
    {
       using IServiceScope scope = app.Services.CreateScope();
-      try
-      {
-         DatabaseInitialiser initialiser = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
-         await initialiser.InitialiseAsync();
-      }
-      catch (Exception)
-      {
-         throw;
-      }
+
+      DatabaseInitialiser initialiser = scope.ServiceProvider.GetRequiredService<DatabaseInitialiser>();
+      await initialiser.InitialiseAsync();
    }
 }

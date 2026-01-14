@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
-using PW.Application.Common.Extensions; // SyncTranslations için
+using PW.Application.Common.Extensions;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Repositories;
 using PW.Application.Interfaces.Storage;
@@ -67,9 +67,10 @@ public class TechnologyService : ITechnologyService
             Name = translation.Name,
             Description = translation.Description
          })
-          .ToList()
+           .ToList()
       };
    }
+
    public async Task<OperationResult> CreateTechnologyAsync(TechnologyCreateDto technologyCreateDto)
    {
       if (technologyCreateDto == null)
@@ -126,6 +127,7 @@ public class TechnologyService : ITechnologyService
          return OperationResult.Failure("Failed to create technology.", OperationErrorType.Technical);
       }
    }
+
    public async Task<OperationResult> UpdateTechnologyAsync(TechnologyUpdateDto technologyUpdateDto)
    {
       if (technologyUpdateDto == null)
@@ -148,39 +150,33 @@ public class TechnologyService : ITechnologyService
             return OperationResult.Failure("Technology name already exists.", OperationErrorType.Conflict);
       }
 
-      try
-      {
-         technology.IconImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
-             fileInput: technologyUpdateDto.Icon,
-             currentDbFileName: technology.IconImageFileName,
-             folderPath: StoragePaths.System_Technologies,
-             slugName: technologyUpdateDto.Name
-         );
+      technology.IconImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          fileInput: technologyUpdateDto.Icon,
+          currentDbFileName: technology.IconImageFileName,
+          folderPath: StoragePaths.System_Technologies,
+          slugName: technologyUpdateDto.Name
+      );
 
-         technology.Name = technologyUpdateDto.Name;
-         technology.Description = technologyUpdateDto.Description;
-         technology.IsActive = technologyUpdateDto.IsActive;
-         technology.UpdatedAt = DateTime.UtcNow;
-         technology.Translations.SyncTranslations(
-             translationDtos: technologyUpdateDto.Translations,
-             isEmptyPredicate: (TechnologyTranslationDto translationDto) =>
-                 string.IsNullOrWhiteSpace(translationDto.Name) &&
-                 string.IsNullOrWhiteSpace(translationDto.Description),
-             mapAction: (TechnologyTranslation translation, TechnologyTranslationDto translationDto) =>
-             {
-                translation.Name = translationDto.Name;
-                translation.Description = translationDto.Description;
-             }
-         );
+      technology.Name = technologyUpdateDto.Name;
+      technology.Description = technologyUpdateDto.Description;
+      technology.IsActive = technologyUpdateDto.IsActive;
+      technology.UpdatedAt = DateTime.UtcNow;
 
-         await _unitOfWork.CommitAsync();
+      technology.Translations.SyncTranslations(
+          translationDtos: technologyUpdateDto.Translations,
+          isEmptyPredicate: (TechnologyTranslationDto translationDto) =>
+              string.IsNullOrWhiteSpace(translationDto.Name) &&
+              string.IsNullOrWhiteSpace(translationDto.Description),
+          mapAction: (TechnologyTranslation translation, TechnologyTranslationDto translationDto) =>
+          {
+             translation.Name = translationDto.Name;
+             translation.Description = translationDto.Description;
+          }
+      );
 
-         return OperationResult.Success();
-      }
-      catch (Exception)
-      {
-         return OperationResult.Failure("Failed to update technology.", OperationErrorType.Technical);
-      }
+      await _unitOfWork.CommitAsync();
+
+      return OperationResult.Success();
    }
 
    public async Task<OperationResult> DeleteTechnologyAsync(int technologyId)
@@ -190,18 +186,11 @@ public class TechnologyService : ITechnologyService
       if (technology == null)
          return OperationResult.Failure("Technology not found.", OperationErrorType.NotFound);
 
-      try
-      {
-         await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
+      await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Technologies, technology.IconImageFileName);
 
-         _technologyRepository.Delete(technology);
-         await _unitOfWork.CommitAsync();
+      _technologyRepository.Delete(technology);
+      await _unitOfWork.CommitAsync();
 
-         return OperationResult.Success();
-      }
-      catch (Exception)
-      {
-         return OperationResult.Failure("Failed to delete technology.", OperationErrorType.Technical);
-      }
+      return OperationResult.Success();
    }
 }

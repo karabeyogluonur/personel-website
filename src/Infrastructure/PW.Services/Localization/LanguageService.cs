@@ -21,6 +21,7 @@ public class LanguageService : ILanguageService
       _languageRepository = _unitOfWork.GetRepository<Language>();
       _fileProcessorService = fileProcessorService;
    }
+
    public async Task<IList<LanguageSummaryDto>> GetAllLanguagesAsync()
    {
       IList<Language> languages = await _languageRepository.GetAllAsync(
@@ -42,6 +43,7 @@ public class LanguageService : ILanguageService
 
       return result;
    }
+
    public async Task<IList<LanguageLookupDto>> GetLanguagesLookupAsync()
    {
       IList<Language> languages = await _languageRepository.GetAllAsync(
@@ -58,6 +60,7 @@ public class LanguageService : ILanguageService
          IsDefault = language.IsDefault
       }).ToList();
    }
+
    public async Task<LanguageDetailDto?> GetLanguageByCodeAsync(string languageCode)
    {
       if (string.IsNullOrWhiteSpace(languageCode))
@@ -83,6 +86,7 @@ public class LanguageService : ILanguageService
          UpdatedAt = language.UpdatedAt
       };
    }
+
    public async Task<LanguageDetailDto?> GetLanguageByIdAsync(int languageId)
    {
       Language language = await _languageRepository.GetFirstOrDefaultAsync(predicate: language => language.Id == languageId);
@@ -102,6 +106,7 @@ public class LanguageService : ILanguageService
          UpdatedAt = language.UpdatedAt
       };
    }
+
    public async Task<LanguageDetailDto?> GetDefaultLanguageAsync()
    {
       Language? language = await _languageRepository.GetFirstOrDefaultAsync(
@@ -124,6 +129,7 @@ public class LanguageService : ILanguageService
          UpdatedAt = language.UpdatedAt
       };
    }
+
    public async Task<OperationResult> CreateLanguageAsync(LanguageCreateDto languageCreateDto)
    {
       if (languageCreateDto == null)
@@ -180,6 +186,7 @@ public class LanguageService : ILanguageService
          return OperationResult.Failure("The language could not be added due to a system error.", OperationErrorType.Technical);
       }
    }
+
    public async Task<OperationResult> UpdateLanguageAsync(LanguageUpdateDto languageUpdateDto)
    {
       if (languageUpdateDto == null)
@@ -203,37 +210,30 @@ public class LanguageService : ILanguageService
 
       await _unitOfWork.BeginTransactionAsync();
 
-      try
-      {
-         if (languageUpdateDto.IsDefault && !originalLanguage.IsDefault)
-            await UnsetDefaultLanguagesAsync(excludeLanguageId: originalLanguage.Id);
+      if (languageUpdateDto.IsDefault && !originalLanguage.IsDefault)
+         await UnsetDefaultLanguagesAsync(excludeLanguageId: originalLanguage.Id);
 
-         originalLanguage.FlagImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
-             fileInput: languageUpdateDto.FlagImage,
-             currentDbFileName: originalLanguage.FlagImageFileName,
-             mode: FileNamingMode.Specific,
-             folderPath: StoragePaths.System_Flags,
-             slugName: languageUpdateDto.Code
-         );
+      originalLanguage.FlagImageFileName = await _fileProcessorService.HandleFileUpdateAsync(
+          fileInput: languageUpdateDto.FlagImage,
+          currentDbFileName: originalLanguage.FlagImageFileName,
+          mode: FileNamingMode.Specific,
+          folderPath: StoragePaths.System_Flags,
+          slugName: languageUpdateDto.Code
+      );
 
-         originalLanguage.Name = languageUpdateDto.Name;
-         originalLanguage.Code = languageUpdateDto.Code;
-         originalLanguage.IsPublished = languageUpdateDto.IsPublished;
-         originalLanguage.IsDefault = languageUpdateDto.IsDefault;
-         originalLanguage.DisplayOrder = languageUpdateDto.DisplayOrder;
-         originalLanguage.UpdatedAt = DateTime.UtcNow;
+      originalLanguage.Name = languageUpdateDto.Name;
+      originalLanguage.Code = languageUpdateDto.Code;
+      originalLanguage.IsPublished = languageUpdateDto.IsPublished;
+      originalLanguage.IsDefault = languageUpdateDto.IsDefault;
+      originalLanguage.DisplayOrder = languageUpdateDto.DisplayOrder;
+      originalLanguage.UpdatedAt = DateTime.UtcNow;
 
-         _languageRepository.Update(originalLanguage);
-         await _unitOfWork.CommitTransactionAsync();
+      _languageRepository.Update(originalLanguage);
+      await _unitOfWork.CommitTransactionAsync();
 
-         return OperationResult.Success();
-      }
-      catch (Exception)
-      {
-         await _unitOfWork.RollbackTransactionAsync();
-         return OperationResult.Failure("The update could not be performed due to a system error.", OperationErrorType.Technical);
-      }
+      return OperationResult.Success();
    }
+
    public async Task<OperationResult> DeleteLanguageAsync(int languageId)
    {
       Language language = await _languageRepository.GetFirstOrDefaultAsync(predicate: language => language.Id == languageId);
@@ -244,21 +244,15 @@ public class LanguageService : ILanguageService
       if (language.IsDefault)
          return OperationResult.Failure("The default language cannot be deleted. Please set another language as default first.", OperationErrorType.BusinessRule);
 
-      try
-      {
-         if (!string.IsNullOrEmpty(language.FlagImageFileName))
-            await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Flags, language.FlagImageFileName);
+      if (!string.IsNullOrEmpty(language.FlagImageFileName))
+         await _fileProcessorService.DeleteFileAsync(StoragePaths.System_Flags, language.FlagImageFileName);
 
-         _languageRepository.Delete(language);
-         await _unitOfWork.CommitAsync();
+      _languageRepository.Delete(language);
+      await _unitOfWork.CommitAsync();
 
-         return OperationResult.Success();
-      }
-      catch (Exception)
-      {
-         return OperationResult.Failure("A technical error occurred while deleting the language.", OperationErrorType.Technical);
-      }
+      return OperationResult.Success();
    }
+
    private async Task UnsetDefaultLanguagesAsync(int? excludeLanguageId)
    {
       IList<Language> defaultLanguages = await _languageRepository.GetAllAsync(
