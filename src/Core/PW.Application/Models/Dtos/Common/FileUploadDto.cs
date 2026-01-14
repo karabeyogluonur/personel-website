@@ -1,4 +1,4 @@
-namespace PW.Application.Models.Dtos.Common;
+﻿namespace PW.Application.Models.Dtos.Common;
 
 public class FileUploadDto
 {

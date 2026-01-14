@@ -1,16 +1,16 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace PW.Web.Controllers;
 
 public class HomeController : BasePublicController
 {
-    public HomeController()
-    {
-    }
+   public HomeController()
+   {
+   }
 
-    public IActionResult Index()
-    {
-        return View();
-    }
+   public IActionResult Index()
+   {
+      return View();
+   }
 
 }

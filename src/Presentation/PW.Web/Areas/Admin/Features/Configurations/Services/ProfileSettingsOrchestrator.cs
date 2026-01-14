@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;
 using PW.Application.Models;

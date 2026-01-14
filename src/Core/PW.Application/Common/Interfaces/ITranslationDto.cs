@@ -1,4 +1,4 @@
-namespace PW.Application.Common.Interfaces;
+﻿namespace PW.Application.Common.Interfaces;
 
 public interface ITranslationDto
 {

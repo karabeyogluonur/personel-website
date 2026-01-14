@@ -1,4 +1,4 @@
-using PW.Application.Models.Dtos.Common;
+﻿using PW.Application.Models.Dtos.Common;
 
 namespace PW.Application.Models.Dtos.Configurations;
 

@@ -1,4 +1,4 @@
-using PW.Application.Common.Interfaces;
+﻿using PW.Application.Common.Interfaces;
 using PW.Application.Models.Dtos.Common;
 
 namespace PW.Application.Models.Dtos.Content;

@@ -1,12 +1,12 @@
-namespace PW.Application.Common.Exceptions;
+﻿namespace PW.Application.Common.Exceptions;
 
 public abstract class BaseException : Exception
 {
-    public int StatusCode { get; }
+   public int StatusCode { get; }
 
-    protected BaseException(string message, int statusCode = 400)
-        : base(message)
-    {
-        StatusCode = statusCode;
-    }
+   protected BaseException(string message, int statusCode = 400)
+       : base(message)
+   {
+      StatusCode = statusCode;
+   }
 }

@@ -1,4 +1,4 @@
-using PW.Application.Common.Constants;
+﻿using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Configuration;
 using PW.Application.Interfaces.Localization;

@@ -1,4 +1,4 @@
-using PW.Application.Interfaces.Caching;
+﻿using PW.Application.Interfaces.Caching;
 
 namespace PW.Application.Common.Interfaces;
 

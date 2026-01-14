@@ -1,11 +1,11 @@
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using PW.Application.Interfaces.Identity;
-using PW.Application.Common.Constants;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using PW.Identity.Contexts;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Common.Constants;
+using PW.Application.Interfaces.Identity;
 using PW.Application.Models;
+using PW.Application.Models.Dtos.Identity;
+using PW.Identity.Contexts;
 
 namespace PW.Identity;
 

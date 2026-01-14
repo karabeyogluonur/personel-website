@@ -1,4 +1,4 @@
-using PW.Application.Common.Enums;
+﻿using PW.Application.Common.Enums;
 
 namespace PW.Application.Models;
 

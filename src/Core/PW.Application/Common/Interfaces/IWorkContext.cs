@@ -1,4 +1,4 @@
-using PW.Application.Models.Dtos.Localization;
+﻿using PW.Application.Models.Dtos.Localization;
 
 namespace PW.Application.Common.Interfaces;
 

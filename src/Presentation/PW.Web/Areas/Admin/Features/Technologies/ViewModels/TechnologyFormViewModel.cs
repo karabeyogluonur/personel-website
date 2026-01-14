@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using PW.Web.Areas.Admin.Features.Common.Models;
 
 namespace PW.Web.Areas.Admin.Features.Technologies.ViewModels;

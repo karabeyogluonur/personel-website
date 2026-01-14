@@ -1,4 +1,4 @@
-namespace PW.Domain.Interfaces;
+﻿namespace PW.Domain.Interfaces;
 
 public interface ISettings
 {

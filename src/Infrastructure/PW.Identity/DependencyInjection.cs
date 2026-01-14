@@ -1,52 +1,52 @@
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using PW.Identity.Entities;
-using PW.Identity.Contexts;
 using PW.Application.Interfaces.Identity;
-using PW.Identity.Services;
+using PW.Identity.Contexts;
+using PW.Identity.Entities;
 using PW.Identity.Factories;
-using Microsoft.AspNetCore.Identity;
+using PW.Identity.Services;
 
 namespace PW.Identity;
 
 public static class DependencyInjection
 {
-    public static void AddIdentityServices(this IHostApplicationBuilder builder)
-    {
+   public static void AddIdentityServices(this IHostApplicationBuilder builder)
+   {
 
-        #region Identity
+      #region Identity
 
-        builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-        .AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>()
-        .AddEntityFrameworkStores<AuthDbContext>();
+      builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+      .AddClaimsPrincipalFactory<CustomUserClaimsPrincipalFactory>()
+      .AddEntityFrameworkStores<AuthDbContext>();
 
-        builder.Services.Configure<SecurityStampValidatorOptions>(options =>
-        {
-            options.ValidationInterval = TimeSpan.Zero;
-        });
+      builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+      {
+         options.ValidationInterval = TimeSpan.Zero;
+      });
 
-        #endregion
+      #endregion
 
-        #region Contexts
+      #region Contexts
 
-        builder.Services.AddDbContext<AuthDbContext>((sp, options) =>
-        {
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
-            options.EnableSensitiveDataLogging();
-        });
+      builder.Services.AddDbContext<AuthDbContext>((sp, options) =>
+      {
+         options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+         options.EnableSensitiveDataLogging();
+      });
 
-        builder.Services.AddScoped<IdentityInitialiser>();
+      builder.Services.AddScoped<IdentityInitialiser>();
 
-        #endregion
+      #endregion
 
-        #region Services
-        builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<IRoleService, RoleService>();
-        builder.Services.AddScoped<IUserService, UserService>();
+      #region Services
+      builder.Services.AddScoped<IAuthService, AuthService>();
+      builder.Services.AddScoped<IRoleService, RoleService>();
+      builder.Services.AddScoped<IUserService, UserService>();
 
-        #endregion
+      #endregion
 
-    }
+   }
 }

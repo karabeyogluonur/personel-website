@@ -1,4 +1,4 @@
-using PW.Domain.Common;
+﻿using PW.Domain.Common;
 using PW.Domain.Interfaces;
 
 namespace PW.Domain.Entities;

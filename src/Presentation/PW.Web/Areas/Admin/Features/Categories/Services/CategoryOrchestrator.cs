@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Localization;

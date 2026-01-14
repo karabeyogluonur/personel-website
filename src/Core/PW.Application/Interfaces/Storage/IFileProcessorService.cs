@@ -1,4 +1,4 @@
-using PW.Application.Common.Enums; // FileNamingMode için
+﻿using PW.Application.Common.Enums;
 using PW.Application.Models.Dtos.Common;
 
 namespace PW.Application.Interfaces.Storage;

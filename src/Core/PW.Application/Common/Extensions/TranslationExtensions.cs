@@ -1,4 +1,4 @@
-using PW.Application.Common.Interfaces;
+﻿using PW.Application.Common.Interfaces;
 using PW.Domain.Interfaces;
 
 namespace PW.Application.Common.Extensions;
