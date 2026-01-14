@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
-using PW.Web.Areas.Admin.Features.Configurations.Services;
-using PW.Web.Areas.Admin.Features.Configurations.ViewModels;
+using PW.Web.Areas.Admin.Features.Configuration.Services;
+using PW.Web.Areas.Admin.Features.Configuration.ViewModels;
 
 namespace PW.Web.Areas.Admin.Controllers;
 

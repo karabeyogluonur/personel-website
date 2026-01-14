@@ -3,22 +3,22 @@ using Microsoft.EntityFrameworkCore;
 
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Interfaces.Identity.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Identity.Entities;
 
 namespace PW.Identity.Services;
 
-public class UserService : IUserService
+public class ıdentityUserService : IIdentityUserService
 {
    private readonly UserManager<ApplicationUser> _userManager;
 
-   public UserService(UserManager<ApplicationUser> userManager)
+   public ıdentityUserService(UserManager<ApplicationUser> userManager)
    {
       _userManager = userManager;
    }
 
-   public async Task<OperationResult<int>> CreateUserAsync(CreateUserDto createUserDto)
+   public async Task<OperationResult<int>> CreateUserAsync(IdentityCreateUserDto createUserDto)
    {
       if (createUserDto == null) throw new ArgumentNullException(nameof(createUserDto));
 
@@ -53,7 +53,7 @@ public class UserService : IUserService
       return OperationResult<int>.Success(applicationUser.Id);
    }
 
-   public async Task<UserDto?> GetUserByIdAsync(int userId)
+   public async Task<IdentityUserDto?> GetUserByIdAsync(int userId)
    {
       if (userId <= 0) return null;
 
@@ -62,7 +62,7 @@ public class UserService : IUserService
 
       IList<string> roles = await _userManager.GetRolesAsync(applicationUser);
 
-      return new UserDto
+      return new IdentityUserDto
       {
          Id = applicationUser.Id,
          FirstName = applicationUser.FirstName,
@@ -72,16 +72,16 @@ public class UserService : IUserService
       };
    }
 
-   public async Task<List<UserDto>> GetAllUsersAsync()
+   public async Task<List<IdentityUserDto>> GetAllUsersAsync()
    {
       List<ApplicationUser> applicationUsers = await _userManager.Users.AsNoTracking().ToListAsync();
-      List<UserDto> userDtos = new List<UserDto>();
+      List<IdentityUserDto> userDtos = new List<IdentityUserDto>();
 
       foreach (ApplicationUser applicationUser in applicationUsers)
       {
          IList<string> userRoleNames = await _userManager.GetRolesAsync(applicationUser);
 
-         userDtos.Add(new UserDto
+         userDtos.Add(new IdentityUserDto
          {
             Id = applicationUser.Id,
             FirstName = applicationUser.FirstName,
@@ -94,7 +94,7 @@ public class UserService : IUserService
       return userDtos;
    }
 
-   public async Task<OperationResult> UpdateUserAsync(int userId, UserDto userDto)
+   public async Task<OperationResult> UpdateUserAsync(int userId, IdentityUserDto userDto)
    {
       if (userId <= 0) return OperationResult.Failure("Invalid user ID.", OperationErrorType.ValidationError);
 
@@ -104,6 +104,7 @@ public class UserService : IUserService
       if (!string.Equals(applicationUser.Email, userDto.Email, StringComparison.OrdinalIgnoreCase))
       {
          ApplicationUser? emailCheck = await _userManager.FindByEmailAsync(userDto.Email);
+
          if (emailCheck != null)
             return OperationResult.Failure($"Email '{userDto.Email}' is already taken.", OperationErrorType.Conflict);
 
@@ -131,7 +132,7 @@ public class UserService : IUserService
           : OperationResult.Failure("Failed to delete user.", OperationErrorType.Technical);
    }
 
-   public async Task<OperationResult> AdminResetUserPasswordAsync(SetPasswordDto setPasswordDto)
+   public async Task<OperationResult> AdminResetUserPasswordAsync(IdentitySetPasswordDto setPasswordDto)
    {
       ApplicationUser? applicationUser = await _userManager.FindByIdAsync(setPasswordDto.UserId.ToString());
       if (applicationUser == null) return OperationResult.Failure("User not found.", OperationErrorType.NotFound);
@@ -149,7 +150,7 @@ public class UserService : IUserService
       return OperationResult.Success();
    }
 
-   public async Task<UserDto?> GetUserByEmailAsync(string email)
+   public async Task<IdentityUserDto?> GetUserByEmailAsync(string email)
    {
       if (string.IsNullOrWhiteSpace(email)) return null;
 
@@ -158,7 +159,7 @@ public class UserService : IUserService
 
       IList<string> roles = await _userManager.GetRolesAsync(applicationUser);
 
-      return new UserDto
+      return new IdentityUserDto
       {
          Id = applicationUser.Id,
          FirstName = applicationUser.FirstName,

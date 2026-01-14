@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using PW.Domain.Common;
 
-namespace TM.Infrastructure.Persistence.Interceptors;
+namespace PW.Persistence.Interceptors;
 
 public class SoftDeleteInterceptor : SaveChangesInterceptor
 {

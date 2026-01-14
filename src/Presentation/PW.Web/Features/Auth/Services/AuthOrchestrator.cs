@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using PW.Application.Interfaces.Identity;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Features.Auth;
+using PW.Application.Features.Auth.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Web.Features.Auth.ViewModels;
 
 namespace PW.Web.Features.Auth.Services;
@@ -19,10 +19,10 @@ public class AuthOrchestrator : IAuthOrchestrator
 
    public async Task<OperationResult> LoginAsync(LoginViewModel loginViewModel)
    {
-      if (loginViewModel is null)
+      if (loginViewModel == null)
          throw new ArgumentNullException(nameof(loginViewModel));
 
-      var loginDto = _mapper.Map<LoginDto>(loginViewModel);
+      LoginDto loginDto = _mapper.Map<LoginDto>(loginViewModel);
 
       return await _authService.LoginAsync(loginDto);
    }

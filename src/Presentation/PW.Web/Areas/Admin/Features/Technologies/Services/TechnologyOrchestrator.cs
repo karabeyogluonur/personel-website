@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
+using PW.Application.Common.Dtos;
 using PW.Application.Common.Enums;
-using PW.Application.Interfaces.Content;
-using PW.Application.Interfaces.Localization;
+using PW.Application.Features.Localization;
+using PW.Application.Features.Localization.Dtos;
+using PW.Application.Features.Technologies;
+using PW.Application.Features.Technologies.Dtos;
 using PW.Application.Interfaces.Storage;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Common;
-using PW.Application.Models.Dtos.Content;
-using PW.Application.Models.Dtos.Localization;
+using PW.Application.Utilities.Results;
 using PW.Web.Areas.Admin.Features.Common.Models;
 using PW.Web.Areas.Admin.Features.Technologies.ViewModels;
 

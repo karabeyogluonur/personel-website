@@ -3,29 +3,29 @@ using Microsoft.Extensions.Logging;
 
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Interfaces.Identity.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Identity.Entities;
 
 namespace PW.Identity.Services;
 
-public class AuthService : IAuthService
+public class IdentityAuthService : IIdentityAuthService
 {
    private readonly SignInManager<ApplicationUser> _signInManager;
    private readonly UserManager<ApplicationUser> _userManager;
-   private readonly ILogger<AuthService> _logger;
+   private readonly ILogger<IdentityAuthService> _logger;
 
-   public AuthService(
+   public IdentityAuthService(
        SignInManager<ApplicationUser> signInManager,
        UserManager<ApplicationUser> userManager,
-       ILogger<AuthService> logger)
+       ILogger<IdentityAuthService> logger)
    {
       _signInManager = signInManager;
       _userManager = userManager;
       _logger = logger;
    }
 
-   public async Task<OperationResult> LoginAsync(LoginDto loginDto)
+   public async Task<OperationResult> LoginAsync(IdentityLoginDto loginDto)
    {
       if (loginDto == null) throw new ArgumentNullException(nameof(loginDto));
 

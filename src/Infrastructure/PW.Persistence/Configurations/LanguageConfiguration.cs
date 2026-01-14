@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
 using PW.Application.Common.Constants;
 using PW.Domain.Entities;
 
-namespace PW.Persistence.Configurations.Localization;
+namespace PW.Persistence.Configurations;
 
 public class LanguageConfiguration : IEntityTypeConfiguration<Language>
 {

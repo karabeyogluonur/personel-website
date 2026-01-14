@@ -19,11 +19,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Web", "src\Presentation\PW.Web\PW.Web.csproj", "{8377BE06-294F-4C10-BE7B-8072B91E5921}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Services", "src\Infrastructure\PW.Services\PW.Services.csproj", "{E347E1FD-492B-462B-BA7F-010713DD7877}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Storage", "src\Infrastructure\PW.Storage\PW.Storage.csproj", "{E347E1FD-492B-462B-BA7F-010713DD7877}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Identity", "src\Infrastructure\PW.Identity\PW.Identity.csproj", "{E4FCA5B6-406E-41C0-8765-C7D6D8EFA6E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Redis", "src\Infrastructure\PW.Redis\PW.Redis.csproj", "{2E03958F-46AB-4B53-8BCF-E58004A0C370}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PW.Caching", "src\Infrastructure\PW.Caching\PW.Caching.csproj", "{2E03958F-46AB-4B53-8BCF-E58004A0C370}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

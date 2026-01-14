@@ -1,6 +1,6 @@
 ﻿using PW.Identity;
 using PW.Persistence;
-using PW.Web.Extensions;
+using PW.Web.Framework.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -3,18 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Identity;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Interfaces.Identity.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Identity.Entities;
 
 namespace PW.Identity.Services;
 
-public class RoleService : IRoleService
+public class IdentityRoleService : IIdentityRoleService
 {
    private readonly RoleManager<ApplicationRole> _roleManager;
    private readonly UserManager<ApplicationUser> _userManager;
 
-   public RoleService(
+   public IdentityRoleService(
        RoleManager<ApplicationRole> roleManager,
        UserManager<ApplicationUser> userManager)
    {
@@ -22,7 +22,7 @@ public class RoleService : IRoleService
       _userManager = userManager;
    }
 
-   public async Task<OperationResult> CreateRoleAsync(CreateRoleDto createRoleDto)
+   public async Task<OperationResult> CreateRoleAsync(IdentityCreateRoleDto createRoleDto)
    {
       if (createRoleDto == null) throw new ArgumentNullException(nameof(createRoleDto));
 
@@ -55,7 +55,7 @@ public class RoleService : IRoleService
       return applicationUser != null && await _userManager.IsInRoleAsync(applicationUser, roleName);
    }
 
-   public async Task<OperationResult> UpdateUserRolesAsync(UserRoleAssignmentDto userRoleAssignmentDto)
+   public async Task<OperationResult> UpdateUserRolesAsync(IdentityUserRoleAssignmentDto userRoleAssignmentDto)
    {
       ApplicationUser? applicationUser = await _userManager.FindByIdAsync(userRoleAssignmentDto.UserId.ToString());
       if (applicationUser == null) return OperationResult.Failure("User not found.", OperationErrorType.NotFound);

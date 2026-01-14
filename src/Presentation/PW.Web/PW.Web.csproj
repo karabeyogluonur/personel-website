@@ -3,8 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\PW.Application\PW.Application.csproj" />
     <ProjectReference Include="..\..\Infrastructure\PW.Persistence\PW.Persistence.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\PW.Redis\PW.Redis.csproj" />
-    <ProjectReference Include="..\..\Infrastructure\PW.Services\PW.Services.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\PW.Caching\PW.Caching.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\PW.Storage\PW.Storage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

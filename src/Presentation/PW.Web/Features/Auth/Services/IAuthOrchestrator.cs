@@ -1,4 +1,4 @@
-﻿using PW.Application.Models;
+﻿using PW.Application.Utilities.Results;
 using PW.Web.Features.Auth.ViewModels;
 
 namespace PW.Web.Features.Auth.Services;

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-
-using PW.Application.Models.Dtos.Content;
+using PW.Application.Features.Categories.Dtos;
 using PW.Web.Areas.Admin.Features.Categories.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Categories;

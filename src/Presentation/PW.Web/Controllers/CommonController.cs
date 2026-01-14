@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
 using PW.Application.Common.Extensions;
 using PW.Application.Common.Interfaces;
-using PW.Application.Interfaces.Localization;
-using PW.Application.Models.Dtos.Localization;
+using PW.Application.Features.Localization;
+using PW.Application.Features.Localization.Dtos;
 
 namespace PW.Web.Controllers;
 

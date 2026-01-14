@@ -12,29 +12,29 @@ This project addresses the limitations of rigid, monolithic personal site templa
 
 It is ideal for:
 
-* .NET developers seeking a real-world reference architecture
-* Professionals needing a self-hosted, customizable CMS for personal branding
+- .NET developers seeking a real-world reference architecture
+- Professionals needing a self-hosted, customizable CMS for personal branding
 
 ---
 
 ## 🔹 Key Features
 
-* **Clean Architecture**
+- **Clean Architecture**
   Strict separation into Domain, Application, Infrastructure, and Presentation layers to enforce dependency rules.
 
-* **Role-Based Identity (RBAC)**
+- **Role-Based Identity (RBAC)**
   Comprehensive user and role management built on **ASP.NET Core Identity**.
 
-* **Dynamic Localization**
+- **Dynamic Localization**
   Database-driven localization allowing real-time language management without redeployment.
 
-* **Robust Admin Panel**
+- **Robust Admin Panel**
   Integrated **Metronic**-based administrative dashboard for managing content, users, and system settings.
 
-* **Modular Design**
+- **Modular Design**
   Feature-based organization (e.g., Auth, Language, Configuration) for high extensibility.
 
-* **Docker Ready**
+- **Docker Ready**
   Fully containerized setup including the application and PostgreSQL database.
 
 ---
@@ -43,26 +43,26 @@ It is ideal for:
 
 ### Core
 
-* **Language:** C#
-* **Framework:** .NET (ASP.NET Core)
-* **Database:** PostgreSQL
-* **ORM:** Entity Framework Core (Npgsql)
+- **Language:** C#
+- **Framework:** .NET (ASP.NET Core)
+- **Database:** PostgreSQL
+- **ORM:** Entity Framework Core (Npgsql)
 
 ### Architecture & Libraries
 
-* **Mapping:** AutoMapper
-* **Validation:** FluentValidation
-* **Dependency Injection:** Native ASP.NET Core DI
+- **Mapping:** AutoMapper
+- **Validation:** FluentValidation
+- **Dependency Injection:** Native ASP.NET Core DI
 
 ### Frontend
 
-* **Rendering Engine:** ASP.NET Core MVC (Razor Views)
-* **Admin Theme:** Metronic (HTML5, CSS3, JavaScript)
-* **UI Libraries:** jQuery, Bootstrap, Flatpickr, Select2
+- **Rendering Engine:** ASP.NET Core MVC (Razor Views)
+- **Admin Theme:** Metronic (HTML5, CSS3, JavaScript)
+- **UI Libraries:** jQuery, Bootstrap, Flatpickr, Select2
 
 ### DevOps
 
-* **Containerization:** Docker, Docker Compose
+- **Containerization:** Docker, Docker Compose
 
 ---
 
@@ -78,16 +78,16 @@ src/
 ├── Infrastructure/
 │   ├── PW.Persistence/     # DbContexts, Repositories, Migrations
 │   ├── PW.Identity/        # Identity services, Auth context, user logic
-│   └── PW.Services/        # External services (File storage, Email, etc.)
+│   └── PW.Storage/        # External services (File storage, Email, etc.)
 └── Presentation/
     └── PW.Web/             # MVC app, Controllers, Views, API endpoints
 ```
 
 ### Key Patterns Used
 
-* **Repository & Unit of Work** – Abstraction over data access logic
-* **Orchestrator Pattern** – Used in the Web layer to coordinate Controller and Application logic
-* **Dependency Injection** – Extensive use for decoupling and testability
+- **Repository & Unit of Work** – Abstraction over data access logic
+- **Orchestrator Pattern** – Used in the Web layer to coordinate Controller and Application logic
+- **Dependency Injection** – Extensive use for decoupling and testability
 
 ---
 
@@ -95,8 +95,8 @@ src/
 
 ### Prerequisites
 
-* Docker Desktop
-* .NET SDK (version defined in `global.json` or latest stable)
+- Docker Desktop
+- .NET SDK (version defined in `global.json` or latest stable)
 
 ---
 
@@ -110,8 +110,8 @@ cd personel-website
 docker-compose up --build
 ```
 
-* Application: [http://localhost:8080](http://localhost:8080)
-* PostgreSQL: Port `5433`
+- Application: [http://localhost:8080](http://localhost:8080)
+- PostgreSQL: Port `5433`
 
 ---
 
@@ -147,15 +147,15 @@ dotnet run
 
 ### Admin Panel
 
-* Default data is seeded during startup (see `IdentityInitialiser.cs`).
-* Navigate to `/Admin` to access the dashboard.
-* Use seeded credentials (if available) or create a user and assign roles manually.
+- Default data is seeded during startup (see `IdentityInitialiser.cs`).
+- Navigate to `/Admin` to access the dashboard.
+- Use seeded credentials (if available) or create a user and assign roles manually.
 
 ### Localization
 
-* Manage languages from the **Language** section in the Admin Panel.
-* Add or update translation keys dynamically.
-* Localization is handled via a custom `LanguageService` backed by the database.
+- Manage languages from the **Language** section in the Admin Panel.
+- Add or update translation keys dynamically.
+- Localization is handled via a custom `LanguageService` backed by the database.
 
 ---
 
@@ -193,10 +193,10 @@ docker run -d -p 80:8080 \
 
 ## 🔹 Roadmap
 
-* [ ] CMS modules (dynamic pages, blog management)
-* [ ] Headless CMS support (REST / GraphQL)
-* [ ] Unit & integration testing (xUnit)
-* [ ] CI/CD with GitHub Actions
+- [ ] CMS modules (dynamic pages, blog management)
+- [ ] Headless CMS support (REST / GraphQL)
+- [ ] Unit & integration testing (xUnit)
+- [ ] CI/CD with GitHub Actions
 
 ---
 

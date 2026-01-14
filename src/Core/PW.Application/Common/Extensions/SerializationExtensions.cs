@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
 
-namespace PW.Application.Extensions;
+namespace PW.Application.Common.Extensions;
 
 public static class SerializationExtensions
 {

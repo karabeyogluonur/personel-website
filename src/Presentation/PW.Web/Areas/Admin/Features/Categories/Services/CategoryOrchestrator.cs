@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using PW.Application.Common.Enums;
-using PW.Application.Interfaces.Content;
-using PW.Application.Interfaces.Localization;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Content;
-using PW.Application.Models.Dtos.Localization;
+using PW.Application.Features.Categories;
+using PW.Application.Features.Categories.Dtos;
+using PW.Application.Features.Localization;
+using PW.Application.Features.Localization.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Web.Areas.Admin.Features.Categories.ViewModels;
 using PW.Web.Areas.Admin.Features.Common.Models;
 

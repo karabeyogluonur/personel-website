@@ -1,4 +1,4 @@
-﻿using PW.Application.Models;
+﻿using PW.Application.Utilities.Results;
 using PW.Web.Areas.Admin.Features.Technologies.ViewModels;
 namespace PW.Web.Areas.Admin.Features.Technologies.Services;
 

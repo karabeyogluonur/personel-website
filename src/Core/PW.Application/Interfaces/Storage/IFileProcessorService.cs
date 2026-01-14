@@ -1,5 +1,5 @@
-﻿using PW.Application.Common.Enums;
-using PW.Application.Models.Dtos.Common;
+﻿using PW.Application.Common.Dtos;
+using PW.Application.Common.Enums;
 
 namespace PW.Application.Interfaces.Storage;
 

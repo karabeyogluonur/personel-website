@@ -12,29 +12,29 @@ Bu proje; katı, monolitik kişisel site şablonlarının yarattığı kısıtla
 
 Aşağıdaki hedef kitleler için idealdir:
 
-* Gerçek dünya örneği üzerinden Clean Architecture incelemek isteyen .NET geliştiriciler
-* Kendi markası için self-hosted ve özelleştirilebilir bir CMS arayan profesyoneller
+- Gerçek dünya örneği üzerinden Clean Architecture incelemek isteyen .NET geliştiriciler
+- Kendi markası için self-hosted ve özelleştirilebilir bir CMS arayan profesyoneller
 
 ---
 
 ## 🔹 Temel Özellikler
 
-* **Clean Architecture**
+- **Clean Architecture**
   Domain, Application, Infrastructure ve Presentation katmanlarına sıkı şekilde ayrılmış yapı ile bağımlılık kurallarının korunması.
 
-* **Rol Tabanlı Kimlik Yönetimi (RBAC)**
+- **Rol Tabanlı Kimlik Yönetimi (RBAC)**
   **ASP.NET Core Identity** altyapısı üzerinde geliştirilmiş kapsamlı kullanıcı ve rol yönetimi.
 
-* **Dinamik Lokalizasyon**
+- **Dinamik Lokalizasyon**
   Uygulama yeniden dağıtılmadan, veritabanı üzerinden gerçek zamanlı dil ve çeviri yönetimi.
 
-* **Gelişmiş Admin Paneli**
+- **Gelişmiş Admin Paneli**
   İçerik, kullanıcı ve sistem ayarlarının yönetimi için **Metronic** tabanlı yönetim arayüzü.
 
-* **Modüler Yapı**
+- **Modüler Yapı**
   Language, Configuration gibi feature-based organizasyon sayesinde kolay genişletilebilir mimari.
 
-* **Docker Desteği**
+- **Docker Desteği**
   Uygulama ve PostgreSQL veritabanını içeren tam containerize yapı.
 
 ---
@@ -43,26 +43,26 @@ Aşağıdaki hedef kitleler için idealdir:
 
 ### Çekirdek
 
-* **Dil:** C#
-* **Framework:** .NET (ASP.NET Core)
-* **Veritabanı:** PostgreSQL
-* **ORM:** Entity Framework Core (Npgsql)
+- **Dil:** C#
+- **Framework:** .NET (ASP.NET Core)
+- **Veritabanı:** PostgreSQL
+- **ORM:** Entity Framework Core (Npgsql)
 
 ### Mimari & Kütüphaneler
 
-* **Mapping:** AutoMapper
-* **Validation:** FluentValidation
-* **Dependency Injection:** ASP.NET Core yerleşik DI
+- **Mapping:** AutoMapper
+- **Validation:** FluentValidation
+- **Dependency Injection:** ASP.NET Core yerleşik DI
 
 ### Frontend
 
-* **Render Engine:** ASP.NET Core MVC (Razor Views)
-* **Admin Tema:** Metronic (HTML5, CSS3, JavaScript)
-* **UI Kütüphaneleri:** jQuery, Bootstrap, Flatpickr, Select2
+- **Render Engine:** ASP.NET Core MVC (Razor Views)
+- **Admin Tema:** Metronic (HTML5, CSS3, JavaScript)
+- **UI Kütüphaneleri:** jQuery, Bootstrap, Flatpickr, Select2
 
 ### DevOps
 
-* **Containerization:** Docker, Docker Compose
+- **Containerization:** Docker, Docker Compose
 
 ---
 
@@ -78,16 +78,16 @@ src/
 ├── Infrastructure/
 │   ├── PW.Persistence/     # DbContext’ler, Repository’ler, Migration’lar
 │   ├── PW.Identity/        # Kimlik servisleri, Auth context, kullanıcı mantığı
-│   └── PW.Services/        # Harici servisler (Dosya, E-posta vb.)
+│   └── PW.Storage/        # Harici servisler (Dosya, E-posta vb.)
 └── Presentation/
     └── PW.Web/             # MVC uygulaması, Controller’lar, View’lar
 ```
 
 ### Kullanılan Temel Pattern’ler
 
-* **Repository & Unit of Work** – Veri erişim katmanının soyutlanması
-* **Orchestrator Pattern** – Web katmanında Controller ile Application katmanı arasındaki akışın yönetilmesi
-* **Dependency Injection** – Katmanlar arası bağımlılıkların gevşetilmesi
+- **Repository & Unit of Work** – Veri erişim katmanının soyutlanması
+- **Orchestrator Pattern** – Web katmanında Controller ile Application katmanı arasındaki akışın yönetilmesi
+- **Dependency Injection** – Katmanlar arası bağımlılıkların gevşetilmesi
 
 ---
 
@@ -95,8 +95,8 @@ src/
 
 ### Gereksinimler
 
-* Docker Desktop
-* .NET SDK (`global.json` ile uyumlu veya en güncel stabil sürüm)
+- Docker Desktop
+- .NET SDK (`global.json` ile uyumlu veya en güncel stabil sürüm)
 
 ---
 
@@ -110,8 +110,8 @@ cd personel-website
 docker-compose up --build
 ```
 
-* Uygulama: [http://localhost:8080](http://localhost:8080)
-* PostgreSQL: `5433` portu
+- Uygulama: [http://localhost:8080](http://localhost:8080)
+- PostgreSQL: `5433` portu
 
 ---
 
@@ -147,15 +147,15 @@ dotnet run
 
 ### Admin Paneli
 
-* Uygulama ilk çalıştırmada varsayılan verileri seed eder (`IdentityInitialiser.cs`).
-* `/Admin` adresinden yönetim paneline erişebilirsiniz.
-* Varsayılan kullanıcı bilgileri yoksa yeni kullanıcı oluşturup rollerini atayabilirsiniz.
+- Uygulama ilk çalıştırmada varsayılan verileri seed eder (`IdentityInitialiser.cs`).
+- `/Admin` adresinden yönetim paneline erişebilirsiniz.
+- Varsayılan kullanıcı bilgileri yoksa yeni kullanıcı oluşturup rollerini atayabilirsiniz.
 
 ### Dil Yönetimi (Lokalizasyon)
 
-* Admin panelindeki **Language** bölümünden dil ekleyebilir veya düzenleyebilirsiniz.
-* Çeviri anahtarları (key/value) veritabanı üzerinden dinamik olarak yönetilir.
-* Bu yapı özel olarak geliştirilmiş `LanguageService` tarafından sağlanır.
+- Admin panelindeki **Language** bölümünden dil ekleyebilir veya düzenleyebilirsiniz.
+- Çeviri anahtarları (key/value) veritabanı üzerinden dinamik olarak yönetilir.
+- Bu yapı özel olarak geliştirilmiş `LanguageService` tarafından sağlanır.
 
 ---
 
@@ -193,10 +193,10 @@ docker run -d -p 80:8080 \
 
 ## 🔹 Yol Haritası
 
-* [ ] CMS modülleri (dinamik sayfalar, blog yönetimi)
-* [ ] Headless CMS desteği (REST / GraphQL)
-* [ ] Unit ve integration testleri (xUnit)
-* [ ] GitHub Actions ile CI/CD kurulumu
+- [ ] CMS modülleri (dinamik sayfalar, blog yönetimi)
+- [ ] Headless CMS desteği (REST / GraphQL)
+- [ ] Unit ve integration testleri (xUnit)
+- [ ] GitHub Actions ile CI/CD kurulumu
 
 ---
 

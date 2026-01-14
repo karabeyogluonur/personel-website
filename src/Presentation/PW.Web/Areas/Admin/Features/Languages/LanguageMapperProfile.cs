@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-
-using PW.Application.Models.Dtos.Localization;
+using PW.Application.Features.Localization.Dtos;
 using PW.Web.Areas.Admin.Features.Languages.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Languages;

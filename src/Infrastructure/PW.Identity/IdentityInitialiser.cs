@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PW.Application.Common.Constants;
 using PW.Application.Interfaces.Identity;
-using PW.Application.Models;
-using PW.Application.Models.Dtos.Identity;
+using PW.Application.Interfaces.Identity.Dtos;
+using PW.Application.Utilities.Results;
 using PW.Identity.Contexts;
 
 namespace PW.Identity;
@@ -12,10 +12,10 @@ namespace PW.Identity;
 public class IdentityInitialiser
 {
    private readonly AuthDbContext _context;
-   private readonly IUserService _userService;
-   private readonly IRoleService _roleService;
+   private readonly IIdentityUserService _userService;
+   private readonly IIdentityRoleService _roleService;
 
-   public IdentityInitialiser(AuthDbContext context, IUserService userService, IRoleService roleService)
+   public IdentityInitialiser(AuthDbContext context, IIdentityUserService userService, IIdentityRoleService roleService)
    {
       _context = context;
       _userService = userService;
@@ -36,13 +36,13 @@ public class IdentityInitialiser
 
    private async Task SeedRolesAsync()
    {
-      List<CreateRoleDto> predefinedRoles = new List<CreateRoleDto>
+      List<IdentityCreateRoleDto> predefinedRoles = new List<IdentityCreateRoleDto>
         {
-            new CreateRoleDto { Name = ApplicationRoles.Admin, Description = "System administrator role" },
-            new CreateRoleDto { Name = ApplicationRoles.Editor, Description = "Content editor role" }
+            new IdentityCreateRoleDto { Name = ApplicationRoles.Admin, Description = "System administrator role" },
+            new IdentityCreateRoleDto { Name = ApplicationRoles.Editor, Description = "Content editor role" }
         };
 
-      foreach (CreateRoleDto roleDefinition in predefinedRoles)
+      foreach (IdentityCreateRoleDto roleDefinition in predefinedRoles)
          await _roleService.CreateRoleAsync(roleDefinition);
    }
 
@@ -70,11 +70,11 @@ public class IdentityInitialiser
 
       foreach (var userInfo in predefinedUsers)
       {
-         UserDto? existingUser = await _userService.GetUserByEmailAsync(userInfo.Email);
+         IdentityUserDto? existingUser = await _userService.GetUserByEmailAsync(userInfo.Email);
 
          if (existingUser is null)
          {
-            CreateUserDto createUserDto = new CreateUserDto
+            IdentityCreateUserDto createUserDto = new IdentityCreateUserDto
             {
                FirstName = userInfo.FirstName,
                LastName = userInfo.LastName,
@@ -94,7 +94,7 @@ public class IdentityInitialiser
 
             if (!isInRole)
             {
-               UserRoleAssignmentDto userRoleAssignmentDto = new UserRoleAssignmentDto
+               IdentityUserRoleAssignmentDto userRoleAssignmentDto = new IdentityUserRoleAssignmentDto
                {
                   UserId = existingUser.Id,
                   RoleNames = new List<string> { userInfo.RoleName }

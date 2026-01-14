@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using PW.Application.Models.Dtos.Content;
+using PW.Application.Features.Technologies.Dtos;
 using PW.Web.Areas.Admin.Features.Technologies.ViewModels;
 
 namespace PW.Web.Areas.Admin.Features.Technologies;
