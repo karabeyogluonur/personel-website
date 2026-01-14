@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PW.Application.Common.Constants;
 using PW.Application.Common.Enums;
+using PW.Application.Common.Extensions; // SyncTranslations için
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Repositories;
 using PW.Application.Interfaces.Storage;
@@ -15,6 +16,7 @@ public class TechnologyService : ITechnologyService
    private readonly IUnitOfWork _unitOfWork;
    private readonly IRepository<Technology> _technologyRepository;
    private readonly IFileProcessorService _fileProcessorService;
+
    public TechnologyService(IUnitOfWork unitOfWork, IFileProcessorService fileProcessorService)
    {
       _unitOfWork = unitOfWork;
@@ -68,7 +70,6 @@ public class TechnologyService : ITechnologyService
           .ToList()
       };
    }
-
    public async Task<OperationResult> CreateTechnologyAsync(TechnologyCreateDto technologyCreateDto)
    {
       if (technologyCreateDto == null)
@@ -97,13 +98,20 @@ public class TechnologyService : ITechnologyService
             IsActive = technologyCreateDto.IsActive,
             IconImageFileName = uploadedIconName,
             CreatedAt = DateTime.UtcNow,
-            Translations = technologyCreateDto.Translations.Select(dto => new TechnologyTranslation
-            {
-               LanguageId = dto.LanguageId,
-               Name = dto.Name,
-               Description = dto.Description
-            }).ToList()
+            Translations = new List<TechnologyTranslation>()
          };
+
+         technology.Translations.SyncTranslations(
+             translationDtos: technologyCreateDto.Translations,
+             isEmptyPredicate: (TechnologyTranslationDto translationDto) =>
+                 string.IsNullOrWhiteSpace(translationDto.Name) &&
+                 string.IsNullOrWhiteSpace(translationDto.Description),
+             mapAction: (TechnologyTranslation translation, TechnologyTranslationDto translationDto) =>
+             {
+                translation.Name = translationDto.Name;
+                translation.Description = translationDto.Description;
+             }
+         );
 
          await _technologyRepository.InsertAsync(technology);
          await _unitOfWork.CommitAsync();
@@ -118,7 +126,6 @@ public class TechnologyService : ITechnologyService
          return OperationResult.Failure("Failed to create technology.", OperationErrorType.Technical);
       }
    }
-
    public async Task<OperationResult> UpdateTechnologyAsync(TechnologyUpdateDto technologyUpdateDto)
    {
       if (technologyUpdateDto == null)
@@ -154,7 +161,17 @@ public class TechnologyService : ITechnologyService
          technology.Description = technologyUpdateDto.Description;
          technology.IsActive = technologyUpdateDto.IsActive;
          technology.UpdatedAt = DateTime.UtcNow;
-         ApplyTranslations(technology, technologyUpdateDto.Translations);
+         technology.Translations.SyncTranslations(
+             translationDtos: technologyUpdateDto.Translations,
+             isEmptyPredicate: (TechnologyTranslationDto translationDto) =>
+                 string.IsNullOrWhiteSpace(translationDto.Name) &&
+                 string.IsNullOrWhiteSpace(translationDto.Description),
+             mapAction: (TechnologyTranslation translation, TechnologyTranslationDto translationDto) =>
+             {
+                translation.Name = translationDto.Name;
+                translation.Description = translationDto.Description;
+             }
+         );
 
          await _unitOfWork.CommitAsync();
 
@@ -185,38 +202,6 @@ public class TechnologyService : ITechnologyService
       catch (Exception)
       {
          return OperationResult.Failure("Failed to delete technology.", OperationErrorType.Technical);
-      }
-   }
-
-   private void ApplyTranslations(Technology technology, List<TechnologyTranslationDto> translationDtos)
-   {
-      foreach (var translationDto in translationDtos)
-      {
-         bool allFieldsEmpty = string.IsNullOrWhiteSpace(translationDto.Name) && string.IsNullOrWhiteSpace(translationDto.Description);
-
-         TechnologyTranslation? existingTranslation = technology.Translations.FirstOrDefault(translation => translation.LanguageId == translationDto.LanguageId);
-
-         if (allFieldsEmpty)
-         {
-            if (existingTranslation != null)
-               technology.Translations.Remove(existingTranslation);
-            continue;
-         }
-
-         if (existingTranslation != null)
-         {
-            existingTranslation.Name = translationDto.Name;
-            existingTranslation.Description = translationDto.Description;
-         }
-         else
-         {
-            technology.Translations.Add(new TechnologyTranslation
-            {
-               LanguageId = translationDto.LanguageId,
-               Name = translationDto.Name,
-               Description = translationDto.Description
-            });
-         }
       }
    }
 }

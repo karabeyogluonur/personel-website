@@ -1,4 +1,5 @@
 using PW.Application.Common.Enums;
+using PW.Application.Common.Extensions;
 using PW.Application.Interfaces.Repositories;
 using PW.Application.Interfaces.Storage;
 using PW.Application.Models;
@@ -9,86 +10,92 @@ namespace PW.Services.Storage;
 
 public class AssetService : IAssetService
 {
-    private readonly IStorageService _storageService;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IRepository<Asset> _assetRepository;
+   private readonly IFileProcessorService _fileProcessorService;
+   private readonly IUnitOfWork _unitOfWork;
+   private readonly IRepository<Asset> _assetRepository;
 
-    public AssetService(IStorageService storageService, IUnitOfWork unitOfWork)
-    {
-        _storageService = storageService;
-        _unitOfWork = unitOfWork;
-        _assetRepository = _unitOfWork.GetRepository<Asset>();
-    }
+   public AssetService(IFileProcessorService fileProcessorService, IUnitOfWork unitOfWork)
+   {
+      _fileProcessorService = fileProcessorService;
+      _unitOfWork = unitOfWork;
+      _assetRepository = _unitOfWork.GetRepository<Asset>();
+   }
 
-    public async Task<OperationResult<Asset>> UploadAsync(AssetUploadDto assetUploadDto)
-    {
-        if (assetUploadDto == null)
-            throw new ArgumentNullException(nameof(assetUploadDto));
+   public async Task<OperationResult<Asset>> UploadAsync(AssetUploadDto assetUploadDto)
+   {
+      if (assetUploadDto == null)
+         throw new ArgumentNullException(nameof(assetUploadDto));
 
-        if (assetUploadDto.FileStream == null || assetUploadDto.FileStream.Length == 0)
-            return OperationResult<Asset>.Failure("File stream is empty.", OperationErrorType.ValidationError);
+      if (!assetUploadDto.File.HasValidFile)
+         return OperationResult<Asset>.Failure("File stream is empty.", OperationErrorType.ValidationError);
 
-        string savedFileName = await _storageService.UploadAsync(
-            fileStream: assetUploadDto.FileStream,
-            fileName: assetUploadDto.FileName,
-            folder: assetUploadDto.Folder,
-            mode: FileNamingMode.Unique,
-            customName: assetUploadDto.SeoTitle
-        );
+      string savedFileName = string.Empty;
 
-        Asset asset = new Asset
-        {
+      try
+      {
+         savedFileName = await _fileProcessorService.HandleFileUpdateAsync(
+             fileInput: assetUploadDto.File,
+             currentDbFileName: null,
+             folderPath: assetUploadDto.Folder,
+             slugName: assetUploadDto.SeoTitle,
+             mode: FileNamingMode.Unique
+         );
+
+         Asset asset = new Asset
+         {
             FileName = savedFileName,
             Folder = assetUploadDto.Folder,
-            Extension = Path.GetExtension(assetUploadDto.FileName).ToLowerInvariant(),
+            Extension = Path.GetExtension(assetUploadDto.File.FileName).ToLowerInvariant(),
             ContentType = assetUploadDto.ContentType,
             AltText = !string.IsNullOrEmpty(assetUploadDto.AltText) ? assetUploadDto.AltText : assetUploadDto.SeoTitle,
-        };
+            Translations = new List<AssetTranslation>()
+         };
 
-        foreach (AssetTranslationDto translationDto in assetUploadDto.Translations)
-        {
-            asset.Translations.Add(new AssetTranslation
-            {
-                LanguageId = translationDto.LanguageId,
-                AltText = translationDto.AltText
-            });
-        }
+         asset.Translations.SyncTranslations(
+             translationDtos: assetUploadDto.Translations,
+             isEmptyPredicate: (AssetTranslationDto dto) => string.IsNullOrWhiteSpace(dto.AltText),
+             mapAction: (AssetTranslation translation, AssetTranslationDto dto) =>
+             {
+                translation.AltText = dto.AltText;
+             }
+         );
 
-        try
-        {
-            await _assetRepository.InsertAsync(asset);
-            await _unitOfWork.CommitAsync();
+         await _assetRepository.InsertAsync(asset);
+         await _unitOfWork.CommitAsync();
 
-            return OperationResult<Asset>.Success(asset);
-        }
-        catch (Exception)
-        {
-            await _storageService.DeleteAsync(asset.Folder, asset.FileName);
-            return OperationResult<Asset>.Failure("Failed to save asset record to database.", OperationErrorType.Technical);
-        }
-    }
+         return OperationResult<Asset>.Success(asset);
+      }
+      catch (Exception)
+      {
+         if (!string.IsNullOrEmpty(savedFileName))
+            await _fileProcessorService.DeleteFileAsync(assetUploadDto.Folder, savedFileName);
 
-    public async Task<OperationResult> DeleteAsync(int assetId)
-    {
-        Asset asset = await _assetRepository.GetFirstOrDefaultAsync(
-            predicate: asset => asset.Id == assetId,
-            disableTracking: false
-        );
+         return OperationResult<Asset>.Failure("Failed to save asset record to database.", OperationErrorType.Technical);
+      }
+   }
 
-        if (asset == null)
-            return OperationResult.Failure("Asset not found.", OperationErrorType.NotFound);
+   public async Task<OperationResult> DeleteAsync(int assetId)
+   {
+      Asset asset = await _assetRepository.GetFirstOrDefaultAsync(
+          predicate: asset => asset.Id == assetId,
+          disableTracking: false
+      );
 
-        try
-        {
-            await _storageService.DeleteAsync(asset.Folder, asset.FileName);
-            _assetRepository.Delete(asset);
-            await _unitOfWork.CommitAsync();
+      if (asset == null)
+         return OperationResult.Failure("Asset not found.", OperationErrorType.NotFound);
 
-            return OperationResult.Success();
-        }
-        catch (Exception)
-        {
-            return OperationResult.Failure("Failed to delete asset.", OperationErrorType.Technical);
-        }
-    }
+      try
+      {
+         await _fileProcessorService.DeleteFileAsync(asset.Folder, asset.FileName);
+
+         _assetRepository.Delete(asset);
+         await _unitOfWork.CommitAsync();
+
+         return OperationResult.Success();
+      }
+      catch (Exception)
+      {
+         return OperationResult.Failure("Failed to delete asset.", OperationErrorType.Technical);
+      }
+   }
 }

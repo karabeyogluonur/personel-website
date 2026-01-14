@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PW.Application.Common.Extensions;
 using PW.Application.Common.Enums;
 using PW.Application.Interfaces.Content;
 using PW.Application.Interfaces.Repositories;
@@ -82,7 +83,18 @@ public class CategoryService : ICategoryService
          IsDeleted = false,
          Translations = new List<CategoryTranslation>()
       };
-      ApplyTranslations(category, categoryCreateDto.Translations);
+
+      category.Translations.SyncTranslations(
+          translationDtos: categoryCreateDto.Translations,
+          isEmptyPredicate: (CategoryTranslationDto translationDto) =>
+              string.IsNullOrWhiteSpace(translationDto.Name) &&
+              string.IsNullOrWhiteSpace(translationDto.Description),
+          mapAction: (CategoryTranslation translation, CategoryTranslationDto translationDto) =>
+          {
+             translation.Name = string.IsNullOrWhiteSpace(translationDto.Name) ? null : translationDto.Name;
+             translation.Description = string.IsNullOrWhiteSpace(translationDto.Description) ? null : translationDto.Description;
+          }
+      );
 
       await _categoryRepository.InsertAsync(category);
       await _unitOfWork.CommitAsync();
@@ -106,7 +118,19 @@ public class CategoryService : ICategoryService
       category.Name = categoryUpdateDto.Name;
       category.Description = categoryUpdateDto.Description;
       category.IsActive = categoryUpdateDto.IsActive;
-      ApplyTranslations(category, categoryUpdateDto.Translations);
+      category.Translations.SyncTranslations(
+          translationDtos: categoryUpdateDto.Translations,
+
+          isEmptyPredicate: (CategoryTranslationDto translationDto) =>
+              string.IsNullOrWhiteSpace(translationDto.Name) &&
+              string.IsNullOrWhiteSpace(translationDto.Description),
+
+          mapAction: (CategoryTranslation translation, CategoryTranslationDto translationDto) =>
+          {
+             translation.Name = string.IsNullOrWhiteSpace(translationDto.Name) ? null : translationDto.Name;
+             translation.Description = string.IsNullOrWhiteSpace(translationDto.Description) ? null : translationDto.Description;
+          }
+      );
 
       await _unitOfWork.CommitAsync();
 
@@ -128,38 +152,4 @@ public class CategoryService : ICategoryService
 
       return OperationResult.Success();
    }
-
-   private void ApplyTranslations(Category category, List<CategoryTranslationDto> translationDtos)
-   {
-      foreach (CategoryTranslationDto translationDto in translationDtos)
-      {
-         CategoryTranslation? existingTranslation = category.Translations.FirstOrDefault(translation => translation.LanguageId == translationDto.LanguageId);
-
-         bool isEmpty = string.IsNullOrWhiteSpace(translationDto.Name) && string.IsNullOrWhiteSpace(translationDto.Description);
-
-         if (existingTranslation != null)
-         {
-            if (isEmpty)
-               category.Translations.Remove(existingTranslation);
-            else
-            {
-               existingTranslation.Name = string.IsNullOrWhiteSpace(translationDto.Name) ? null : translationDto.Name;
-               existingTranslation.Description = string.IsNullOrWhiteSpace(translationDto.Description) ? null : translationDto.Description;
-            }
-         }
-         else
-         {
-            if (!isEmpty)
-            {
-               category.Translations.Add(new CategoryTranslation
-               {
-                  LanguageId = translationDto.LanguageId,
-                  Name = string.IsNullOrWhiteSpace(translationDto.Name) ? null : translationDto.Name,
-                  Description = string.IsNullOrWhiteSpace(translationDto.Description) ? null : translationDto.Description
-               });
-            }
-         }
-      }
-   }
-
 }
