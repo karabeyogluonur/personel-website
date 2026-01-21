@@ -37,133 +37,135 @@
 <div class="card mb-5">
     <div class="card-body">
 
-        <table class="table table-row-dashed table-hover align-middle gs-0 gy-4">
-            <thead>
-                <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
-                    <th class="min-w-200px">Language</th>
-                    <th class="min-w-100px">ISO Code</th>
-                    <th class="min-w-100px">Order</th>
-                    <th class="min-w-100px">Status</th>
-                    <th class="min-w-125px">Created</th>
-                    <th class="min-w-125px">Last Update</th>
-                    <th class="text-end min-w-100px">Actions</th>
-                </tr>
-            </thead>
+        <div class="table-responsive">
+            <table class="table table-row-dashed table-hover align-middle gs-0 gy-4">
+                <thead>
+                    <tr class="text-start text-muted fw-bold fs-7 text-uppercase">
+                        <th class="min-w-200px">Language</th>
+                        <th class="min-w-100px">ISO Code</th>
+                        <th class="min-w-100px">Order</th>
+                        <th class="min-w-100px">Status</th>
+                        <th class="min-w-125px">Created</th>
+                        <th class="min-w-125px">Last Update</th>
+                        <th class="text-end min-w-100px">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody class="fw-semibold text-gray-700">
-                @if (Model.Languages != null && Model.Languages.Any())
-                {
-                    @foreach (var lang in Model.Languages.OrderBy(l => l.DisplayOrder))
+                <tbody class="fw-semibold text-gray-700">
+                    @if (Model.Languages != null && Model.Languages.Any())
                     {
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        @if (!string.IsNullOrEmpty(lang.FlagImageFileName))
+                        @foreach (var lang in Model.Languages.OrderBy(l => l.DisplayOrder))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            @if (!string.IsNullOrEmpty(lang.FlagImageFileName))
+                                            {
+                                                <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
+                                                    default-src="/assets/media/flags/default.svg" class="w-20px h-20px rounded"
+                                                    alt="@lang.Code" />
+                                            }
+                                            else
+                                            {
+                                                <div class="symbol symbol-20px">
+                                                    <span class="symbol-label bg-light-primary text-primary fw-bold">
+                                                        @lang.Code.Substring(0, 2).ToUpper()
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="d-flex flex-column justify-content-center">
+                                            <span class="text-gray-800 fw-bold fs-7 mb-1">@lang.Name</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="badge badge-light fw-bold fs-7">@lang.Code</span>
+                                </td>
+
+                                <td>
+                                    <span class="text-gray-600 fw-bold">@lang.DisplayOrder</span>
+                                </td>
+
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        @if (lang.IsDefault)
                                         {
-                                            <img file-name="@lang.FlagImageFileName" folder="@StoragePaths.System_Flags"
-                                                default-src="/assets/media/flags/default.svg" class="w-20px h-20px rounded"
-                                                alt="@lang.Code" />
+                                            <span class="badge badge-light-primary fw-bold w-auto">Default</span>
+                                        }
+
+                                        @if (lang.IsPublished)
+                                        {
+                                            <span class="badge badge-light-success fw-bold w-auto">Published</span>
                                         }
                                         else
                                         {
-                                            <div class="symbol symbol-20px">
-                                                <span class="symbol-label bg-light-primary text-primary fw-bold">
-                                                    @lang.Code.Substring(0, 2).ToUpper()
-                                                </span>
-                                            </div>
+                                            <span class="badge badge-light-danger fw-bold w-auto">Draft</span>
                                         }
                                     </div>
-                                    <div class="d-flex flex-column justify-content-center">
-                                        <span class="text-gray-800 fw-bold fs-7 mb-1">@lang.Name</span>
+                                </td>
+
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="text-gray-800 fw-bold fs-7">@lang.CreatedAt.ToString("dd MMM yyyy")</span>
+                                        <span class="text-muted fs-8">@lang.CreatedAt.ToString("HH:mm")</span>
                                     </div>
-                                </div>
-                            </td>
+                                </td>
 
-                            <td>
-                                <span class="badge badge-light fw-bold fs-7">@lang.Code</span>
-                            </td>
-
-                            <td>
-                                <span class="text-gray-600 fw-bold">@lang.DisplayOrder</span>
-                            </td>
-
-                            <td>
-                                <div class="d-flex flex-column gap-1">
-                                    @if (lang.IsDefault)
+                                <td>
+                                    @if (lang.UpdatedAt.HasValue)
                                     {
-                                        <span class="badge badge-light-primary fw-bold w-auto">Default</span>
-                                    }
-
-                                    @if (lang.IsPublished)
-                                    {
-                                        <span class="badge badge-light-success fw-bold w-auto">Published</span>
+                                        <div class="d-flex flex-column">
+                                            <span class="text-gray-800 fw-bold fs-7">@lang.UpdatedAt.Value.ToString("dd MMM                                    yyyy")</span>
+                                            <span class="text-muted fs-8">@lang.UpdatedAt.Value.ToString("HH:mm")</span>
+                                        </div>
                                     }
                                     else
                                     {
-                                        <span class="badge badge-light-danger fw-bold w-auto">Draft</span>
+                                        <span class="badge badge-light fs-8 fw-bold">Never</span>
                                     }
-                                </div>
-                            </td>
+                                </td>
 
-                            <td>
-                                <div class="d-flex flex-column">
-                                    <span class="text-gray-800 fw-bold fs-7">@lang.CreatedAt.ToString("dd MMM yyyy")</span>
-                                    <span class="text-muted fs-8">@lang.CreatedAt.ToString("HH:mm")</span>
-                                </div>
-                            </td>
+                                <td class="text-end">
+                                    <a asp-area="Admin" asp-controller="Language" asp-action="Edit" asp-route-id="@lang.Id"
+                                        class="btn btn-icon btn-light-primary w-30px h-30px me-3">
+                                        <span data-bs-toggle="tooltip" data-bs-trigger="hover" title="Edit">
+                                            <i class="ki-duotone ki-pencil fs-3">
+                                                <span class="path1"></span><span class="path2"></span>
+                                            </i>
+                                        </span>
+                                    </a>
 
-                            <td>
-                                @if (lang.UpdatedAt.HasValue)
-                                {
-                                    <div class="d-flex flex-column">
-                                        <span class="text-gray-800 fw-bold fs-7">@lang.UpdatedAt.Value.ToString("dd MMM                    yyyy")</span>
-                                        <span class="text-muted fs-8">@lang.UpdatedAt.Value.ToString("HH:mm")</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-light fs-8 fw-bold">Never</span>
-                                }
-                            </td>
-
-                            <td class="text-end">
-                                <a asp-area="Admin" asp-controller="Language" asp-action="Edit" asp-route-id="@lang.Id"
-                                    class="btn btn-icon btn-light-primary w-30px h-30px me-3">
-                                    <span data-bs-toggle="tooltip" data-bs-trigger="hover" title="Edit">
-                                        <i class="ki-duotone ki-pencil fs-3">
+                                    <a href="javascript:void(0);" class="btn btn-icon btn-light-danger w-30px h-30px me-3"
+                                        data-bs-toggle="modal" data-bs-target="#deleteLanguageModal" data-lang-id="@lang.Id"
+                                        data-lang-name="@lang.Name">
+                                        <i class="ki-duotone ki-trash fs-2">
                                             <span class="path1"></span><span class="path2"></span>
+                                            <span class="path3"></span><span class="path4"></span>
+                                            <span class="path5"></span>
                                         </i>
-                                    </span>
-                                </a>
-
-                                <a href="javascript:void(0);" class="btn btn-icon btn-light-danger w-30px h-30px me-3"
-                                    data-bs-toggle="modal" data-bs-target="#deleteLanguageModal" data-lang-id="@lang.Id"
-                                    data-lang-name="@lang.Name">
-                                    <i class="ki-duotone ki-trash fs-2">
-                                        <span class="path1"></span><span class="path2"></span>
-                                        <span class="path3"></span><span class="path4"></span>
-                                        <span class="path5"></span>
-                                    </i>
-                                </a>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-10">
+                                <div class="d-flex flex-column align-items-center">
+                                    <i class="ki-outline ki-file-added fs-3x text-muted mb-3"></i>
+                                    <span class="fs-6 fw-semibold">No languages found.</span>
+                                    <span class="fs-7">Start by adding a new language to the system.</span>
+                                </div>
                             </td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-10">
-                            <div class="d-flex flex-column align-items-center">
-                                <i class="ki-outline ki-file-added fs-3x text-muted mb-3"></i>
-                                <span class="fs-6 fw-semibold">No languages found.</span>
-                                <span class="fs-7">Start by adding a new language to the system.</span>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
 
     </div>
 </div>

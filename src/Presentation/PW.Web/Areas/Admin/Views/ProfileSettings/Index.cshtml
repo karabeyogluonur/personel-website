@@ -37,7 +37,7 @@
 
 <form asp-controller="ProfileSettings" asp-action="Index" method="post" enctype="multipart/form-data" class="form">
 
-    <validation-summary />
+    <validation-alert />
     @Html.AntiForgeryToken()
 
     <div class="card card-flush">
@@ -72,7 +72,7 @@
                     <div class="row mb-7">
                         <div class="col-md-6">
                             <label asp-for="AvatarImage" class="form-label fs-7 fw-semibold mb-2"></label>
-                            <div class="d-flex align-items-center gap-5 mb-3">
+                            <div class="d-flex align-items-center flex-wrap gap-5 mb-3">
                                 <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.AvatarPath" folder="@StoragePaths.System_Profiles"
                                         default-src="/uploads/system/blanks/avatar.png" alt="Avatar" />
@@ -86,7 +86,8 @@
                                                 asp-for="RemoveAvatar"></label>
                                         </div>
                                     }
-                                    <input type="file" asp-for="AvatarImage" class="form-control form-control-sm"
+                                    <input type="file" asp-for="AvatarImage"
+                                        class="form-control form-control-sm form-control-solid"
                                         accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
@@ -100,7 +101,7 @@
 
                         <div class="col-md-6">
                             <label asp-for="CoverImage" class="form-label fs-7 fw-semibold mb-2"></label>
-                            <div class="d-flex align-items-center gap-5 mb-3">
+                            <div class="d-flex align-items-center flex-wrap gap-5 mb-3">
                                 <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                     <img file-name="@Model.CoverPath" folder="@StoragePaths.System_Profiles"
                                         default-src="/uploads/system/blanks/image.svg" style="object-fit:cover"
@@ -115,7 +116,8 @@
                                                 asp-for="RemoveCover"></label>
                                         </div>
                                     }
-                                    <input type="file" asp-for="CoverImage" class="form-control form-control-sm"
+                                    <input type="file" asp-for="CoverImage"
+                                        class="form-control form-control-sm form-control-solid"
                                         accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                     <div class="text-muted fs-8 mt-2">
@@ -133,24 +135,22 @@
                     <div class="row mb-5">
                         <div class="col-md-6 fv-row mb-7">
                             <label asp-for="FirstName" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="FirstName" class="form-control form-control-sm"
+                            <input asp-for="FirstName" class="form-control form-control-sm form-control-solid"
                                 maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
-                            <span asp-validation-for="FirstName"
-                                class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 fv-row mb-7">
                             <label asp-for="LastName" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="LastName" class="form-control form-control-sm"
+                            <input asp-for="LastName" class="form-control form-control-sm form-control-solid"
                                 maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
-                            <span asp-validation-for="LastName"
-                                class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                            <span asp-validation-for="LastName" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
                             <label asp-for="JobTitle" class="form-label fs-7 fw-semibold"></label>
-                            <input asp-for="JobTitle" class="form-control form-control-sm"
+                            <input asp-for="JobTitle" class="form-control form-control-sm form-control-solid"
                                 maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
                         </div>
                     </div>
@@ -158,8 +158,8 @@
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row mb-7">
                             <label asp-for="Biography" class="form-label fs-7 fw-semibold"></label>
-                            <textarea asp-for="Biography" class="form-control form-control-sm" rows="4"
-                                maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
+                            <textarea asp-for="Biography" class="form-control form-control-sm form-control-solid"
+                                rows="4" maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
                         </div>
                     </div>
                 </div>
@@ -188,7 +188,7 @@
                             <div class="col-md-6">
                                 <label asp-for="@Model.Translations[i].AvatarImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
-                                <div class="d-flex align-items-center gap-5 mb-3">
+                                <div class="d-flex align-items-center flex-wrap gap-5 mb-3">
                                     <div class="symbol symbol-100px symbol-circle border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Translations[i].AvatarPath"
                                             folder="@StoragePaths.System_Profiles"
@@ -205,7 +205,7 @@
                                             </div>
                                         }
                                         <input type="file" asp-for="Translations[i].AvatarImage"
-                                            class="form-control form-control-sm"
+                                            class="form-control form-control-sm form-control-solid"
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
@@ -219,7 +219,7 @@
                             <div class="col-md-6">
                                 <label asp-for="@Model.Translations[i].CoverImage"
                                     class="form-label fs-7 fw-semibold mb-2"></label>
-                                <div class="d-flex align-items-center gap-5 mb-3">
+                                <div class="d-flex align-items-center flex-wrap gap-5 mb-3">
                                     <div class="symbol symbol-100px border border-gray-300 border-dashed p-2">
                                         <img file-name="@Model.Translations[i].CoverPath"
                                             folder="@StoragePaths.System_Profiles"
@@ -237,7 +237,7 @@
                                             </div>
                                         }
                                         <input type="file" asp-for="Translations[i].CoverImage"
-                                            class="form-control form-control-sm"
+                                            class="form-control form-control-sm form-control-solid"
                                             accept="@string.Join(",", ApplicationLimits.ProfileSettings.AllowedImageExtensions)" />
 
                                         <div class="text-muted fs-8 mt-2">
@@ -253,14 +253,16 @@
                             <div class="col-md-6 fv-row mb-7">
                                 <label asp-for="@Model.Translations[i].FirstName"
                                     class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Translations[i].FirstName" class="form-control form-control-sm"
+                                <input asp-for="Translations[i].FirstName"
+                                    class="form-control form-control-sm form-control-solid"
                                     placeholder="Standard: @Model.FirstName"
                                     maxlength="@ApplicationLimits.ProfileSettings.FirstNameMaxLength" />
                             </div>
                             <div class="col-md-6 fv-row mb-7">
                                 <label asp-for="@Model.Translations[i].LastName"
                                     class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Translations[i].LastName" class="form-control form-control-sm"
+                                <input asp-for="Translations[i].LastName"
+                                    class="form-control form-control-sm form-control-solid"
                                     placeholder="Standard: @Model.LastName"
                                     maxlength="@ApplicationLimits.ProfileSettings.LastNameMaxLength" />
                             </div>
@@ -270,7 +272,8 @@
                             <div class="col-md-12 fv-row mb-7">
                                 <label asp-for="@Model.Translations[i].JobTitle"
                                     class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Translations[i].JobTitle" class="form-control form-control-sm"
+                                <input asp-for="Translations[i].JobTitle"
+                                    class="form-control form-control-sm form-control-solid"
                                     placeholder="Standard: @Model.JobTitle"
                                     maxlength="@ApplicationLimits.ProfileSettings.JobTitleMaxLength" />
                             </div>
@@ -280,7 +283,8 @@
                             <div class="col-md-12 fv-row mb-7">
                                 <label asp-for="@Model.Translations[i].Biography"
                                     class="form-label fs-7 fw-semibold"></label>
-                                <textarea asp-for="Translations[i].Biography" class="form-control form-control-sm" rows="4"
+                                <textarea asp-for="Translations[i].Biography"
+                                    class="form-control form-control-sm form-control-solid" rows="4"
                                     placeholder="Standard: @Model.Biography"
                                     maxlength="@ApplicationLimits.ProfileSettings.BiographyMaxLength"></textarea>
                             </div>
@@ -292,10 +296,10 @@
         </div>
 
         <div class="card-footer d-flex justify-content-end py-6 px-9">
-            <a asp-action="Index" class="btn btn-sm btn-light me-3">Discard</a>
+            <a asp-action="Index" class="btn btn-sm btn-light me-3">İptal</a>
 
             <button type="submit" class="btn btn-sm btn-primary">
-                <span class="indicator-label">Save Changes</span>
+                <span class="indicator-label">Güncelle</span>
                 <span class="indicator-progress">
                     Please wait...
                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>

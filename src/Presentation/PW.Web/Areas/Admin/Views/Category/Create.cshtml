@@ -34,7 +34,6 @@
 
 <form asp-action="Create" method="post" enctype="multipart/form-data">
     <validation-alert />
-    <validation-summary />
     @Html.AntiForgeryToken()
 
     <div class="card card-flush">
@@ -66,19 +65,9 @@
                 @* Standard Tab *@
                 <div class="tab-pane fade show active" id="tab_standard" role="tabpanel">
                     <div class="row mb-5">
-                        <div class="col-md-6">
-                            <label asp-for="IsActive" class="form-label fs-7 fw-semibold"></label>
-                            <div class="form-check form-switch form-check-custom form-check-solid">
-                                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
-                                <label class="form-check-label" asp-for="IsActive"></label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row mb-5">
                         <div class="col-md-12 fv-row">
-                            <label asp-for="Name" class="required form-label fs-7 fw-semibold"></label>
-                            <input asp-for="Name" class="form-control form-control-sm"
+                            <label asp-for="Name" class="required form-label fs-7 fw-semibold mb-2"></label>
+                            <input asp-for="Name" class="form-control form-control-sm form-control-solid"
                                 maxlength="@ApplicationLimits.Category.NameMaxLength" />
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
@@ -86,10 +75,31 @@
 
                     <div class="row mb-5">
                         <div class="col-md-12 fv-row">
-                            <label asp-for="Description" class="form-label fs-7 fw-semibold"></label>
-                            <textarea asp-for="Description" class="form-control form-control-sm" rows="3"
-                                maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
+                            <label asp-for="Description" class="form-label fs-7 fw-semibold mb-2"></label>
+                            <textarea asp-for="Description" class="form-control form-control-sm form-control-solid"
+                                rows="3" maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-5">
+                        <div class="col-md-12">
+                            <label asp-for="IsActive" class="form-label fs-7 fw-semibold mb-2"></label>
+                            <div
+                                class="d-flex align-items-center bg-light-success rounded p-5 border border-success border-dashed w-100">
+                                <i class="ki-duotone ki-abstract-26 fs-2tx text-success me-4">
+                                    <span class="path1"></span><span class="path2"></span>
+                                </i>
+                                <div class="flex-grow-1 me-3">
+                                    <span class="fw-bold text-gray-800 fs-6 d-block">Visibility Status</span>
+                                    <span class="text-muted fw-semibold fs-7">Toggle to enable or disable this item on
+                                        the public site.</span>
+                                </div>
+                                <div
+                                    class="form-check form-switch form-check-custom form-check-success form-check-solid">
+                                    <input asp-for="IsActive" class="form-check-input h-25px w-45px" type="checkbox" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,8 +130,9 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
-                                <label asp-for="Translations[i].Name" class="form-label fs-7 fw-semibold"></label>
-                                <input asp-for="Translations[i].Name" class="form-control form-control-sm"
+                                <label asp-for="Translations[i].Name" class="form-label fs-7 fw-semibold mb-2"></label>
+                                <input asp-for="Translations[i].Name"
+                                    class="form-control form-control-sm form-control-solid"
                                     placeholder="Standard Name Override"
                                     maxlength="@ApplicationLimits.Category.NameMaxLength" />
                                 <span asp-validation-for="Translations[i].Name" class="text-danger"></span>
@@ -130,9 +141,11 @@
 
                         <div class="row mb-5">
                             <div class="col-md-12 fv-row">
-                                <label asp-for="Translations[i].Description" class="form-label fs-7 fw-semibold"></label>
-                                <textarea asp-for="Translations[i].Description" class="form-control form-control-sm"
-                                    rows="3" maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
+                                <label asp-for="Translations[i].Description"
+                                    class="form-label fs-7 fw-semibold mb-2"></label>
+                                <textarea asp-for="Translations[i].Description"
+                                    class="form-control form-control-sm form-control-solid" rows="3"
+                                    maxlength="@ApplicationLimits.Category.DescriptionMaxLength"></textarea>
                                 <span asp-validation-for="Translations[i].Description" class="text-danger"></span>
                             </div>
                         </div>
@@ -142,9 +155,9 @@
         </div>
 
         <div class="card-footer d-flex justify-content-end py-6 px-9">
-            <a asp-action="Index" class="btn btn-sm btn-light me-3">Discard</a>
+            <a asp-action="Index" class="btn btn-sm btn-light me-3">Geri Dön</a>
             <button type="submit" class="btn btn-sm btn-primary">
-                <span class="indicator-label">Create</span>
+                <span class="indicator-label">Kaydet</span>
                 <span class="indicator-progress">
                     Please wait...
                     <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
