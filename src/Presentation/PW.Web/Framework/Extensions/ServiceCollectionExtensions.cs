@@ -14,6 +14,7 @@ using PW.Storage;
 using PW.Web.Areas.Admin.Features.Categories.Services;
 using PW.Web.Areas.Admin.Features.Configuration.Services;
 using PW.Web.Areas.Admin.Features.Languages.Services;
+using PW.Web.Areas.Admin.Features.Tags.Services;
 using PW.Web.Areas.Admin.Features.Technologies.Services;
 using PW.Web.Areas.Admin.Features.Users.Services;
 using PW.Web.Features.Auth.Services;
@@ -94,6 +95,7 @@ public static class ServiceCollectionExtensions
       services.AddScoped<IGeneralSettingsOrchestrator, GeneralSettingsOrchestrator>();
       services.AddScoped<ITechnologyOrchestrator, TechnologyOrchestrator>();
       services.AddScoped<ICategoryOrchestrator, CategoryOrchestrator>();
+      services.AddScoped<ITagOrchestrator, TagOrchestrator>();
       return services;
    }
 

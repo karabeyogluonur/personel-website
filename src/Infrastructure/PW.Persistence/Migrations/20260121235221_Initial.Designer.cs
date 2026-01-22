@@ -12,7 +12,7 @@ using PW.Persistence.Contexts;
 namespace PW.Persistence.Migrations
 {
     [DbContext(typeof(PWDbContext))]
-    [Migration("20260113024752_Initial")]
+    [Migration("20260121235221_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -42,6 +42,9 @@ namespace PW.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -56,6 +59,9 @@ namespace PW.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -237,10 +243,16 @@ namespace PW.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Value")
                         .IsRequired()
@@ -284,6 +296,81 @@ namespace PW.Persistence.Migrations
                     b.ToTable("SettingTranslations", (string)null);
                 });
 
+            modelBuilder.Entity("PW.Domain.Entities.Tag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ColorHex")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.ToTable("Tags", (string)null);
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.TagTranslation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("TagTranslation");
+                });
+
             modelBuilder.Entity("PW.Domain.Entities.Technology", b =>
                 {
                     b.Property<int>("Id")
@@ -293,6 +380,9 @@ namespace PW.Persistence.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -309,6 +399,9 @@ namespace PW.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -414,6 +507,25 @@ namespace PW.Persistence.Migrations
                     b.Navigation("Language");
                 });
 
+            modelBuilder.Entity("PW.Domain.Entities.TagTranslation", b =>
+                {
+                    b.HasOne("PW.Domain.Entities.Tag", "Entity")
+                        .WithMany("Translations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PW.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
             modelBuilder.Entity("PW.Domain.Entities.TechnologyTranslation", b =>
                 {
                     b.HasOne("PW.Domain.Entities.Technology", "Entity")
@@ -444,6 +556,11 @@ namespace PW.Persistence.Migrations
                 });
 
             modelBuilder.Entity("PW.Domain.Entities.Setting", b =>
+                {
+                    b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("PW.Domain.Entities.Tag", b =>
                 {
                     b.Navigation("Translations");
                 });

@@ -8,8 +8,10 @@ using PW.Application.Features.Categories;
 using PW.Application.Features.Configuration;
 using PW.Application.Features.Localization;
 using PW.Application.Features.Localization.Dtos;
+using PW.Application.Features.Tags;
 using PW.Application.Features.Technologies;
 using PW.Application.Features.Users;
+using PW.Domain.Entities;
 using PW.Domain.Interfaces;
 
 namespace PW.Application;
@@ -27,6 +29,7 @@ public static class DependencyInjection
       builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
       builder.Services.AddScoped<ITechnologyService, TechnologyService>();
       builder.Services.AddScoped<ICategoryService, CategoryService>();
+      builder.Services.AddScoped<ITagService, TagService>();
       builder.Services.AddScoped<IUserService, UserService>();
       builder.Services.AddScoped<IAuthService, AuthService>();
 

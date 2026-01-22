@@ -58,4 +58,11 @@ public static class ApplicationLimits
       public const int DescriptionMaxLength = 500;
    }
 
+   public static class Tag
+   {
+      public const int NameMaxLength = 100;
+      public const int DescriptionMaxLength = 500;
+      public const int ColorHexMaxLength = 9;
+   }
+
 }
