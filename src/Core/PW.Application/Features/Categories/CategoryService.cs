@@ -31,6 +31,7 @@ public class CategoryService : ICategoryService
          Id = category.Id,
          IsActive = category.IsActive,
          CreatedAt = category.CreatedAt,
+         UpdatedAt = category.UpdatedAt,
          Name = category.Name,
          Description = category.Description,
       }).ToList();
@@ -78,7 +79,6 @@ public class CategoryService : ICategoryService
          Name = categoryCreateDto.Name,
          Description = categoryCreateDto.Description,
          IsActive = categoryCreateDto.IsActive,
-         CreatedAt = DateTime.UtcNow,
          IsDeleted = false,
          Translations = new List<CategoryTranslation>()
       };
