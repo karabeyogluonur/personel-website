@@ -3,7 +3,7 @@ using PW.Domain.Interfaces;
 
 namespace PW.Domain.Entities;
 
-public class Technology : BaseEntity, IAuditableEntity, ILocalizedEntity<TechnologyTranslation>
+public class Technology : BaseEntity, IAuditableEntity, ISoftDeleteEntity, ILocalizedEntity<TechnologyTranslation>
 {
    public string Name { get; set; } = string.Empty;
    public string IconImageFileName { get; set; } = string.Empty;
@@ -12,4 +12,7 @@ public class Technology : BaseEntity, IAuditableEntity, ILocalizedEntity<Technol
    public DateTime CreatedAt { get; set; }
    public DateTime? UpdatedAt { get; set; }
    public virtual ICollection<TechnologyTranslation> Translations { get; set; } = new List<TechnologyTranslation>();
+   public bool IsDeleted { get; set; }
+   public DateTime? DeletedAt { get; set; }
+
 }

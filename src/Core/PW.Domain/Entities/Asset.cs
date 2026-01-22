@@ -3,7 +3,7 @@ using PW.Domain.Interfaces;
 
 namespace PW.Domain.Entities;
 
-public class Asset : BaseEntity, ILocalizedEntity<AssetTranslation>
+public class Asset : BaseEntity, IAuditableEntity, ILocalizedEntity<AssetTranslation>
 {
    public string FileName { get; set; } = string.Empty;
    public string Folder { get; set; } = string.Empty;
@@ -11,4 +11,7 @@ public class Asset : BaseEntity, ILocalizedEntity<AssetTranslation>
    public string ContentType { get; set; } = string.Empty;
    public string? AltText { get; set; }
    public virtual ICollection<AssetTranslation> Translations { get; set; } = new List<AssetTranslation>();
+   public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+   public DateTime? UpdatedAt { get; set; }
+
 }
