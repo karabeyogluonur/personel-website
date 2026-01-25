@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using PW.Application.Common.Enums;
 using PW.Application.Common.Extensions;
 using PW.Application.Interfaces.Storage;
@@ -7,12 +8,32 @@ namespace PW.Storage.Services;
 
 public class LocalStorageService : IStorageService
 {
-   private readonly IWebHostEnvironment _webHostEnvironment;
-   private const string RootContainerName = "uploads";
+   private readonly IConfiguration _configuration;
+   private const string DefaultRequestPath = "/uploads";
 
-   public LocalStorageService(IWebHostEnvironment webHostEnvironment)
+   public LocalStorageService(IConfiguration configuration)
    {
-      _webHostEnvironment = webHostEnvironment;
+      _configuration = configuration;
+   }
+
+   private string GetStorageBasePath()
+   {
+      IConfigurationSection storageConfig = _configuration.GetSection("Storage");
+      string? path = storageConfig["Path"];
+      bool useRelative = storageConfig.GetValue<bool>("UseRelativePath");
+
+      if (string.IsNullOrEmpty(path))
+         throw new InvalidOperationException("Storage:Path configuration is missing in appsettings.json");
+
+      if (useRelative)
+         return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), path));
+
+      return path;
+   }
+
+   private string GetRequestPath()
+   {
+      return _configuration.GetValue<string>("Storage:RequestPath") ?? DefaultRequestPath;
    }
 
    public async Task<string> UploadAsync(Stream fileStream, string fileName, string folder, FileNamingMode mode = FileNamingMode.Unique, string? customName = null)
@@ -23,8 +44,8 @@ public class LocalStorageService : IStorageService
       if (string.IsNullOrEmpty(fileName))
          throw new ArgumentException("Filename cannot be empty.", nameof(fileName));
 
-      string webRootPath = _webHostEnvironment.WebRootPath;
-      string folderPath = Path.Combine(webRootPath, RootContainerName, folder);
+      string basePath = GetStorageBasePath();
+      string folderPath = Path.Combine(basePath, folder);
 
       if (!Directory.Exists(folderPath))
          Directory.CreateDirectory(folderPath);
@@ -63,8 +84,8 @@ public class LocalStorageService : IStorageService
 
    public Task DeleteAsync(string folder, string fileName)
    {
-      string webRootPath = _webHostEnvironment.WebRootPath;
-      string fullPath = Path.Combine(webRootPath, RootContainerName, folder, fileName);
+      string basePath = GetStorageBasePath();
+      string fullPath = Path.Combine(basePath, folder, fileName);
 
       if (File.Exists(fullPath))
          File.Delete(fullPath);
@@ -74,8 +95,8 @@ public class LocalStorageService : IStorageService
 
    public Task RenameAsync(string folder, string oldFileName, string newFileName)
    {
-      string webRootPath = _webHostEnvironment.WebRootPath;
-      string folderPath = Path.Combine(webRootPath, RootContainerName, folder);
+      string basePath = GetStorageBasePath();
+      string folderPath = Path.Combine(basePath, folder);
 
       string oldPath = Path.Combine(folderPath, oldFileName);
       string newPath = Path.Combine(folderPath, newFileName);
@@ -88,6 +109,8 @@ public class LocalStorageService : IStorageService
 
    public string GetUrl(string folder, string fileName)
    {
-      return $"/{RootContainerName}/{folder}/{fileName}".Replace("\\", "/");
+      string requestPath = GetRequestPath();
+      string url = $"{requestPath}/{folder}/{fileName}";
+      return url.Replace("\\", "/").Replace("//", "/");
    }
 }

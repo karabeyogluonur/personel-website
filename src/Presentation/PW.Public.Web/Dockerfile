@@ -19,6 +19,8 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "PW.Public.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+COPY ["src/Presentation/PW.Web.Framework/wwwroot/", "/app/publish/wwwroot/"]
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .

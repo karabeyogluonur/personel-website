@@ -1,3 +1,4 @@
+# Base Image
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER app
 WORKDIR /app
@@ -18,6 +19,9 @@ RUN dotnet build "PW.Admin.Web.csproj" -c $BUILD_CONFIGURATION -o /app/build
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "PW.Admin.Web.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+
+COPY ["src/Presentation/PW.Web.Framework/wwwroot/", "/app/publish/wwwroot/"]
 
 FROM base AS final
 WORKDIR /app

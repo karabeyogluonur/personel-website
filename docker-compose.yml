@@ -4,7 +4,7 @@ services:
     container_name: pw_admin_local
     build:
       context: .
-      dockerfile: src/Presentation/PW.Admin.Web/Dockerfile # Dockerfile yolu özel belirtiliyor
+      dockerfile: src/Presentation/PW.Admin.Web/Dockerfile
     restart: always
     ports:
       - "8080:8080"
@@ -12,6 +12,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=pw.db;Port=5432;Database=${DB_NAME:-PersonelWebsiteDB};Username=${DB_USER:-pw_user};Password=${DB_PASSWORD:-your_strong_password}
       - ConnectionStrings__Redis=pw.redis:6379,password=${REDIS_PASSWORD:-StrongRedisPass123!},abortConnect=false
+      - Storage__UseRelativePath=false
+      - Storage__Path=/app/uploads
+      - Storage__RequestPath=/uploads
+    volumes:
+      - ./Uploads:/app/uploads
     depends_on:
       pw.db:
         condition: service_healthy
@@ -33,6 +38,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=pw.db;Port=5432;Database=${DB_NAME:-PersonelWebsiteDB};Username=${DB_USER:-pw_user};Password=${DB_PASSWORD:-your_strong_password}
       - ConnectionStrings__Redis=pw.redis:6379,password=${REDIS_PASSWORD:-StrongRedisPass123!},abortConnect=false
+      - Storage__UseRelativePath=false
+      - Storage__Path=/app/uploads
+      - Storage__RequestPath=/uploads
+    volumes:
+      - ./Uploads:/app/uploads
     depends_on:
       pw.db:
         condition: service_healthy
