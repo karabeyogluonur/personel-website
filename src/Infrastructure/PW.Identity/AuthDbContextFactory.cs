@@ -10,7 +10,7 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
    public AuthDbContext CreateDbContext(string[] args)
    {
       var currentDirectory = Directory.GetCurrentDirectory();
-      var webProjectPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", "..", "Presentation", "PW.Web"));
+      var webProjectPath = Path.GetFullPath(Path.Combine(currentDirectory, "..", "..", "Presentation", "PW.Admin.Web"));
 
       var config = new ConfigurationBuilder()
           .SetBasePath(webProjectPath)

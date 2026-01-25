@@ -1,0 +1,167 @@
+@model LanguageCreateViewModel
+
+<div class="card mb-5">
+    <div class="card-body py-4">
+        <div id="kt_app_toolbar" class="app-toolbar">
+            <div class="d-flex flex-stack w-100">
+                <div class="page-title d-flex flex-column justify-content-center gap-2">
+                    <h1 class="page-heading fw-bold fs-2 text-gray-900 mb-0">
+                        Language Management
+                    </h1>
+                    <ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 text-gray-600 mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="/" class="text-gray-600 text-hover-primary">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="@Url.Action("Index", "Language")"
+                                class="text-gray-600 text-hover-primary">Languages</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <span class="bullet bg-gray-400 w-5px h-2px"></span>
+                        </li>
+                        <li class="breadcrumb-item text-gray-800 fw-semibold">
+                            Create
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div
+    class="alert alert-dismissible bg-light-warning border border-warning border-dashed d-flex flex-column flex-sm-row w-100 p-5 mb-10">
+    <i class="ki-duotone ki-information-5 fs-2hx text-warning me-4 mb-5 mb-sm-0 flex-shrink-0">
+        <span class="path1"></span><span class="path2"></span><span class="path3"></span>
+    </i>
+
+    <div class="d-flex flex-column pe-0 pe-sm-10 flex-grow-1">
+        <span class="fw-bold text-gray-900 fs-6 mb-2">Important Implementation Requirements</span>
+        <ul class="text-gray-600 fs-7 mb-0 lh-base ps-4">
+            <li class="mb-1">
+                <strong>Resource File:</strong> Manually create a file in <code
+                    class=" border-warning border border-dashed px-1 py-1 rounded fs-8 text-gray-800">PW.Admin.Web/Resources</code>
+            </li>
+            <li class="mb-1">
+                <strong>Naming:</strong> File name must be <code
+                    class=" border-warning border border-dashed px-1 py-1 rounded fs-8 text-gray-800">SharedResources.{iso-code}.resx</code>
+                (e.g., <em>SharedResources.de.resx</em>).
+            </li>
+            <li>
+                <strong>Tip:</strong> Copy an existing <code>.resx</code> file and rename it.
+            </li>
+        </ul>
+    </div>
+
+    <button type="button" class="btn btn-icon btn-sm btn-active-color-warning ms-sm-auto align-self-sm-start"
+        data-bs-dismiss="alert">
+        <i class="ki-duotone ki-cross fs-2">
+            <span class="path1"></span><span class="path2"></span>
+        </i>
+    </button>
+</div>
+
+<div class="card mb-5">
+    <div class="card-body">
+        <form asp-controller="Language" asp-action="Create" method="post" class="form" enctype="multipart/form-data">
+
+            <validation-alert />
+
+            @Html.AntiForgeryToken()
+
+            <div class="row">
+                <div class="col-md-6 fv-row mb-7">
+                    <label asp-for="Name" class="required form-label fs-7 fw-semibold mb-2"></label>
+                    <input asp-for="Name" class="form-control form-control-sm form-control-solid"
+                        placeholder="e.g. English" maxlength="@ApplicationLimits.Common.NameMaxLength" />
+                    <span asp-validation-for="Name" class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                </div>
+
+                <div class="col-md-6 fv-row mb-7">
+                    <label asp-for="Code" class="required form-label fs-7 fw-semibold mb-2"></label>
+                    <input asp-for="Code" class="form-control form-control-sm form-control-solid" placeholder="e.g. en"
+                        maxlength="@ApplicationLimits.Language.CodeMaxLength" />
+                    <div class="text-muted fs-8 mt-1">Use format like 'en' or 'tr'. Max
+                        @ApplicationLimits.Language.CodeMaxLength chars.</div>
+                    <span asp-validation-for="Code" class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 fv-row mb-7">
+                    <label asp-for="FlagImage" class="required form-label fs-7 fw-semibold mb-2"></label>
+                    <input asp-for="FlagImage" type="file" class="form-control form-control-sm form-control-solid"
+                        accept="@string.Join(",", ApplicationLimits.Language.AllowedFlagExtensions)" />
+                    <div class="text-muted fs-8 mt-1">
+                        Allowed file types: @string.Join(", ", ApplicationLimits.Language.AllowedFlagExtensions).
+                        Max size: @(ApplicationLimits.Language.MaxFlagSizeBytes / 1024 / 1024) MB.
+                    </div>
+                    <span asp-validation-for="FlagImage"
+                        class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                </div>
+
+                <div class="col-md-6 fv-row mb-7">
+                    <label asp-for="DisplayOrder" class="required form-label fs-7 fw-semibold mb-2"></label>
+                    <input asp-for="DisplayOrder" type="number"
+                        class="form-control form-control-sm form-control-solid" />
+                    <span asp-validation-for="DisplayOrder"
+                        class="fv-plugins-message-container invalid-feedback fs-8"></span>
+                </div>
+            </div>
+
+            <div class="separator separator-dashed my-6"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-7">
+                    <label asp-for="IsPublished" class="form-label fs-7 fw-semibold mb-2"></label>
+                    <div
+                        class="d-flex align-items-center bg-light-success rounded p-5 border border-success border-dashed w-100">
+                        <i class="ki-duotone ki-abstract-26 fs-2tx text-success me-4">
+                            <span class="path1"></span><span class="path2"></span>
+                        </i>
+                        <div class="flex-grow-1 me-3">
+                            <span class="fw-bold text-gray-800 fs-6 d-block">Publish Status</span>
+                            <span class="text-muted fw-semibold fs-7">Check this to make the language visible to users
+                                immediately.</span>
+                        </div>
+                        <div class="form-check form-switch form-check-custom form-check-success form-check-solid">
+                            <input asp-for="IsPublished" class="form-check-input h-25px w-45px" type="checkbox" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-7">
+                    <label asp-for="IsDefault" class="form-label fs-7 fw-semibold mb-2"></label>
+                    <div
+                        class="d-flex align-items-center bg-light-primary rounded p-5 border border-primary border-dashed w-100">
+                        <i class="ki-duotone ki-flag fs-2tx text-primary me-4">
+                            <span class="path1"></span><span class="path2"></span>
+                        </i>
+                        <div class="flex-grow-1 me-3">
+                            <span class="fw-bold text-gray-800 fs-6 d-block">Default Language</span>
+                            <span class="text-muted fw-semibold fs-7">Make this the default language for the
+                                application.</span>
+                        </div>
+                        <div class="form-check form-switch form-check-custom form-check-primary form-check-solid">
+                            <input asp-for="IsDefault" class="form-check-input h-25px w-45px" type="checkbox" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end pt-5">
+                <a asp-action="Index" class="btn btn-sm btn-light me-3">Back</a>
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <span class="indicator-label">Save</span>
+                    <span class="indicator-progress">
+                        Please wait...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

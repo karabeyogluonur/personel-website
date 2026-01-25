@@ -80,7 +80,7 @@ src/
 │   ├── PW.Identity/        # Identity services, Auth context, user logic
 │   └── PW.Storage/        # External services (File storage, Email, etc.)
 └── Presentation/
-    └── PW.Web/             # MVC app, Controllers, Views, API endpoints
+    └── PW.Admin.Web/             # MVC app, Controllers, Views, API endpoints
 ```
 
 ### Key Patterns Used
@@ -130,7 +130,7 @@ Ensure PostgreSQL is running and update `appsettings.json`:
 #### Apply Migrations
 
 ```bash
-cd src/Presentation/PW.Web
+cd src/Presentation/PW.Admin.Web
 dotnet ef database update --context PWDbContext
 dotnet ef database update --context AuthDbContext
 ```

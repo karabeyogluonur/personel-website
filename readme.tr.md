@@ -80,7 +80,7 @@ src/
 │   ├── PW.Identity/        # Kimlik servisleri, Auth context, kullanıcı mantığı
 │   └── PW.Storage/        # Harici servisler (Dosya, E-posta vb.)
 └── Presentation/
-    └── PW.Web/             # MVC uygulaması, Controller’lar, View’lar
+    └── PW.Admin.Web/             # MVC uygulaması, Controller’lar, View’lar
 ```
 
 ### Kullanılan Temel Pattern’ler
@@ -130,7 +130,7 @@ PostgreSQL çalışır durumda olmalıdır. `appsettings.json` dosyasını günc
 #### Migration’ları Uygulama
 
 ```bash
-cd src/Presentation/PW.Web
+cd src/Presentation/PW.Admin.Web
 dotnet ef database update --context PWDbContext
 dotnet ef database update --context AuthDbContext
 ```
